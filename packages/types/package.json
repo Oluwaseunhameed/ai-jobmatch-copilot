@@ -1,0 +1,17 @@
+{
+  "name": "@jobmatch/types",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"No lint configured yet\""
+  },
+  "devDependencies": {
+    "@jobmatch/typescript-config": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

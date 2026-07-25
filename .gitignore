@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+apps/api/src/**/*.js
+apps/api/src/**/*.js.map
+apps/api/src/**/*.d.ts
+apps/api/src/**/*.d.ts.map
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Turbo
+.turbo/
+
+# Testing
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Prisma
+packages/database/prisma/migrations/**/migration_lock.toml
+
+# Uploads (local dev)
+uploads/
+
+# Docker volumes (if mapped locally)
+.docker-data/

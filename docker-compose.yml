@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: jobmatch-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jobmatch
+      POSTGRES_PASSWORD: jobmatch_dev
+      POSTGRES_DB: jobmatch
+    ports:
+      # Host 5434 — 5432/5433 often taken by local or other Docker Postgres
+      - '5434:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U jobmatch -d jobmatch']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: jobmatch-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: jobmatch-ollama
+    restart: unless-stopped
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama_data:/root/.ollama
+    # Pull a model after first start:
+    #   docker exec jobmatch-ollama ollama pull llama3.2
+
+volumes:
+  postgres_data:
+  redis_data:
+  ollama_data:

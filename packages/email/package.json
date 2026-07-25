@@ -1,0 +1,21 @@
+{
+  "name": "@jobmatch/email",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests configured yet\"",
+    "lint": "echo \"No lint configured yet\""
+  },
+  "dependencies": {
+    "resend": "^4.5.1"
+  },
+  "devDependencies": {
+    "@jobmatch/typescript-config": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

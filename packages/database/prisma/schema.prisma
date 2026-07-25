@@ -1,0 +1,118 @@
+// Prisma schema for AI JobMatch Copilot
+// Identity is managed by Clerk; User.id = Clerk user id
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+// ---------------------------------------------------------------------------
+// App user — mirrored from Clerk
+// ---------------------------------------------------------------------------
+model User {
+  id            String   @id // Clerk user id (e.g. user_...)
+  name          String
+  email         String
+  emailVerified Boolean  @default(false) @map("email_verified")
+  image         String?
+  role          String   @default("user")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  profile     CareerProfile?
+  preferences UserPreference?
+
+  @@unique([email])
+  @@map("user")
+}
+
+// ---------------------------------------------------------------------------
+// User Preferences — theme, locale, notifications, onboarding
+// ---------------------------------------------------------------------------
+model UserPreference {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  theme    String @default("system") // system | light | dark
+  locale   String @default("en") // en | es | fr | de
+  timezone String @default("UTC")
+
+  emailJobAlerts          Boolean @default(true) @map("email_job_alerts")
+  emailApplicationUpdates Boolean @default(true) @map("email_application_updates")
+  emailWeeklyDigest       Boolean @default(true) @map("email_weekly_digest")
+  emailMarketing          Boolean @default(false) @map("email_marketing")
+  pushEnabled             Boolean @default(false) @map("push_enabled")
+
+  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_preferences")
+}
+
+// ---------------------------------------------------------------------------
+// Career Profile — Module 2 foundation
+// ---------------------------------------------------------------------------
+model CareerProfile {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  headline String?
+  summary  String? @db.Text
+
+  phone    String?
+  address  String?
+  city     String?
+  country  String?
+  timeZone String? @map("time_zone")
+
+  portfolioUrl String? @map("portfolio_url")
+  githubUrl    String? @map("github_url")
+  linkedinUrl  String? @map("linkedin_url")
+  websiteUrl   String? @map("website_url")
+
+  currentJobTitle        String?  @map("current_job_title")
+  yearsOfExperience      Int?     @map("years_of_experience")
+  desiredRoles           String[] @default([]) @map("desired_roles")
+  employmentType         String?  @map("employment_type")
+  salaryExpectation      Int?     @map("salary_expectation")
+  salaryCurrency         String?  @default("USD") @map("salary_currency")
+  noticePeriodDays       Int?     @map("notice_period_days")
+  workAuthorization      String?  @map("work_authorization")
+  visaSponsorshipNeeded  Boolean  @default(false) @map("visa_sponsorship_needed")
+  workLocationPreference String?  @map("work_location_preference")
+
+  completenessScore Int @default(0) @map("completeness_score")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  skills Skill[]
+
+  @@map("career_profiles")
+}
+
+model Skill {
+  id        String        @id @default(cuid())
+  profileId String        @map("profile_id")
+  profile   CareerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  name     String
+  category String
+  level    String?
+  years    Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([profileId])
+  @@map("skills")
+}

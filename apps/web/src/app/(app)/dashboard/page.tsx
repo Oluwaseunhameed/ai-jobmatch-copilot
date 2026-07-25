@@ -1,0 +1,97 @@
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { requireAppUser } from '@/lib/auth';
+import { prisma } from '@jobmatch/database';
+import { cn } from '@/lib/utils';
+
+export default async function DashboardPage() {
+  const app = await requireAppUser();
+  const name = app?.user.name ?? 'there';
+
+  const profile = app
+    ? await prisma.careerProfile.findUnique({
+        where: { userId: app.user.id },
+        include: { skills: true },
+      })
+    : null;
+
+  const score = profile?.completenessScore ?? 0;
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <p className="text-sm font-medium text-primary">Dashboard</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+          Welcome back, {name}
+        </h1>
+        <p className="mt-3 max-w-xl text-muted-foreground">
+          Your AI job search workspace. Start with a strong career profile — everything else builds
+          on it.
+        </p>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr]">
+        <div className="surface-panel p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Profile completeness
+              </p>
+              <p
+                className={cn(
+                  'mt-2 font-display text-4xl font-semibold tabular-nums',
+                  score >= 80 ? 'text-success' : score >= 50 ? 'text-warning' : 'text-foreground',
+                )}
+              >
+                {score}%
+              </p>
+            </div>
+            <Button asChild size="sm">
+              <Link href="/profile">
+                {score === 0 ? 'Start profile' : 'Improve'}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500"
+              style={{ width: `${score}%` }}
+            />
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            {score >= 80
+              ? 'Strong foundation — matching and resume tools will work best.'
+              : 'Add headline, summary, desired roles, links, and at least three skills.'}
+          </p>
+          {profile?.headline && (
+            <p className="mt-3 text-sm font-medium text-foreground">{profile.headline}</p>
+          )}
+        </div>
+
+        <Panel
+          title="Resume library"
+          body="Upload and version resumes tailored to each role."
+          hint="Module 3"
+        />
+        <Panel
+          title="Job pipeline"
+          body="Track applications from saved to offer in one calm board."
+          hint="Coming soon"
+        />
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, body, hint }: { title: string; body: string; hint: string }) {
+  return (
+    <div className="surface-panel p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift">
+      <h2 className="font-display text-lg font-semibold tracking-tight">{title}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+      <p className="mt-4 text-xs font-medium uppercase tracking-wider text-primary/80">{hint}</p>
+    </div>
+  );
+}

@@ -1,0 +1,98 @@
+# Decision Log — AI JobMatch Copilot
+
+Record of architectural, product, and technology decisions.  
+Format: **Decision · Context · Options · Outcome · Date**
+
+---
+
+## ADR-001: Monorepo with Turborepo + pnpm
+
+**Context:** Multiple apps (web, api, ai-service) share types, UI, and database schema.  
+**Options:** Separate repos vs monorepo (Turborepo, Nx).  
+**Outcome:** **Proposed** — Monorepo with Turborepo + pnpm workspaces.  
+**Rationale:** Shared types, atomic changes across frontend/backend, simpler local dev.  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-21
+
+---
+
+## ADR-002: Backend framework — NestJS
+
+**Context:** Need structured, scalable API with DI, modules, and Swagger.  
+**Options:** NestJS, Fastify standalone, Next.js API routes only.  
+**Outcome:** **Proposed** — NestJS as primary API; FastAPI only for AI workloads.  
+**Rationale:** Separation of concerns; NestJS excels at enterprise API patterns; AI stays in Python ecosystem.  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-21
+
+---
+
+## ADR-003: Database — PostgreSQL + Prisma + pgvector
+
+**Context:** Relational data plus semantic search for jobs/resumes.  
+**Options:** PostgreSQL only, PostgreSQL + Elasticsearch day 1, MongoDB.  
+**Outcome:** **Proposed** — PostgreSQL with Prisma; pgvector for embeddings; defer Elasticsearch.  
+**Rationale:** YAGNI — pgvector is sufficient for MVP job matching.  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-21
+
+---
+
+## ADR-004: Auth library — Better Auth (superseded)
+
+**Context:** Need email/password, OAuth, 2FA, email verification.  
+**Options:** Better Auth, Auth.js (NextAuth v5), Clerk, Supabase Auth.  
+**Outcome:** **Accepted** — Better Auth (self-hosted). Auth routes live in Next.js; NestJS validates sessions.  
+**Status:** ♻️ Superseded by ADR-008  
+**Date:** 2026-07-21
+
+---
+
+## ADR-008: Auth library — Clerk
+
+**Context:** Prefer managed authentication for production readiness (email/password, OAuth, 2FA, verification, session management) without maintaining self-hosted auth infra.  
+**Options:** Keep Better Auth, migrate to Clerk, Auth.js.  
+**Outcome:** **Accepted** — Clerk for identity. Next.js uses `@clerk/nextjs`; NestJS verifies Clerk session JWTs via `@clerk/backend`. App `User` rows are synced from Clerk (webhook + ensure-on-request). App-owned preferences (theme, locale, notifications, onboarding) remain in Postgres.  
+**Rationale:** Faster production auth, less custom auth surface, Clerk handles security flows; product data stays in our DB.  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-25
+
+---
+
+## ADR-009: Design system — Precision Editorial
+
+**Context:** Need a single world-class, responsive visual language before Module 2 so all product surfaces stay consistent.  
+**Options:** Generic shadcn defaults; purple AI aesthetic; Precision Editorial (Linear density + Stripe polish + editorial type + quiet motion).  
+**Outcome:** **Accepted** — Precision Editorial. Tokens/fonts in `apps/web`; contract in `docs/DESIGN_SYSTEM.md`. Light-first with true dark mode. Display: Newsreader; UI: Plus Jakarta Sans; accent: deep forest green on stone/charcoal (classic professional). Clerk appearance syncs with `next-themes`.  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-25
+
+---
+
+## ADR-005: AI provider strategy — LiteLLM abstraction
+
+**Context:** Support multiple LLM providers; local dev with Ollama.  
+**Options:** Direct OpenAI SDK, LiteLLM, LangChain-only.  
+**Outcome:** **Accepted** — LiteLLM in FastAPI service; Dev: Ollama; Prod: OpenAI + Anthropic.  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-21
+
+---
+
+## ADR-006: MVP job data source
+
+**Context:** Job discovery requires data before integrations exist.  
+**Options:** Manual seed data, Adzuna/Remotive APIs, scrape (legal concerns).  
+**Outcome:** **Accepted** — Seed data for dev; licensed job APIs for staging/production.  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-21
+
+---
+
+## ADR-007: Deployment target
+
+**Context:** Affects Docker setup, env management, and CI/CD.  
+**Options:** Vercel + Railway, AWS, self-hosted VPS, Docker Compose only for now.  
+**Outcome:** **Accepted** — Vercel (web) + Railway or Fly.io (API, workers, AI service).  
+**Status:** ✅ Accepted  
+**Date:** 2026-07-21
