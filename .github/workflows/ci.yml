@@ -29,13 +29,12 @@ jobs:
       DATABASE_URL: postgresql://jobmatch:jobmatch_dev@localhost:5432/jobmatch?schema=public
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      # Reads the exact pnpm version from package.json#packageManager.
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
