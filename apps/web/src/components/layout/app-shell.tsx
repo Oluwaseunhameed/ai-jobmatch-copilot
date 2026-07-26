@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Menu, Settings, UserRound, X } from 'lucide-react';
+import { FileText, LayoutDashboard, Menu, Settings, UserRound, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { SignOutButton } from '@/components/auth/sign-out-button';
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/profile', label: 'Profile', icon: UserRound },
+  { href: '/resumes', label: 'Resumes', icon: FileText },
   { href: '/settings/account', label: 'Settings', icon: Settings },
 ];
 

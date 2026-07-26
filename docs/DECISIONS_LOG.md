@@ -96,3 +96,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Outcome:** **Accepted** — Vercel (web) + Railway or Fly.io (API, workers, AI service).  
 **Status:** ✅ Accepted  
 **Date:** 2026-07-21
+
+---
+
+## ADR-010: Resume file storage — local + S3-compatible
+
+**Context:** Module 3 needs durable resume files (PDF/DOCX) with a path to CDN later. Architecture mentioned UploadThing + Cloudinary; the project already uses Supabase Postgres.
+**Options:** UploadThing-only, Cloudinary raw, local disk only, S3-compatible (Supabase Storage / MinIO / AWS).
+**Outcome:** **Accepted** — Storage abstraction: **local filesystem** for development (`uploads/`), **S3-compatible** object storage for staging/production (Supabase Storage, MinIO, or AWS S3 via standard env vars). UploadThing/Cloudinary deferred until we need their upload UX or image CDN features.
+**Rationale:** Works immediately without a third vendor account; Supabase Storage reuses existing infra; same code path for Nest and Next BFF.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-26

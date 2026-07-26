@@ -17,6 +17,16 @@ export default async function DashboardPage() {
       })
     : null;
 
+  const resumeCount = app
+    ? await prisma.resume.count({ where: { userId: app.user.id } })
+    : 0;
+
+  const primaryResume = app
+    ? await prisma.resume.findFirst({
+        where: { userId: app.user.id, isPrimary: true },
+      })
+    : null;
+
   const score = profile?.completenessScore ?? 0;
 
   return (
@@ -27,8 +37,8 @@ export default async function DashboardPage() {
           Welcome back, {name}
         </h1>
         <p className="mt-3 max-w-xl text-muted-foreground">
-          Your AI job search workspace. Start with a strong career profile — everything else builds
-          on it.
+          Your AI job search workspace. Keep your profile and resumes current — matching builds on
+          both.
         </p>
       </div>
 
@@ -71,11 +81,30 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <Panel
-          title="Resume library"
-          body="Upload and version resumes tailored to each role."
-          hint="Module 3"
-        />
+        <div className="surface-panel p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-semibold tracking-tight">Resume library</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {resumeCount === 0
+                  ? 'Upload PDF or DOCX resumes to unlock parsing and tailoring.'
+                  : `${resumeCount} resume${resumeCount === 1 ? '' : 's'} on file${
+                      primaryResume ? ` · primary: ${primaryResume.title}` : ''
+                    }.`}
+              </p>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/resumes">
+                {resumeCount === 0 ? 'Upload' : 'Manage'}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+          <p className="mt-4 text-xs font-medium uppercase tracking-wider text-primary/80">
+            Module 3
+          </p>
+        </div>
+
         <Panel
           title="Job pipeline"
           body="Track applications from saved to offer in one calm board."

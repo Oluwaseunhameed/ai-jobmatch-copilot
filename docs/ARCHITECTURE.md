@@ -127,7 +127,7 @@ User ──┬── CareerProfile ──┬── Skills
 | Relational user/profile/job/application data | PostgreSQL | ACID, joins, Prisma support |
 | Vector embeddings (jobs, resumes, skills) | pgvector | Co-locate with relational data initially |
 | Full-text job search (later scale) | Meilisearch or OpenSearch | Better relevance at scale |
-| File uploads (resumes, exports) | UploadThing + Cloudinary | CDN, transformations, signed URLs |
+| File uploads (resumes, exports) | Local disk (dev) + S3-compatible (prod) | ADR-010; Supabase Storage / MinIO / AWS |
 | Sessions, rate limits, job queues | Redis | Fast ephemeral state |
 | Audit logs | PostgreSQL (partitioned table) | Queryable compliance trail |
 

@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build) | ✅ Done |
 | Environment variable templates | ✅ Done |
 
-**Next:** Phase 1 — Module 2 (Career Profile) complete; Module 3 (Resume) next
+**Next:** Phase 1 — Module 4 (AI Resume Optimization) complete; Module 5 (Job Discovery) next
 
 ---
 

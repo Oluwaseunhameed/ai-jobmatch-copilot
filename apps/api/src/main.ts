@@ -7,6 +7,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Required for the queue worker to drain in-flight jobs before the process exits.
+  app.enableShutdownHooks();
+
   // Global API prefix with versioning — all routes under /api/v1
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });

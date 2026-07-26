@@ -3,6 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
+    "dev:ai": "pnpm --filter @jobmatch/ai-service run dev",
+    "setup:ai": "pnpm --filter @jobmatch/ai-service run bootstrap",
+    "test:ai": "pnpm --filter @jobmatch/ai-service run py:test",
+    "eval:ai": "pnpm --filter @jobmatch/ai-service run py:eval",
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",

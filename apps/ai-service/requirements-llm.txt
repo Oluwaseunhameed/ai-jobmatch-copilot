@@ -1,0 +1,4 @@
+# Optional LLM extras. Resume parsing works without these (heuristic extraction);
+# installing them enables LLM enrichment of headline/summary/skills.
+# Install with: INSTALL_LLM=1 pnpm setup:ai
+litellm>=1.70.0

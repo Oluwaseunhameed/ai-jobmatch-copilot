@@ -5,6 +5,8 @@ import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PreferencesModule } from './preferences/preferences.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { QueueModule } from './queue/queue.module';
+import { ResumesModule } from './resumes/resumes.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -15,6 +17,8 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     PreferencesModule,
     ProfilesModule,
+    ResumesModule,
+    QueueModule,
   ],
 })
 export class AppModule {}

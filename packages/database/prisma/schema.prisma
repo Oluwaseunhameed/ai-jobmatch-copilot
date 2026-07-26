@@ -27,6 +27,7 @@ model User {
 
   profile     CareerProfile?
   preferences UserPreference?
+  resumes     Resume[]
 
   @@unique([email])
   @@map("user")
@@ -115,4 +116,53 @@ model Skill {
 
   @@index([profileId])
   @@map("skills")
+}
+
+// ---------------------------------------------------------------------------
+// Resumes — Module 3
+// ---------------------------------------------------------------------------
+model Resume {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title            String
+  originalFileName String  @map("original_file_name")
+  mimeType         String  @map("mime_type")
+  fileSize         Int     @map("file_size")
+  storageKey       String  @map("storage_key")
+  storageProvider  String  @default("local") @map("storage_provider") // local | s3
+  isPrimary        Boolean @default(false) @map("is_primary")
+
+  /// idle | queued | processing | ready | failed
+  parseStatus  String  @default("idle") @map("parse_status")
+  parseError   String? @map("parse_error")
+  parsedText   String? @map("parsed_text") @db.Text
+  parsedJson   Json?   @map("parsed_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  versions ResumeVersion[]
+
+  @@index([userId])
+  @@index([userId, isPrimary])
+  @@map("resumes")
+}
+
+model ResumeVersion {
+  id       String @id @default(cuid())
+  resumeId String @map("resume_id")
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  label       String
+  /// upload | optimized | manual
+  source      String  @default("upload")
+  contentText String? @map("content_text") @db.Text
+  contentJson Json?   @map("content_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([resumeId])
+  @@map("resume_versions")
 }

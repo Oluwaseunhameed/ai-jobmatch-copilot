@@ -1,6 +1,33 @@
 """Application configuration loaded from environment variables."""
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from __future__ import annotations
+
+from typing import Annotated
+
+from pydantic import BeforeValidator, Field
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+
+def _parse_cors_origins(value: object) -> list[str]:
+    """Accept JSON arrays or comma-separated URLs from .env files."""
+    if value is None or value == "":
+        return ["http://localhost:3000", "http://localhost:4000"]
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        cleaned = value.strip().strip('"').strip("'")
+        if cleaned.startswith("["):
+            import json
+
+            parsed = json.loads(cleaned)
+            if isinstance(parsed, list):
+                return [str(item).strip() for item in parsed if str(item).strip()]
+        return [part.strip() for part in cleaned.split(",") if part.strip()]
+    raise TypeError(f"Unsupported cors_origins value: {value!r}")
+
+
+# NoDecode stops pydantic-settings from forcing JSON before our validator runs.
+CorsOrigins = Annotated[list[str], NoDecode, BeforeValidator(_parse_cors_origins)]
 
 
 class Settings(BaseSettings):
@@ -13,10 +40,17 @@ class Settings(BaseSettings):
     litellm_model: str = "ollama/llama3.2"
     ollama_api_base: str = "http://localhost:11434"
 
+    # Heuristic parsing always runs. LLM enrichment is a best-effort layer on top
+    # and is skipped silently when litellm or the model backend is unavailable.
+    llm_enrichment_enabled: bool = True
+    llm_timeout_seconds: int = 12
+
     openai_api_key: str = ""
     anthropic_api_key: str = ""
 
-    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:4000"]
+    cors_origins: CorsOrigins = Field(
+        default_factory=lambda: ["http://localhost:3000", "http://localhost:4000"]
+    )
 
     @property
     def is_development(self) -> bool:

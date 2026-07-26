@@ -12,6 +12,57 @@ export type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'freelance
 
 export type WorkLocationPreference = 'remote' | 'hybrid' | 'on-site';
 
+export type ResumeParseStatus = 'idle' | 'queued' | 'processing' | 'ready' | 'failed';
+
+export type ResumeStorageProvider = 'local' | 's3';
+
+export type ResumeVersionSource = 'upload' | 'optimized' | 'manual';
+
+export interface ResumeVersionDto {
+  id: string;
+  resumeId: string;
+  label: string;
+  source: ResumeVersionSource | string;
+  contentText: string | null;
+  contentJson: unknown | null;
+  createdAt: string;
+}
+
+export interface ResumeDto {
+  id: string;
+  userId: string;
+  title: string;
+  originalFileName: string;
+  mimeType: string;
+  fileSize: number;
+  storageKey: string;
+  storageProvider: ResumeStorageProvider | string;
+  isPrimary: boolean;
+  parseStatus: ResumeParseStatus | string;
+  parseError: string | null;
+  parsedText: string | null;
+  parsedJson: unknown | null;
+  createdAt: string;
+  updatedAt: string;
+  versions?: ResumeVersionDto[];
+}
+
+export interface UpdateResumeInput {
+  title?: string;
+  isPrimary?: boolean;
+}
+
+export interface ParsedResumeData {
+  headline?: string | null;
+  summary?: string | null;
+  skills?: string[];
+  emails?: string[];
+  phones?: string[];
+  links?: string[];
+  source?: string;
+  status?: string;
+}
+
 export interface SkillInput {
   name: string;
   category: SkillCategory | string;

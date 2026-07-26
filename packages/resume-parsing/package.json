@@ -1,0 +1,22 @@
+{
+  "name": "@jobmatch/resume-parsing",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"No lint configured yet\""
+  },
+  "dependencies": {
+    "@jobmatch/database": "workspace:*",
+    "@jobmatch/storage": "workspace:*"
+  },
+  "devDependencies": {
+    "@jobmatch/typescript-config": "workspace:*",
+    "@types/node": "^22.15.21",
+    "typescript": "^5.8.3"
+  }
+}

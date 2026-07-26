@@ -12,6 +12,7 @@ ai-jobmatch-copilot/
 │   └── ai-service/    # FastAPI AI service (port 8000)
 ├── packages/
 │   ├── database/      # Prisma schema + client
+│   ├── storage/       # Local + S3-compatible file storage
 │   ├── types/         # Shared TypeScript types
 │   └── typescript-config/
 ├── docs/              # Architecture, roadmap, decisions, tasks
@@ -72,12 +73,30 @@ pnpm db:push
 pnpm dev
 ```
 
+This starts the web app, the API (including the resume-parse queue worker), **and
+the Python AI service**. The AI service creates its own virtualenv
+(`apps/ai-service/.venv`) and installs Python dependencies on first run, so no
+manual `pip install` step is needed. Redis (from `docker compose up -d`) is
+required for background parsing; without it, parsing falls back to running
+inline in the web request.
+
 Or start individually:
 
 ```bash
-pnpm --filter @jobmatch/web dev      # http://localhost:3000
-pnpm --filter @jobmatch/api dev      # http://localhost:4000
-cd apps/ai-service && ./scripts/dev.sh  # http://localhost:8000
+pnpm --filter @jobmatch/web dev   # http://localhost:3000
+pnpm --filter @jobmatch/api dev   # http://localhost:4000
+pnpm dev:ai                       # http://localhost:8000
+```
+
+Resume parsing (Module 4) calls the AI service, so it must be running — the web
+app reports "Could not reach the AI service" on the resume card when it is not.
+
+Useful AI service commands:
+
+```bash
+pnpm setup:ai            # install/refresh Python dependencies
+pnpm test:ai             # run the Python test suite
+INSTALL_LLM=1 pnpm setup:ai   # add optional LLM enrichment (litellm)
 ```
 
 ### 6. Verify
@@ -88,6 +107,25 @@ cd apps/ai-service && ./scripts/dev.sh  # http://localhost:8000
 | API health | http://localhost:4000/api/v1/health |
 | Swagger docs | http://localhost:4000/api/docs |
 | AI service health | http://localhost:8000/health |
+
+## Troubleshooting
+
+| Symptom | Cause and fix |
+|---|---|
+| Resume card shows "Could not reach the AI service" | The AI service is not running. Start it with `pnpm dev:ai`, or run `pnpm dev` to start everything. Confirm with `curl http://localhost:8000/health`. |
+| Resume stays Queued / Parsing forever | The API worker is not running, or Redis is down. Confirm Redis with `redis-cli ping`, then restart `pnpm --filter @jobmatch/api dev`. The worker logs `worker.started` on boot. |
+| Resume card shows "No readable text found" | The PDF is a scan or image-only export. Re-export a text-based PDF or upload a DOCX (OCR is not supported). |
+| `pnpm dev` fails to start the AI service | `python3` is missing from PATH. Install Python 3.11+, or point at another interpreter with `PYTHON_BIN=/path/to/python pnpm setup:ai`. |
+| Parsed skills look thin | Only heuristic extraction ran. Install the optional LLM extras with `INSTALL_LLM=1 pnpm setup:ai` and make sure Ollama is running, then re-run `pnpm eval:ai -- --llm` to measure the gain. |
+
+## AI quality baseline
+
+```bash
+pnpm eval:ai                 # heuristics only (offline, deterministic)
+pnpm eval:ai -- --llm        # include LLM enrichment
+```
+
+A run prints a per-case score. Use it before and after prompt or heuristic changes — without a baseline, "the AI got better" is an opinion.
 
 ## Documentation
 
