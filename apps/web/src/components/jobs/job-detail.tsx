@@ -121,6 +121,66 @@ export function JobDetail({ job: initial }: { job: Job }) {
         </div>
 
         <aside className="space-y-4">
+          {typeof job.matchScore === 'number' ? (
+            <div className="surface-panel p-5">
+              <h2 className="font-display text-lg font-semibold tracking-tight">Match insight</h2>
+              <p className="mt-3 font-display text-4xl font-semibold tracking-tight tabular-nums">
+                {job.matchScore}
+                <span className="ml-1 text-lg font-medium text-muted-foreground">%</span>
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Skill coverage vs your career profile
+              </p>
+
+              {(job.matchedSkills?.length ?? 0) > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    You have
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {job.matchedSkills!.map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-md bg-primary/10 px-2 py-0.5 text-xs text-foreground"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(job.missingSkills?.length ?? 0) > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Missing
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {job.missingSkills!.map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="surface-panel p-5">
+              <h2 className="font-display text-lg font-semibold tracking-tight">Match insight</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Add skills to your{' '}
+                <Link href="/profile" className="font-medium text-foreground underline-offset-4 hover:underline">
+                  career profile
+                </Link>{' '}
+                to see how this role fits you.
+              </p>
+            </div>
+          )}
+
           <div className="surface-panel p-5">
             <h2 className="font-display text-lg font-semibold tracking-tight">
               {job.company.name}
@@ -153,14 +213,24 @@ export function JobDetail({ job: initial }: { job: Job }) {
             <div className="surface-panel p-5">
               <h2 className="font-display text-lg font-semibold tracking-tight">Skills</h2>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {job.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                  >
-                    {skill}
-                  </span>
-                ))}
+                {job.skills.map((skill) => {
+                  const matched = job.matchedSkills?.includes(skill);
+                  const missing = job.missingSkills?.includes(skill);
+                  return (
+                    <span
+                      key={skill}
+                      className={
+                        matched
+                          ? 'rounded-md bg-primary/10 px-2 py-0.5 text-xs text-foreground'
+                          : missing
+                            ? 'rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground'
+                            : 'rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground'
+                      }
+                    >
+                      {skill}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -32,7 +32,7 @@ export class JobsController {
     @Query('seniority') seniority?: string,
     @Query('country') country?: string,
     @Query('salaryMin') salaryMin?: string,
-    @Query('sort') sort?: 'relevance' | 'recent' | 'salary',
+    @Query('sort') sort?: 'relevance' | 'recent' | 'salary' | 'match',
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {

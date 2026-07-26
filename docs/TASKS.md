@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 1 — Module 4 (AI Resume Optimization — basic)
+## Current Sprint: Phase 1 — Module 18 (Analytics Dashboard — minimal)
 
 ### Phase 0 — Complete ✅
 
@@ -31,11 +31,17 @@
 - [x] Nest + Next BFF: search, detail, save/unsave, saved list
 - [x] Jobs list/detail UI, nav + dashboard wiring
 
-### Phase 1 — Next up: Module 6 (Job Intelligence — basic)
+### Phase 1 — Module 6: Job Intelligence (basic) ✅
 
-- [ ] Match score against career profile / resume skills
-- [ ] Missing-skills breakdown on job detail
-- [ ] Rank search results by personalised match when signed in
+- [x] Deterministic skill-overlap match score (`matchJobSkills` in `@jobmatch/job-search`)
+- [x] Matched / missing skills on job detail
+- [x] Personalised ranking (`sort=match`; browsing defaults to match when profile has skills)
+- [x] Match % on job cards + profile prompt when skills are empty
+
+### Phase 1 — Next up: Module 18 (Analytics Dashboard — minimal)
+
+- [ ] Profile completeness + jobs saved summary (beyond current dashboard stubs)
+- [ ] Lightweight activity signals for Free tier
 
 ---
 
@@ -51,3 +57,5 @@
 | Legacy `.doc` support                        | Module 4   | Low      | PDF/DOCX only; clear error for `.doc`                 |
 | Licensed job API ingestion                   | Module 5   | Medium   | ADR-006: seed for now; Adzuna/Remotive later          |
 | Meilisearch / OpenSearch                     | Module 5   | Low      | Deferred by ADR-003 until scale demands it            |
+| AI JD analysis / learning recommendations    | Module 6   | Medium   | Phase 3 rich insights; MVP is deterministic overlap   |
+| Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` treated as requirements for now |

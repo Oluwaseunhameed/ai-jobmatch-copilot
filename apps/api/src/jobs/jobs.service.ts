@@ -1,6 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { prisma } from '@jobmatch/database';
-import { getJobBySlug, searchJobs, type SearchJobsInput } from '@jobmatch/job-search';
+import {
+  enrichJobsWithMatch,
+  getJobBySlug,
+  loadProfileSkillNames,
+  searchJobs,
+  type SearchJobsInput,
+} from '@jobmatch/job-search';
 
 @Injectable()
 export class JobsService {
@@ -17,15 +23,18 @@ export class JobsService {
   }
 
   async listSaved(userId: string) {
-    const rows = await prisma.jobInteraction.findMany({
-      where: { userId, type: 'saved' },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        job: { include: { company: true } },
-      },
-    });
+    const [rows, profileSkills] = await Promise.all([
+      prisma.jobInteraction.findMany({
+        where: { userId, type: 'saved' },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          job: { include: { company: true } },
+        },
+      }),
+      loadProfileSkillNames(userId),
+    ]);
 
-    return rows.map((row) => ({
+    const jobs = rows.map((row) => ({
       id: row.job.id,
       slug: row.job.slug,
       title: row.job.title,
@@ -61,9 +70,11 @@ export class JobsService {
         location: row.job.company.location,
         about: row.job.company.about,
       },
-      isSaved: true,
+      isSaved: true as const,
       savedAt: row.createdAt.toISOString(),
     }));
+
+    return enrichJobsWithMatch(jobs, profileSkills);
   }
 
   async save(userId: string, jobId: string) {

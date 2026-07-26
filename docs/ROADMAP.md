@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 1 — Module 5 (Job Discovery) complete; Module 6 (Job Intelligence) next
+**Next:** Phase 1 — Module 6 (Job Intelligence) complete; Module 18 (Analytics) next
 
 ---
 

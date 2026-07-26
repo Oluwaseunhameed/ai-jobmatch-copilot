@@ -34,7 +34,13 @@ const SENIORITIES = [
   { value: 'principal', label: 'Principal' },
 ];
 
-type SortOption = 'relevance' | 'recent' | 'salary';
+type SortOption = 'relevance' | 'recent' | 'salary' | 'match';
+
+function matchTone(score: number) {
+  if (score >= 70) return 'text-success';
+  if (score >= 40) return 'text-warning';
+  return 'text-muted-foreground';
+}
 
 function toggleValue(list: string[], value: string) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
@@ -189,12 +195,23 @@ export function JobBrowser() {
             }}
             className="h-9 rounded-lg border border-border bg-background px-3 text-sm"
           >
+            <option value="match">Best match</option>
             <option value="relevance">Relevance</option>
             <option value="recent">Most recent</option>
             <option value="salary">Salary</option>
           </select>
         </div>
       </div>
+
+      {result && (result.profileSkillCount ?? 0) === 0 && (
+        <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          Add skills on your{' '}
+          <Link href="/profile" className="font-medium text-foreground underline-offset-4 hover:underline">
+            career profile
+          </Link>{' '}
+          to see match scores and personalised ranking.
+        </p>
+      )}
 
       {result?.degradedReason && (
         <p className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground">
@@ -296,6 +313,7 @@ function JobCard({
   onToggleSave: () => void;
 }) {
   const salary = formatSalary(job);
+  const matched = new Set(job.matchedSkills ?? []);
 
   return (
     <article className="surface-panel p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift sm:p-6">
@@ -305,6 +323,14 @@ function JobCard({
             <span>{job.company.name}</span>
             <span aria-hidden>·</span>
             <span>{formatPostedAt(job.postedAt)}</span>
+            {typeof job.matchScore === 'number' && (
+              <>
+                <span aria-hidden>·</span>
+                <span className={cn('tabular-nums', matchTone(job.matchScore))}>
+                  {job.matchScore}% match
+                </span>
+              </>
+            )}
           </div>
           <Link
             href={`/jobs/${job.slug}`}
@@ -328,14 +354,22 @@ function JobCard({
           </p>
           {job.skills.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
-              {job.skills.slice(0, 6).map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                >
-                  {skill}
-                </span>
-              ))}
+              {job.skills.slice(0, 6).map((skill) => {
+                const isMatched = matched.has(skill);
+                return (
+                  <span
+                    key={skill}
+                    className={cn(
+                      'rounded-md px-2 py-0.5 text-xs',
+                      isMatched
+                        ? 'bg-primary/10 text-foreground'
+                        : 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    {skill}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>

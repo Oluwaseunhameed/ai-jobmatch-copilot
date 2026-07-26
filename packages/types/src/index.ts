@@ -71,7 +71,14 @@ export type SalaryPeriod = 'year' | 'month' | 'day' | 'hour';
 /** How a result was ranked. `semantic` and `hybrid` require job embeddings. */
 export type JobSearchMode = 'keyword' | 'semantic' | 'hybrid';
 
-export type JobSortOption = 'relevance' | 'recent' | 'salary';
+export type JobSortOption = 'relevance' | 'recent' | 'salary' | 'match';
+
+/** Profile↔job skill overlap (Module 6). Score is job-skill coverage, 0–100. */
+export interface JobSkillMatch {
+  matchScore: number;
+  matchedSkills: string[];
+  missingSkills: string[];
+}
 
 export interface CompanyDto {
   id: string;
@@ -111,10 +118,14 @@ export interface JobDto {
   expiresAt: string | null;
   isActive: boolean;
   company: CompanyDto;
-  /** Present on search results only. Higher is a better match. */
+  /** Present on search results only. Higher is better search relevance (FTS/RRF). */
   score?: number;
   /** True when the signed-in user has saved this job. */
   isSaved?: boolean;
+  /** Skill overlap vs the viewer's career profile (Module 6). */
+  matchScore?: number;
+  matchedSkills?: string[];
+  missingSkills?: string[];
 }
 
 export interface JobSearchParams {
@@ -143,6 +154,8 @@ export interface JobSearchResponse {
   mode: JobSearchMode;
   /** Set when semantic ranking was wanted but unavailable, so the UI can explain. */
   degradedReason?: string;
+  /** Skills on the viewer's career profile used for match scoring. */
+  profileSkillCount?: number;
   facets: {
     workMode: JobSearchFacet[];
     employmentType: JobSearchFacet[];

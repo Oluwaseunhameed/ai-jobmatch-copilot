@@ -25,7 +25,12 @@ export async function GET(request: Request) {
   const limitRaw = url.searchParams.get('limit');
   const sortRaw = url.searchParams.get('sort');
   const sort =
-    sortRaw === 'recent' || sortRaw === 'salary' || sortRaw === 'relevance' ? sortRaw : undefined;
+    sortRaw === 'recent' ||
+    sortRaw === 'salary' ||
+    sortRaw === 'relevance' ||
+    sortRaw === 'match'
+      ? sortRaw
+      : undefined;
 
   try {
     const result = await searchJobs({

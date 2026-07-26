@@ -14,6 +14,15 @@ export {
 export { DEFAULT_LIMIT, MAX_LIMIT, getJobBySlug, searchJobs, type SearchJobsInput } from './search';
 
 export {
+  applySkillMatch,
+  enrichJobsWithMatch,
+  loadProfileSkillNames,
+  matchJobSkills,
+  normalizeSkill,
+  sortJobsByMatchScore,
+} from './match';
+
+export {
   createLogger,
   noopLogger,
   type LogFields,

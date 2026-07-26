@@ -119,3 +119,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Status:** ✅ Accepted
 
 **Date:** 2026-07-26
+
+---
+
+## ADR-012: Job match scoring — deterministic skill coverage
+
+**Context:** Module 6 needs a match score and missing-skills breakdown without waiting on AI JD analysis.
+**Options:** LLM job-description analysis day 1, embedding similarity vs profile text, deterministic skill-set overlap.
+**Outcome:** **Accepted** — Deterministic **job-skill coverage** (`matched / job.skills`, 0–100) with light alias normalisation in `@jobmatch/job-search`. Personalised ranking uses `sort=match` (and becomes the default when browsing with a non-empty profile).
+**Rationale:** Profile and job skills already exist; overlap is explainable, fast, and offline-friendly. LLM insights and learning recommendations stay Phase 3.
+**Status:** ✅ Accepted
+**Date:** 2026-07-26

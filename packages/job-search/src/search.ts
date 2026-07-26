@@ -8,9 +8,16 @@ import type {
 } from '@jobmatch/types';
 
 import { embedQuery } from './embed';
+import {
+  enrichJobsWithMatch,
+  loadProfileSkillNames,
+  sortJobsByMatchScore,
+} from './match';
 
 export const DEFAULT_LIMIT = 20;
 export const MAX_LIMIT = 50;
+/** Upper bound when re-ranking a filtered set by profile match in memory. */
+const MATCH_RANK_CAP = 500;
 
 /**
  * Reciprocal rank fusion constant. 60 is the value from the original RRF paper
@@ -77,8 +84,13 @@ export type SearchJobsInput = {
   sort?: JobSortOption;
   page?: number;
   limit?: number;
-  /** Marks results the user has already saved. */
+  /** Marks results the user has already saved and loads profile skills for match. */
   userId?: string;
+  /**
+   * Optional override for tests. When omitted and `userId` is set, skills are
+   * loaded from the viewer's career profile.
+   */
+  profileSkills?: string[];
   /** Set false to force keyword-only, e.g. for evaluation baselines. */
   semantic?: boolean;
 };
@@ -195,6 +207,9 @@ function orderByClause(sort: JobSortOption, ranked: boolean): string {
       return 'j."posted_at" DESC, j."id"';
     case 'salary':
       return 'COALESCE(j."salary_max", j."salary_min") DESC NULLS LAST, j."id"';
+    case 'match':
+      // Match order is applied in memory after skill scoring; SQL stays stable.
+      return 'j."posted_at" DESC, j."id"';
     default:
       return ranked ? 'score DESC, j."posted_at" DESC, j."id"' : 'j."posted_at" DESC, j."id"';
   }
@@ -213,8 +228,19 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
   const page = Math.max(1, Math.floor(input.page ?? 1));
   const limit = Math.min(MAX_LIMIT, Math.max(1, Math.floor(input.limit ?? DEFAULT_LIMIT)));
   const offset = (page - 1) * limit;
-  const sort: JobSortOption = input.sort ?? 'relevance';
   const query = input.q?.trim() ?? '';
+
+  const profileSkills =
+    input.profileSkills ??
+    (input.userId ? await loadProfileSkillNames(input.userId) : []);
+  const profileSkillCount = profileSkills.length;
+
+  // Personalised match sort when requested, or when browsing with a profile.
+  let sort: JobSortOption = input.sort ?? 'relevance';
+  if (sort === 'relevance' && !query && profileSkillCount > 0) {
+    sort = 'match';
+  }
+  const rankByMatch = sort === 'match' && profileSkillCount > 0;
 
   let mode: JobSearchMode = 'keyword';
   let degradedReason: string | undefined;
@@ -248,13 +274,15 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
     : '';
   const savedSelect = input.userId ? '(si."id" IS NOT NULL)' : 'FALSE';
 
-  const order = orderByClause(
-    query ? sort : sort === 'relevance' ? 'recent' : sort,
-    Boolean(query),
-  );
+  const sqlSort: JobSortOption =
+    sort === 'match' ? 'recent' : query ? sort : sort === 'relevance' ? 'recent' : sort;
+  const order = orderByClause(sqlSort, Boolean(query) && sort !== 'match');
+  // When re-ranking by match, pull a capped candidate set then page in memory.
+  const fetchLimit = rankByMatch ? MATCH_RANK_CAP : limit;
+  const fetchOffset = rankByMatch ? 0 : offset;
   // limit/offset are validated integers above, so inlining avoids the parameter
   // type inference Postgres has to do for LIMIT/OFFSET placeholders.
-  const paging = `LIMIT ${limit} OFFSET ${offset}`;
+  const paging = `LIMIT ${fetchLimit} OFFSET ${fetchOffset}`;
 
   let sql: string;
 
@@ -347,13 +375,20 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
   const total = rows.length > 0 ? Number(rows[0].total_count) : 0;
   const facets = await loadFacets(input, query);
 
+  let jobs = enrichJobsWithMatch(rows.map(toDto), profileSkills);
+
+  if (rankByMatch) {
+    jobs = sortJobsByMatchScore(jobs).slice(offset, offset + limit);
+  }
+
   return {
-    jobs: rows.map(toDto),
+    jobs,
     total,
     page,
     limit,
     mode,
     degradedReason,
+    profileSkillCount,
     facets,
   };
 }
@@ -402,7 +437,7 @@ async function loadFacets(
   };
 }
 
-/** A single posting by slug, with the viewer's saved state. */
+/** A single posting by slug, with the viewer's saved state and skill match. */
 export async function getJobBySlug(slug: string, userId?: string): Promise<JobDto | null> {
   const job = await prisma.job.findUnique({
     where: { slug },
@@ -412,15 +447,20 @@ export async function getJobBySlug(slug: string, userId?: string): Promise<JobDt
   if (!job) return null;
 
   let isSaved = false;
+  let profileSkills: string[] = [];
   if (userId) {
-    const saved = await prisma.jobInteraction.findUnique({
-      where: { userId_jobId_type: { userId, jobId: job.id, type: 'saved' } },
-      select: { id: true },
-    });
+    const [saved, skills] = await Promise.all([
+      prisma.jobInteraction.findUnique({
+        where: { userId_jobId_type: { userId, jobId: job.id, type: 'saved' } },
+        select: { id: true },
+      }),
+      loadProfileSkillNames(userId),
+    ]);
     isSaved = Boolean(saved);
+    profileSkills = skills;
   }
 
-  return {
+  const dto: JobDto = {
     id: job.id,
     slug: job.slug,
     title: job.title,
@@ -458,4 +498,6 @@ export async function getJobBySlug(slug: string, userId?: string): Promise<JobDt
     },
     isSaved,
   };
+
+  return enrichJobsWithMatch([dto], profileSkills)[0] ?? dto;
 }

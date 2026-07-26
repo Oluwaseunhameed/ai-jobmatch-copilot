@@ -260,6 +260,9 @@ export interface Job {
   company: JobCompany;
   score?: number;
   isSaved?: boolean;
+  matchScore?: number;
+  matchedSkills?: string[];
+  missingSkills?: string[];
 }
 
 export interface JobSearchFacet {
@@ -274,6 +277,7 @@ export interface JobSearchResult {
   limit: number;
   mode: 'keyword' | 'semantic' | 'hybrid';
   degradedReason?: string;
+  profileSkillCount?: number;
   facets: {
     workMode: JobSearchFacet[];
     employmentType: JobSearchFacet[];
@@ -288,7 +292,7 @@ export type JobSearchQuery = {
   seniority?: string[];
   country?: string;
   salaryMin?: number;
-  sort?: 'relevance' | 'recent' | 'salary';
+  sort?: 'relevance' | 'recent' | 'salary' | 'match';
   page?: number;
   limit?: number;
 };
