@@ -219,3 +219,158 @@ export function deleteResume(id: string) {
 export function resumeDownloadUrl(id: string) {
   return `/api/users/me/resumes/${id}/download`;
 }
+
+export interface JobCompany {
+  id: string;
+  name: string;
+  slug: string;
+  websiteUrl: string | null;
+  logoUrl: string | null;
+  industry: string | null;
+  size: string | null;
+  location: string | null;
+  about: string | null;
+}
+
+export interface Job {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  benefits: string[];
+  skills: string[];
+  employmentType: string;
+  workMode: string;
+  seniority: string;
+  location: string | null;
+  city: string | null;
+  country: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string;
+  salaryPeriod: string;
+  source: string;
+  sourceUrl: string | null;
+  applyUrl: string | null;
+  postedAt: string;
+  expiresAt: string | null;
+  isActive: boolean;
+  company: JobCompany;
+  score?: number;
+  isSaved?: boolean;
+}
+
+export interface JobSearchFacet {
+  value: string;
+  count: number;
+}
+
+export interface JobSearchResult {
+  jobs: Job[];
+  total: number;
+  page: number;
+  limit: number;
+  mode: 'keyword' | 'semantic' | 'hybrid';
+  degradedReason?: string;
+  facets: {
+    workMode: JobSearchFacet[];
+    employmentType: JobSearchFacet[];
+    seniority: JobSearchFacet[];
+  };
+}
+
+export type JobSearchQuery = {
+  q?: string;
+  workMode?: string[];
+  employmentType?: string[];
+  seniority?: string[];
+  country?: string;
+  salaryMin?: number;
+  sort?: 'relevance' | 'recent' | 'salary';
+  page?: number;
+  limit?: number;
+};
+
+function toSearchParams(query: JobSearchQuery) {
+  const params = new URLSearchParams();
+  if (query.q?.trim()) params.set('q', query.q.trim());
+  if (query.workMode?.length) params.set('workMode', query.workMode.join(','));
+  if (query.employmentType?.length) params.set('employmentType', query.employmentType.join(','));
+  if (query.seniority?.length) params.set('seniority', query.seniority.join(','));
+  if (query.country) params.set('country', query.country);
+  if (query.salaryMin) params.set('salaryMin', String(query.salaryMin));
+  if (query.sort) params.set('sort', query.sort);
+  if (query.page) params.set('page', String(query.page));
+  if (query.limit) params.set('limit', String(query.limit));
+  return params;
+}
+
+export function searchJobs(query: JobSearchQuery = {}) {
+  const params = toSearchParams(query);
+  const qs = params.toString();
+  return apiFetch<JobSearchResult>(`/api/jobs${qs ? `?${qs}` : ''}`);
+}
+
+export function getJob(slug: string) {
+  return apiFetch<Job>(`/api/jobs/${encodeURIComponent(slug)}`);
+}
+
+export function listSavedJobs() {
+  return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
+}
+
+export function saveJob(slug: string) {
+  return apiFetch<{ saved: boolean }>(`/api/jobs/${encodeURIComponent(slug)}/save`, {
+    method: 'POST',
+  });
+}
+
+export function unsaveJob(slug: string) {
+  return apiFetch<{ saved: boolean }>(`/api/jobs/${encodeURIComponent(slug)}/save`, {
+    method: 'DELETE',
+  });
+}
+
+export function formatSalary(
+  job: Pick<Job, 'salaryMin' | 'salaryMax' | 'salaryCurrency' | 'salaryPeriod'>,
+) {
+  if (!job.salaryMin && !job.salaryMax) return null;
+
+  const currency = job.salaryCurrency || 'USD';
+  const format = (value: number) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+
+  const range =
+    job.salaryMin && job.salaryMax
+      ? `${format(job.salaryMin)}–${format(job.salaryMax)}`
+      : format(job.salaryMin ?? job.salaryMax ?? 0);
+
+  const period =
+    job.salaryPeriod === 'year'
+      ? 'yr'
+      : job.salaryPeriod === 'month'
+        ? 'mo'
+        : job.salaryPeriod === 'day'
+          ? 'day'
+          : job.salaryPeriod === 'hour'
+            ? 'hr'
+            : job.salaryPeriod;
+
+  return `${range} / ${period}`;
+}
+
+export function formatPostedAt(iso: string) {
+  const posted = new Date(iso);
+  const days = Math.floor((Date.now() - posted.getTime()) / (1000 * 60 * 60 * 24));
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  if (days < 30) return `${Math.floor(days / 7)}w ago`;
+  return posted.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}

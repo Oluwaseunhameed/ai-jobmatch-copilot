@@ -14,14 +14,18 @@
     "db:generate": "pnpm --filter @jobmatch/database db:generate",
     "db:migrate": "pnpm --filter @jobmatch/database db:migrate",
     "db:push": "pnpm --filter @jobmatch/database db:push",
+    "db:seed": "pnpm --filter @jobmatch/database db:seed",
+    "jobs:embed": "pnpm --filter @jobmatch/job-search jobs:embed",
     "db:studio": "pnpm --filter @jobmatch/database db:studio",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },
   "devDependencies": {
+    "@jobmatch/typescript-config": "workspace:*",
     "prettier": "^3.5.3",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
   },
+
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20"

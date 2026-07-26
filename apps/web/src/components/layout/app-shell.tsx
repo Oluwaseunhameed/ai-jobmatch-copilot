@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileText, LayoutDashboard, Menu, Settings, UserRound, X } from 'lucide-react';
+import { Briefcase, FileText, LayoutDashboard, Menu, Settings, UserRound, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { SignOutButton } from '@/components/auth/sign-out-button';
@@ -13,18 +13,13 @@ import { cn } from '@/lib/utils';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/jobs', label: 'Jobs', icon: Briefcase },
   { href: '/profile', label: 'Profile', icon: UserRound },
   { href: '/resumes', label: 'Resumes', icon: FileText },
   { href: '/settings/account', label: 'Settings', icon: Settings },
 ];
 
-export function AppShell({
-  children,
-  title,
-}: {
-  children: React.ReactNode;
-  title?: string;
-}) {
+export function AppShell({ children, title }: { children: React.ReactNode; title?: string }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 

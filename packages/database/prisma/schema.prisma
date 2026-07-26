@@ -25,9 +25,10 @@ model User {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  profile     CareerProfile?
-  preferences UserPreference?
-  resumes     Resume[]
+  profile         CareerProfile?
+  preferences     UserPreference?
+  resumes         Resume[]
+  jobInteractions JobInteraction[]
 
   @@unique([email])
   @@map("user")
@@ -135,10 +136,10 @@ model Resume {
   isPrimary        Boolean @default(false) @map("is_primary")
 
   /// idle | queued | processing | ready | failed
-  parseStatus  String  @default("idle") @map("parse_status")
-  parseError   String? @map("parse_error")
-  parsedText   String? @map("parsed_text") @db.Text
-  parsedJson   Json?   @map("parsed_json")
+  parseStatus String  @default("idle") @map("parse_status")
+  parseError  String? @map("parse_error")
+  parsedText  String? @map("parsed_text") @db.Text
+  parsedJson  Json?   @map("parsed_json")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -165,4 +166,112 @@ model ResumeVersion {
 
   @@index([resumeId])
   @@map("resume_versions")
+}
+
+// ---------------------------------------------------------------------------
+// Job Discovery — Module 5
+// ---------------------------------------------------------------------------
+model Company {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  websiteUrl String? @map("website_url")
+  logoUrl    String? @map("logo_url")
+  industry   String?
+  /// 1-10 | 11-50 | 51-200 | 201-500 | 501-1000 | 1001-5000 | 5000+
+  size       String?
+  location   String?
+  about      String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  jobs Job[]
+
+  @@map("companies")
+}
+
+model Job {
+  id        String  @id @default(cuid())
+  companyId String  @map("company_id")
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  title       String
+  slug        String @unique
+  description String @db.Text
+
+  responsibilities String[] @default([])
+  requirements     String[] @default([])
+  benefits         String[] @default([])
+  skills           String[] @default([])
+
+  /// Vocabularies match CareerProfile so Module 6 can compare them directly.
+  /// full-time | part-time | contract | freelance | internship
+  employmentType String @default("full-time") @map("employment_type")
+  /// remote | hybrid | on-site
+  workMode       String @default("on-site") @map("work_mode")
+  /// intern | junior | mid | senior | lead | principal
+  seniority      String @default("mid")
+
+  location String?
+  city     String?
+  country  String?
+
+  salaryMin      Int?   @map("salary_min")
+  salaryMax      Int?   @map("salary_max")
+  salaryCurrency String @default("USD") @map("salary_currency")
+  /// year | month | day | hour
+  salaryPeriod   String @default("year") @map("salary_period")
+
+  /// seed | adzuna | remotive | manual
+  source     String  @default("seed")
+  sourceUrl  String? @map("source_url")
+  externalId String? @map("external_id")
+  applyUrl   String? @map("apply_url")
+
+  postedAt  DateTime  @default(now()) @map("posted_at")
+  expiresAt DateTime? @map("expires_at")
+  isActive  Boolean   @default(true) @map("is_active")
+
+  /// Semantic search vector. Written via raw SQL; pgvector types are not
+  /// representable in the Prisma client.
+  embedding Unsupported("vector(768)")?
+
+  /// idle | queued | processing | ready | failed
+  embeddingStatus String    @default("idle") @map("embedding_status")
+  embeddingError  String?   @map("embedding_error")
+  embeddingModel  String?   @map("embedding_model")
+  embeddedAt      DateTime? @map("embedded_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  interactions JobInteraction[]
+
+  @@unique([source, externalId])
+  @@index([companyId])
+  @@index([isActive, postedAt])
+  @@index([embeddingStatus])
+  @@map("jobs")
+}
+
+model JobInteraction {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId  String @map("job_id")
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  /// saved | viewed | dismissed
+  type  String
+  notes String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, jobId, type])
+  @@index([userId, type])
+  @@index([jobId])
+  @@map("job_interactions")
 }

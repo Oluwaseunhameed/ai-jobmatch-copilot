@@ -1,12 +1,6 @@
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 
-export type SkillCategory =
-  | 'technical'
-  | 'soft'
-  | 'language'
-  | 'tool'
-  | 'domain'
-  | 'other';
+export type SkillCategory = 'technical' | 'soft' | 'language' | 'tool' | 'domain' | 'other';
 
 export type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'freelance' | 'internship';
 
@@ -61,6 +55,99 @@ export interface ParsedResumeData {
   links?: string[];
   source?: string;
   status?: string;
+}
+
+/** Job discovery (Module 5) */
+export type JobSeniority = 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'principal';
+
+export type JobSource = 'seed' | 'adzuna' | 'remotive' | 'manual';
+
+export type JobEmbeddingStatus = 'idle' | 'queued' | 'processing' | 'ready' | 'failed';
+
+export type JobInteractionType = 'saved' | 'viewed' | 'dismissed';
+
+export type SalaryPeriod = 'year' | 'month' | 'day' | 'hour';
+
+/** How a result was ranked. `semantic` and `hybrid` require job embeddings. */
+export type JobSearchMode = 'keyword' | 'semantic' | 'hybrid';
+
+export type JobSortOption = 'relevance' | 'recent' | 'salary';
+
+export interface CompanyDto {
+  id: string;
+  name: string;
+  slug: string;
+  websiteUrl: string | null;
+  logoUrl: string | null;
+  industry: string | null;
+  size: string | null;
+  location: string | null;
+  about: string | null;
+}
+
+export interface JobDto {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  responsibilities: string[];
+  requirements: string[];
+  benefits: string[];
+  skills: string[];
+  employmentType: EmploymentType | string;
+  workMode: WorkLocationPreference | string;
+  seniority: JobSeniority | string;
+  location: string | null;
+  city: string | null;
+  country: string | null;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string;
+  salaryPeriod: SalaryPeriod | string;
+  source: JobSource | string;
+  sourceUrl: string | null;
+  applyUrl: string | null;
+  postedAt: string;
+  expiresAt: string | null;
+  isActive: boolean;
+  company: CompanyDto;
+  /** Present on search results only. Higher is a better match. */
+  score?: number;
+  /** True when the signed-in user has saved this job. */
+  isSaved?: boolean;
+}
+
+export interface JobSearchParams {
+  q?: string;
+  workMode?: string[];
+  employmentType?: string[];
+  seniority?: string[];
+  country?: string;
+  salaryMin?: number;
+  sort?: JobSortOption;
+  page?: number;
+  limit?: number;
+}
+
+export interface JobSearchFacet {
+  value: string;
+  count: number;
+}
+
+export interface JobSearchResponse {
+  jobs: JobDto[];
+  total: number;
+  page: number;
+  limit: number;
+  /** Which ranking strategy actually ran, which may differ from the one requested. */
+  mode: JobSearchMode;
+  /** Set when semantic ranking was wanted but unavailable, so the UI can explain. */
+  degradedReason?: string;
+  facets: {
+    workMode: JobSearchFacet[];
+    employmentType: JobSearchFacet[];
+    seniority: JobSearchFacet[];
+  };
 }
 
 export interface SkillInput {

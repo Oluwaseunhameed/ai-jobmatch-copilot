@@ -107,3 +107,15 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Works immediately without a third vendor account; Supabase Storage reuses existing infra; same code path for Nest and Next BFF.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-26
+
+---
+
+## ADR-011: Job embeddings — nomic-embed-text @ 768 dims
+
+**Context:** Module 5 needs semantic job search. Vector column dimensions are fixed at migration time, so the embedding model choice is hard to reverse.
+**Options:** OpenAI `text-embedding-3-small` (1536 or reduced), local `nomic-embed-text` (768), keyword-only until Phase 3.
+**Outcome:** **Accepted** — Local **`ollama/nomic-embed-text` at 768 dimensions**, with keyword search as the always-on baseline and hybrid RRF ranking when vectors exist. OpenAI remains swappable later at the same width without a schema migration.
+**Rationale:** Embeddings are the AI workload where local models are competitive (tens of ms, free). Chat-style LLM enrichment for resume parsing was not; that stays opt-in. Keyword-first means search still works when Ollama is down.
+**Status:** ✅ Accepted
+
+**Date:** 2026-07-26

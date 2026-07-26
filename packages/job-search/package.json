@@ -1,5 +1,5 @@
 {
-  "name": "@jobmatch/database",
+  "name": "@jobmatch/job-search",
   "version": "0.0.0",
   "private": true,
   "license": "UNLICENSED",
@@ -9,20 +9,15 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"No lint configured yet\"",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "jobs:embed": "tsx scripts/embed-jobs.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.9.0"
+    "@jobmatch/database": "workspace:*",
+    "@jobmatch/types": "workspace:*"
   },
   "devDependencies": {
     "@jobmatch/typescript-config": "workspace:*",
     "@types/node": "^22.15.21",
-    "dotenv": "^17.4.2",
-    "prisma": "^6.9.0",
     "tsx": "^4.23.1",
     "typescript": "^5.8.3"
   }

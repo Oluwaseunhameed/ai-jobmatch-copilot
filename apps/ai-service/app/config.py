@@ -45,6 +45,15 @@ class Settings(BaseSettings):
     llm_enrichment_enabled: bool = True
     llm_timeout_seconds: int = 12
 
+    # Embeddings power semantic job search. Unlike chat completion, a local model
+    # is genuinely competitive here, so this defaults on.
+    # embedding_dimensions must match the vector(n) column in the jobs table;
+    # changing it requires a migration and a re-embed of every job.
+    embeddings_enabled: bool = True
+    embedding_model: str = "ollama/nomic-embed-text"
+    embedding_dimensions: int = 768
+    embedding_timeout_seconds: int = 30
+
     openai_api_key: str = ""
     anthropic_api_key: str = ""
 

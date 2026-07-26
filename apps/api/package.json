@@ -15,6 +15,7 @@
   "dependencies": {
     "@clerk/backend": "^3.13.1",
     "@jobmatch/database": "workspace:*",
+    "@jobmatch/job-search": "workspace:*",
     "@jobmatch/queue": "workspace:*",
     "@jobmatch/resume-parsing": "workspace:*",
     "@jobmatch/storage": "workspace:*",

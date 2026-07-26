@@ -10,22 +10,22 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 
 **Goal:** Align on architecture, scaffold monorepo, local dev environment, CI baseline.
 
-| Item | Status |
-|---|---|
-| Architecture document | ✅ Done |
-| Decision log | ✅ Done |
-| Roadmap | ✅ Done |
-| Confirm MVP scope & open decisions | ✅ Done |
-| Monorepo scaffold (Turborepo + pnpm) | ✅ Done |
+| Item                                     | Status  |
+| ---------------------------------------- | ------- |
+| Architecture document                    | ✅ Done |
+| Decision log                             | ✅ Done |
+| Roadmap                                  | ✅ Done |
+| Confirm MVP scope & open decisions       | ✅ Done |
+| Monorepo scaffold (Turborepo + pnpm)     | ✅ Done |
 | Docker Compose (Postgres, Redis, Ollama) | ✅ Done |
-| Prisma schema (User, CareerProfile) | ✅ Done |
-| NestJS API skeleton | ✅ Done |
-| Next.js web skeleton | ✅ Done |
-| FastAPI AI service skeleton | ✅ Done |
-| GitHub Actions (lint, test, build) | ✅ Done |
-| Environment variable templates | ✅ Done |
+| Prisma schema (User, CareerProfile)      | ✅ Done |
+| NestJS API skeleton                      | ✅ Done |
+| Next.js web skeleton                     | ✅ Done |
+| FastAPI AI service skeleton              | ✅ Done |
+| GitHub Actions (lint, test, build)       | ✅ Done |
+| Environment variable templates           | ✅ Done |
 
-**Next:** Phase 1 — Module 4 (AI Resume Optimization) complete; Module 5 (Job Discovery) next
+**Next:** Phase 1 — Module 5 (Job Discovery) complete; Module 6 (Job Intelligence) next
 
 ---
 
@@ -34,6 +34,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 **Goal:** A user can sign up, build a profile, upload a resume, see AI-parsed data, and view a basic job match.
 
 **Modules included:**
+
 - Module 1 — Auth & Onboarding (email, Google, GitHub; email verification; theme)
 - Module 2 — Career Profile Setup (core fields)
 - Module 3 — Resume Management (upload PDF/DOCX, library)
@@ -44,6 +45,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 - Module 19 — Subscription (Free tier only; Stripe wiring deferred)
 
 **Exit criteria:**
+
 - New user completes onboarding in < 10 minutes
 - Resume upload returns structured profile data
 - User sees at least 5 relevant job recommendations
@@ -56,6 +58,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 **Goal:** User can optimize resume for a job, generate a cover letter, and track an application.
 
 **Modules:**
+
 - Module 4 — Full resume optimization (before/after, ATS score)
 - Module 9 — AI Application Assistant (cover letter, short answers)
 - Module 11 — Application Tracker (Kanban pipeline)
@@ -67,6 +70,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 ## Phase 3 — Job Intelligence & Discovery Scale
 
 **Modules:**
+
 - Module 5 — Job alerts, saved searches, trending jobs
 - Module 6 — Rich job insights, skill gap, learning recs
 - Module 7 — Company intelligence profiles
@@ -78,6 +82,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 ## Phase 4 — Interview & Career Coaching
 
 **Modules:**
+
 - Module 12 — AI Interview Preparation
 - Module 13 — Coding Assessment Prep
 - Module 16 — AI Career Coach
@@ -88,6 +93,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 ## Phase 5 — Automation & Networking
 
 **Modules:**
+
 - Module 8 — Professional Networking (public data only)
 - Module 10 — Smart Application Automation (Playwright, user-approved)
 - Module 20 — Full Admin Portal
@@ -106,25 +112,25 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 
 ## Module-to-Phase Map
 
-| Module | Name | Phase |
-|---|---|---|
-| 1 | Auth & Onboarding | 1 |
-| 2 | Career Profile | 1 |
-| 3 | Resume Management | 1 |
-| 4 | AI Resume Optimization | 1 (basic) → 2 (full) |
-| 5 | Job Discovery | 1 → 3 |
-| 6 | Job Intelligence | 1 (basic) → 3 |
-| 7 | Company Intelligence | 3 |
-| 8 | Networking | 5 |
-| 9 | Application Assistant | 2 |
-| 10 | Application Automation | 5 |
-| 11 | Application Tracker | 2 |
-| 12 | Interview Prep | 4 |
-| 13 | Coding Prep | 4 |
-| 14 | Portfolio Builder | 4 |
-| 15 | Career Growth Hub | 3 |
-| 16 | AI Career Coach | 4 |
-| 17 | Notifications | 2 → ongoing |
-| 18 | Analytics Dashboard | 1 (minimal) → 3 |
-| 19 | Subscription & Billing | 2 |
-| 20 | Admin Portal | 1 (basic) → 5 (full) |
+| Module | Name                   | Phase                |
+| ------ | ---------------------- | -------------------- |
+| 1      | Auth & Onboarding      | 1                    |
+| 2      | Career Profile         | 1                    |
+| 3      | Resume Management      | 1                    |
+| 4      | AI Resume Optimization | 1 (basic) → 2 (full) |
+| 5      | Job Discovery          | 1 → 3                |
+| 6      | Job Intelligence       | 1 (basic) → 3        |
+| 7      | Company Intelligence   | 3                    |
+| 8      | Networking             | 5                    |
+| 9      | Application Assistant  | 2                    |
+| 10     | Application Automation | 5                    |
+| 11     | Application Tracker    | 2                    |
+| 12     | Interview Prep         | 4                    |
+| 13     | Coding Prep            | 4                    |
+| 14     | Portfolio Builder      | 4                    |
+| 15     | Career Growth Hub      | 3                    |
+| 16     | AI Career Coach        | 4                    |
+| 17     | Notifications          | 2 → ongoing          |
+| 18     | Analytics Dashboard    | 1 (minimal) → 3      |
+| 19     | Subscription & Billing | 2                    |
+| 20     | Admin Portal           | 1 (basic) → 5 (full) |
