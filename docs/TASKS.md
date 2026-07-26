@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 1 — Module 18 (Analytics Dashboard — minimal)
+## Current Sprint: Phase 1 — Module 19 (Subscription — Free tier only)
 
 ### Phase 0 — Complete ✅
 
@@ -38,10 +38,17 @@
 - [x] Personalised ranking (`sort=match`; browsing defaults to match when profile has skills)
 - [x] Match % on job cards + profile prompt when skills are empty
 
-### Phase 1 — Next up: Module 18 (Analytics Dashboard — minimal)
+### Phase 1 — Module 18: Analytics Dashboard (minimal) ✅
 
-- [ ] Profile completeness + jobs saved summary (beyond current dashboard stubs)
-- [ ] Lightweight activity signals for Free tier
+- [x] Completeness % with unmet profile gaps on dashboard
+- [x] Saved / viewed activity counts + last job activity
+- [x] Recent saved roles list with match scores
+- [x] Remove Module 3/5 scaffolding labels and pipeline stub
+
+### Phase 1 — Next up: Module 19 (Subscription — Free tier only)
+
+- [ ] Free-tier product framing (limits/copy) without Stripe
+- [ ] Defer billing wiring to Phase 2
 
 ---
 
@@ -59,3 +66,5 @@
 | Meilisearch / OpenSearch                     | Module 5   | Low      | Deferred by ADR-003 until scale demands it            |
 | AI JD analysis / learning recommendations    | Module 6   | Medium   | Phase 3 rich insights; MVP is deterministic overlap   |
 | Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` treated as requirements for now |
+| Dedicated saved-jobs route                   | Module 18  | Low      | Dashboard lists recent saves; full list via Jobs UI   |
+| Charts / advanced analytics                  | Module 18  | Low      | Phase 6; Free tier stays a quiet readout              |
