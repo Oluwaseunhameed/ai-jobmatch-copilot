@@ -22,6 +22,7 @@ const fr = {
     title: 'Paramètres',
     account: 'Compte',
     security: 'Sécurité',
+    plan: 'Offre',
     appearance: 'Apparence',
     notifications: 'Notifications',
     theme: 'Thème',

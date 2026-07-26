@@ -130,3 +130,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Profile and job skills already exist; overlap is explainable, fast, and offline-friendly. LLM insights and learning recommendations stay Phase 3.
 **Status:** ✅ Accepted
 **Date:** 2026-07-26
+
+---
+
+## ADR-013: Free tier framing without Stripe
+
+**Context:** Module 19 needs subscription product framing for the MVP without billing infrastructure.
+**Options:** Stripe Checkout day 1, Clerk Billing, Free-only copy/constants with Pro deferred.
+**Outcome:** **Accepted** — Ship a **Free plan** settings panel and shared limit constants (`FREE_PLAN_LIMITS`: 5 resumes, 50 saved jobs, 5 optimize runs/month reserved). No `Subscription` table or Stripe until Phase 2.
+**Rationale:** Phase 1 exit does not require payments; hard paywalls would slow the MVP. Constants give a single source of truth when enforcement and Pro arrive.
+**Status:** ✅ Accepted
+**Date:** 2026-07-27

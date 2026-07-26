@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 1 — Module 19 (Subscription — Free tier only)
+## Current Sprint: Phase 1 complete — Phase 2 next
 
 ### Phase 0 — Complete ✅
 
@@ -45,10 +45,19 @@
 - [x] Recent saved roles list with match scores
 - [x] Remove Module 3/5 scaffolding labels and pipeline stub
 
-### Phase 1 — Next up: Module 19 (Subscription — Free tier only)
+### Phase 1 — Module 19: Subscription (Free tier only) ✅
 
-- [ ] Free-tier product framing (limits/copy) without Stripe
-- [ ] Defer billing wiring to Phase 2
+- [x] Free-tier product framing (limits/copy) without Stripe — Settings → Plan
+- [x] Shared `FREE_PLAN_LIMITS` constants + dashboard soft plan note
+- [x] Defer billing / Pro / Stripe wiring to Phase 2
+
+### Phase 2 — Next up
+
+- [ ] Module 4 — Full resume optimisation (before/after, ATS score)
+- [ ] Module 9 — AI Application Assistant
+- [ ] Module 11 — Application Tracker
+- [ ] Module 17 — Notifications (email)
+- [ ] Module 19 — Pro tier + Stripe billing
 
 ---
 
@@ -68,3 +77,5 @@
 | Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` treated as requirements for now |
 | Dedicated saved-jobs route                   | Module 18  | Low      | Dashboard lists recent saves; full list via Jobs UI   |
 | Charts / advanced analytics                  | Module 18  | Low      | Phase 6; Free tier stays a quiet readout              |
+| Enforce Free plan limit ceilings             | Module 19  | Medium   | Framing only; gate uploads/saves when product needs it|
+| Subscription table + Stripe webhooks         | Module 19  | Medium   | Phase 2 Pro billing                                   |

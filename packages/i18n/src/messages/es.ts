@@ -22,6 +22,7 @@ const es = {
     title: 'Configuración',
     account: 'Cuenta',
     security: 'Seguridad',
+    plan: 'Plan',
     appearance: 'Apariencia',
     notifications: 'Notificaciones',
     theme: 'Tema',

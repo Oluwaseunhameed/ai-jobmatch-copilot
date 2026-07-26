@@ -22,6 +22,7 @@ const de = {
     title: 'Einstellungen',
     account: 'Konto',
     security: 'Sicherheit',
+    plan: 'Tarif',
     appearance: 'Darstellung',
     notifications: 'Benachrichtigungen',
     theme: 'Design',

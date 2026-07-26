@@ -267,6 +267,30 @@ export interface HealthCheckResponse {
   timestamp: string;
 }
 
+/** Subscription framing (Module 19). Stripe / Pro wiring is Phase 2. */
+export type PlanId = 'free' | 'pro';
+
+export type PlanLimits = {
+  maxResumes: number;
+  maxSavedJobs: number;
+  /** Reserved for Phase 2 ATS optimize runs; shown in Free framing today. */
+  aiOptimizePerMonth: number;
+};
+
+export const FREE_PLAN_ID: PlanId = 'free';
+
+/** Soft Free-tier ceilings used for product copy (enforcement can come later). */
+export const FREE_PLAN_LIMITS: PlanLimits = {
+  maxResumes: 5,
+  maxSavedJobs: 50,
+  aiOptimizePerMonth: 5,
+};
+
+export const PLAN_LABELS: Record<PlanId, string> = {
+  free: 'Free',
+  pro: 'Pro',
+};
+
 /** Application pipeline stages (Module 11) */
 export type ApplicationStage =
   | 'saved'

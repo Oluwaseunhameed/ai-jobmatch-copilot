@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 1 — Module 18 (Analytics) complete; Module 19 (Free tier) next
+**Next:** Phase 1 complete (Module 19 Free framing); Phase 2 next
 
 ---
 

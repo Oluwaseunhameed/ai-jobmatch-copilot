@@ -13,6 +13,7 @@ export function SettingsNav() {
   const links = [
     { href: '/settings/account', label: t.settings.account },
     { href: '/settings/security', label: t.settings.security },
+    { href: '/settings/plan', label: t.settings.plan },
     { href: '/settings/appearance', label: t.settings.appearance },
     { href: '/settings/notifications', label: t.settings.notifications },
   ];

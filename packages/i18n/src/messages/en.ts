@@ -22,6 +22,7 @@ const en = {
     title: 'Settings',
     account: 'Account',
     security: 'Security',
+    plan: 'Plan',
     appearance: 'Appearance',
     notifications: 'Notifications',
     theme: 'Theme',

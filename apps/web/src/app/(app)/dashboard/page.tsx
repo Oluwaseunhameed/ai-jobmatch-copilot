@@ -116,6 +116,16 @@ export default async function DashboardPage() {
         <p className="mt-3 max-w-xl text-muted-foreground">
           A quiet readout of profile strength, job activity, and roles you have saved.
         </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          You’re on{' '}
+          <Link
+            href="/settings/plan"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Free
+          </Link>
+          . Pro billing arrives in a later phase.
+        </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
