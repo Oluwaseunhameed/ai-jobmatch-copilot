@@ -139,5 +139,16 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Options:** Commercial ATS APIs, embedding-only rewrite, deterministic keyword coverage + optional LiteLLM rewrite.
 **Outcome:** **Accepted** — Always compute **job-skill keyword fit** (0–100). Best-effort LiteLLM rewrite of headline/summary/skills via `POST /v1/resumes/optimize`; degrade to heuristic keyword tips when Ollama is down. Persist `ResumeOptimization` + `ResumeVersion(source=optimized)`.
 **Rationale:** Matches ADR-005/012 style (explainable score, graceful degradation). True ATS parsers and PDF export stay later.
-**Status:** ✅ Accepted
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27
+
+---
+
+## ADR-015: Application assistant — LiteLLM + template fallback
+
+**Context:** Phase 2 Module 9 needs cover letters and short application answers for a resume↔job pair before the Application tracker (Module 11) exists.
+**Options:** Wait for full Application model, commercial writing APIs, LiteLLM with a deterministic template fallback.
+**Outcome:** **Accepted** — Persist `ApplicationDraft` (status machine like Module 4). AI `POST /v1/applications/generate` returns cover letter + up to 3 short answers via LiteLLM; when the model is unavailable, return a filled **template** draft with `source: "template"`. Job-detail panel polls BFF; queue/inline parity with resume optimise.
+**Rationale:** Users always get usable copy; Module 11 can later attach drafts to pipeline rows without blocking this slice.
+**Status:** ✅ Accepted  
 **Date:** 2026-07-27

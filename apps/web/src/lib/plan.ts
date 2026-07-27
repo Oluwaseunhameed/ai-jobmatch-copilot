@@ -36,13 +36,16 @@ export function freePlanFeatures(): PlanFeature[] {
       key: 'optimize',
       label: `${limits.aiOptimizePerMonth} AI resume optimisations / month`,
     },
+    {
+      key: 'cover',
+      label: `${limits.aiCoverLettersPerMonth} cover letters / short answers / month`,
+    },
   ];
 }
 
 export function proPlanTeasers(): PlanFeature[] {
   return [
-    { key: 'ats', label: 'Full ATS resume optimisation with before/after scoring' },
-    { key: 'cover', label: 'Cover letters and application assistant' },
+    { key: 'ats', label: 'Higher ATS optimisation and assistant limits' },
     { key: 'tracker', label: 'Application tracker pipeline' },
     { key: 'billing', label: 'Higher limits with Stripe billing' },
   ];

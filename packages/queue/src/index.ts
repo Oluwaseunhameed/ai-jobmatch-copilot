@@ -43,3 +43,15 @@ export {
   type ResumeOptimizeJobData,
   type ResumeOptimizeTrigger,
 } from './resume-optimize';
+
+export {
+  APPLICATION_GENERATE_MAX_ATTEMPTS,
+  APPLICATION_GENERATE_QUEUE,
+  createApplicationGenerateWorker,
+  enqueueApplicationGenerate,
+  getApplicationGenerateQueue,
+  type ApplicationGenerateJob,
+  type ApplicationGenerateJobData,
+  type ApplicationGenerateTrigger,
+  type EnqueueApplicationGenerateResult,
+} from './application-generate';

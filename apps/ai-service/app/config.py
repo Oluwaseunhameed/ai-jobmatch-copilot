@@ -52,6 +52,11 @@ class Settings(BaseSettings):
     # Empty string falls back to litellm_model at runtime.
     llm_optimize_model: str = ""
 
+    # Application assistant (Module 9) — cover letter + short answers; template fallback.
+    llm_application_enabled: bool = True
+    llm_application_timeout_seconds: int = 180
+    llm_application_model: str = ""
+
     # Embeddings power semantic job search. Unlike chat completion, a local model
     # is genuinely competitive here, so this defaults on.
     # embedding_dimensions must match the vector(n) column in the jobs table;

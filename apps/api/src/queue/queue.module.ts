@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
 
+import { ApplicationGenerateWorker } from './application-generate.worker';
 import { JobEmbedWorker } from './job-embed.worker';
 import { ResumeOptimizeWorker } from './resume-optimize.worker';
 import { ResumeParseWorker } from './resume-parse.worker';
 
 @Module({
-  providers: [ResumeParseWorker, ResumeOptimizeWorker, JobEmbedWorker],
+  providers: [
+    ResumeParseWorker,
+    ResumeOptimizeWorker,
+    ApplicationGenerateWorker,
+    JobEmbedWorker,
+  ],
 })
 export class QueueModule {}

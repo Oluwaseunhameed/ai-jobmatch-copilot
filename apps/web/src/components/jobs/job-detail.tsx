@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { ApplicationAssistantPanel } from '@/components/jobs/application-assistant-panel';
 import { ResumeOptimizePanel } from '@/components/resumes/resume-optimize-panel';
 import { formatPostedAt, formatSalary, saveJob, unsaveJob, type Job } from '@/lib/api-client';
 
@@ -123,6 +124,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
 
         <aside className="space-y-4">
           <ResumeOptimizePanel jobId={job.id} />
+          <ApplicationAssistantPanel jobId={job.id} />
 
           {typeof job.matchScore === 'number' ? (
             <div className="surface-panel p-5">

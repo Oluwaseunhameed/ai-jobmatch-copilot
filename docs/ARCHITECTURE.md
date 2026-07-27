@@ -115,6 +115,7 @@ User ──┬── CareerProfile ──┬── Skills
 
 ### 5.4 Workers
 - Resume parse/optimize pipelines
+- Application draft generation (cover letter / short answers)
 - Job ingestion and enrichment
 - Notification dispatch
 - Scheduled alerts and digests

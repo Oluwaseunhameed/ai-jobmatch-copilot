@@ -17,6 +17,15 @@ export {
   type RunOptimizeInput,
 } from './optimize';
 
+export {
+  runApplicationGeneration,
+  toApplicationDraftDto,
+  type AiApplicationResponse,
+  type ApplicationAnswer,
+  type ApplicationGenerateTrigger,
+  type RunApplicationGenerateInput,
+} from './application';
+
 export { ResumeParseError, classifyParseError, type ParseFailureKind } from './errors';
 
 export {

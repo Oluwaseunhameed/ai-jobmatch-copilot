@@ -30,6 +30,7 @@ model User {
   resumes             Resume[]
   jobInteractions     JobInteraction[]
   resumeOptimizations ResumeOptimization[]
+  applicationDrafts   ApplicationDraft[]
 
   @@unique([email])
   @@map("user")
@@ -145,8 +146,9 @@ model Resume {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  versions       ResumeVersion[]
-  optimizations  ResumeOptimization[]
+  versions           ResumeVersion[]
+  optimizations      ResumeOptimization[]
+  applicationDrafts  ApplicationDraft[]
 
   @@index([userId])
   @@index([userId, isPrimary])
@@ -200,6 +202,36 @@ model ResumeOptimization {
   @@index([resumeId, jobId])
   @@index([status])
   @@map("resume_optimizations")
+}
+
+/// Phase 2 Module 9 — cover letter + short application answers for a job.
+model ApplicationDraft {
+  id       String @id @default(cuid())
+  userId   String @map("user_id")
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumeId String @map("resume_id")
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobId    String @map("job_id")
+  job      Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  /// queued | processing | ready | failed
+  status String  @default("queued")
+  error  String?
+
+  coverLetter String? @map("cover_letter") @db.Text
+  /// Input prompts (string[]) used for generation
+  questions   Json?
+  /// [{ question, answer }]
+  answers     Json?
+  resultJson  Json? @map("result_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@index([resumeId, jobId])
+  @@index([status])
+  @@map("application_drafts")
 }
 
 // ---------------------------------------------------------------------------
@@ -281,8 +313,9 @@ model Job {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  interactions    JobInteraction[]
-  optimizations   ResumeOptimization[]
+  interactions       JobInteraction[]
+  optimizations      ResumeOptimization[]
+  applicationDrafts  ApplicationDraft[]
 
   @@unique([source, externalId])
   @@index([companyId])

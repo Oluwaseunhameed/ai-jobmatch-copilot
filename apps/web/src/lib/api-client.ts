@@ -219,6 +219,44 @@ export function getResumeOptimization(resumeId: string, optimizationId: string) 
   );
 }
 
+export type ApplicationDraft = {
+  id: string;
+  userId: string;
+  resumeId: string;
+  jobId: string;
+  status: string;
+  error: string | null;
+  coverLetter: string | null;
+  questions: string[];
+  answers: { question: string; answer: string }[];
+  createdAt: string;
+  updatedAt: string;
+  job?: { title: string; slug: string; companyName: string };
+  source?: string;
+  llm?: {
+    enabled: boolean;
+    used: boolean;
+    model: string | null;
+    error: string | null;
+    durationMs?: number | null;
+  };
+};
+
+export function startApplicationDraft(
+  resumeId: string,
+  jobId: string,
+  questions?: string[],
+) {
+  return apiFetch<ApplicationDraft>('/api/users/me/application-drafts', {
+    method: 'POST',
+    body: JSON.stringify({ resumeId, jobId, questions }),
+  });
+}
+
+export function getApplicationDraft(draftId: string) {
+  return apiFetch<ApplicationDraft>(`/api/users/me/application-drafts/${draftId}`);
+}
+
 export function applyResumeToProfile(
   id: string,
   options?: { applyHeadline?: boolean; applySummary?: boolean; applySkills?: boolean },

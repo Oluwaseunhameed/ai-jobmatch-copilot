@@ -275,6 +275,8 @@ export type PlanLimits = {
   maxSavedJobs: number;
   /** Reserved for Phase 2 ATS optimize runs; shown in Free framing today. */
   aiOptimizePerMonth: number;
+  /** Cover letter / short-answer drafts per month (Module 9). */
+  aiCoverLettersPerMonth: number;
 };
 
 export const FREE_PLAN_ID: PlanId = 'free';
@@ -284,6 +286,7 @@ export const FREE_PLAN_LIMITS: PlanLimits = {
   maxResumes: 5,
   maxSavedJobs: 50,
   aiOptimizePerMonth: 5,
+  aiCoverLettersPerMonth: 5,
 };
 
 export const PLAN_LABELS: Record<PlanId, string> = {
