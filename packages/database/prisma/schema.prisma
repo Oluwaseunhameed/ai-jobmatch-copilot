@@ -36,6 +36,7 @@ model User {
   savedSearches       SavedSearch[]
   interviewPreps      InterviewPrep[]
   codingSessions      CodingPracticeSession[]
+  coachSessions       CareerCoachSession[]
 
   @@unique([email])
   @@map("user")
@@ -518,5 +519,35 @@ model CodingPracticeSession {
   @@index([userId, jobId])
   @@index([jobId])
   @@map("coding_practice_sessions")
+}
+
+// ---------------------------------------------------------------------------
+// AI Career Coach — Module 16
+// ---------------------------------------------------------------------------
+model CareerCoachSession {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// active | archived
+  status String @default("active")
+  /// skill_gaps | roadmap | salary | promotion | career_path | general
+  focus  String @default("general")
+  title  String?
+
+  /// CoachMessageDto[]
+  messagesJson Json @map("messages_json")
+  /// Slim growth-hub snapshot used for coaching context
+  contextJson  Json? @map("context_json")
+
+  summary String? @db.Text
+  /// template | llm — last assistant reply source
+  source  String  @default("template")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("career_coach_sessions")
 }
 

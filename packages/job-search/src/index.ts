@@ -75,6 +75,24 @@ export {
 } from './coding-service';
 
 export {
+  buildTemplateCoachReply,
+  buildWelcomeReply,
+  makeMessage,
+  normalizeFocus,
+  sessionTitle,
+  snapCoachContext,
+  toCareerCoachSessionDto,
+} from './coach';
+
+export {
+  appendCoachMessage,
+  createCoachSession,
+  deleteCoachSession,
+  getCoachSession,
+  listCoachSessions,
+} from './coach-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,

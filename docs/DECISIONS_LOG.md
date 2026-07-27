@@ -251,3 +251,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Delivers assessment prep without judge infrastructure; DTO can later attach LLM review results.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-025: AI Career Coach — Growth Hub context + LiteLLM with template fallback
+
+**Context:** Phase 4 Module 16 needs conversational coaching without replacing Module 15’s deterministic Growth Hub (ADR-022) or inventing ungrounded advice.
+**Options:** Free-form chat with no market grounding; human coach marketplace (Phase 6); Growth Hub snapshot + LiteLLM replies with deterministic template fallback.
+**Outcome:** **Accepted** — `CareerCoachSession` stores focus, message history, and a slim Growth Hub context snapshot. `POST /v1/coach/chat` (AI service) attempts LiteLLM; on failure the BFF/`buildTemplateCoachReply()` path still coaches from gaps, roadmap, salary, and promotion signals. Exposed via `/coach` and `GET/POST/PATCH /api/users/me/coach-sessions`. Team/human coach roles stay Phase 6.
+**Rationale:** Keeps `CareerGrowthHubDto` stable while adding a conversational layer; works offline when LLM is unavailable.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

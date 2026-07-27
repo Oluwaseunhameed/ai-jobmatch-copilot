@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 4 — Module 13 (Coding Assessment) ✅
+## Current Sprint: Phase 4 — Module 16 (AI Career Coach)
 
 ### Phase 0 — Complete ✅
 
@@ -14,18 +14,18 @@
 
 ### Phase 4 — Module 13: Coding Assessment Prep ✅
 
-- [x] `CodingPracticeSession` model + migration
-- [x] Curated problem bank (LeetCode / HackerRank / take-home) with difficulties + timers
-- [x] Role-aware pack builder + attempt tracking + performance score
-- [x] Review checklist (lightweight code review stand-in)
-- [x] `GET/POST /api/users/me/coding-sessions` + `[id]` GET/PATCH/DELETE
-- [x] Job detail panel + `/practice` hub + session page + nav
-- [x] ADR-024 + unit tests
-- [ ] Full AI code review — deferred (checklist shipped for MVP)
+### Phase 4 — Module 16: AI Career Coach
+
+- [x] `CareerCoachSession` model + migration
+- [x] Growth Hub context snapshot + template coaching replies
+- [x] AI service `POST /v1/coach/chat` (LiteLLM + template fallback)
+- [x] `GET/POST /api/users/me/coach-sessions` + `[id]` GET/PATCH/DELETE
+- [x] `/coach` hub + session chat UI + Growth Hub CTA + nav
+- [x] ADR-025 + unit tests
+- [ ] Long-term memory / tool-using agent — deferred
 
 ### Phase 4 — Next up
 
-- [ ] Module 16 — AI Career Coach
 - [ ] Module 14 — Portfolio & Project Builder
 
 ---
@@ -63,9 +63,11 @@
 | Nest job insights parity                     | Module 6   | Low      | BFF is primary product path                           |
 | External funding / interview data            | Module 7   | Medium   | Deterministic job-derived intelligence shipped        |
 | Nest company profile parity                  | Module 7   | Low      | BFF is primary product path                           |
-| LLM personalized coaching                    | Module 15  | Medium   | Deterministic hub shipped; Module 16 owns AI coach    |
+| LLM personalized coaching                    | Module 15  | —        | ✅ Done — Module 16 coach over Growth Hub (ADR-025)   |
 | Nest growth hub parity                       | Module 15  | Low      | BFF is primary product path                           |
 | Voice + LLM conversational mock interview    | Module 12  | Medium   | Deterministic packs + confidence shipped              |
 | Nest interview prep parity                   | Module 12  | Low      | BFF is primary product path                           |
 | Full AI code review / sandboxed runner       | Module 13  | Medium   | Checklist + self scoring shipped                      |
 | Nest coding session parity                   | Module 13  | Low      | BFF is primary product path                           |
+| Nest career coach parity                     | Module 16  | Low      | BFF is primary product path                           |
+| Coach long-term memory / tool agents         | Module 16  | Medium   | Session JSON only for MVP                             |

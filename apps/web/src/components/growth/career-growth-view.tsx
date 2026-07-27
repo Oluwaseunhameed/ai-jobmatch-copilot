@@ -57,7 +57,10 @@ export function CareerGrowthView({ hub }: { hub: CareerGrowthHub }) {
           <Link href="/profile" className="font-medium text-foreground underline-offset-4 hover:underline">
             career profile
           </Link>{' '}
-          to refine this.
+          to refine this ·{' '}
+          <Link href="/coach" className="font-medium text-foreground underline-offset-4 hover:underline">
+            Ask the career coach
+          </Link>
         </p>
       </div>
 

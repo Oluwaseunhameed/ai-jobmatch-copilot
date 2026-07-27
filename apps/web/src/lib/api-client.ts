@@ -818,6 +818,88 @@ export function deleteCodingSession(id: string) {
   });
 }
 
+export type CoachFocus =
+  | 'skill_gaps'
+  | 'roadmap'
+  | 'salary'
+  | 'promotion'
+  | 'career_path'
+  | 'general';
+
+export type CoachMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  source?: string;
+  createdAt: string;
+};
+
+export type CareerCoachSession = {
+  id: string;
+  userId: string;
+  status: string;
+  focus: CoachFocus | string;
+  title: string | null;
+  messages: CoachMessage[];
+  context: {
+    summary: string;
+    topGaps: Array<{ skill: string; priority: string; reason: string }>;
+    roadmapSteps: Array<{ title: string; skill: string; estimatedHours: number | null }>;
+    certifications: Array<{ name: string; skill: string }>;
+    careerPaths: Array<{ title: string; readinessPct: number; detail: string }>;
+    salaryDetail: string | null;
+    promotion: {
+      score: number;
+      level: string;
+      targetSeniority: string;
+      detail: string;
+      checklistOpen: string[];
+    };
+    market: { activeJobs: number; skillsAnalyzed: number };
+  } | null;
+  summary: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const COACH_FOCUS_LABELS: Record<CoachFocus, string> = {
+  skill_gaps: 'Skill gaps',
+  roadmap: 'Learning roadmap',
+  salary: 'Salary growth',
+  promotion: 'Promotion readiness',
+  career_path: 'Career paths',
+  general: 'General coaching',
+};
+
+export function listCoachSessions() {
+  return apiFetch<{ coachSessions: CareerCoachSession[] }>('/api/users/me/coach-sessions');
+}
+
+export function createCoachSession(input?: { focus?: string; message?: string | null }) {
+  return apiFetch<CareerCoachSession>('/api/users/me/coach-sessions', {
+    method: 'POST',
+    body: JSON.stringify(input ?? {}),
+  });
+}
+
+export function getCoachSession(id: string) {
+  return apiFetch<CareerCoachSession>(`/api/users/me/coach-sessions/${encodeURIComponent(id)}`);
+}
+
+export function sendCoachMessage(id: string, message: string) {
+  return apiFetch<CareerCoachSession>(`/api/users/me/coach-sessions/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ message }),
+  });
+}
+
+export function deleteCoachSession(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/users/me/coach-sessions/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

@@ -744,3 +744,80 @@ export interface CodingPracticeSessionDto {
     companyName: string;
   } | null;
 }
+
+// ---------------------------------------------------------------------------
+// AI Career Coach — Module 16
+// ---------------------------------------------------------------------------
+
+export type CoachFocus =
+  | 'skill_gaps'
+  | 'roadmap'
+  | 'salary'
+  | 'promotion'
+  | 'career_path'
+  | 'general';
+
+export type CoachSessionStatus = 'active' | 'archived';
+export type CoachMessageRole = 'user' | 'assistant';
+
+export const COACH_FOCUSES: CoachFocus[] = [
+  'skill_gaps',
+  'roadmap',
+  'salary',
+  'promotion',
+  'career_path',
+  'general',
+];
+
+export const COACH_FOCUS_LABELS: Record<CoachFocus, string> = {
+  skill_gaps: 'Skill gaps',
+  roadmap: 'Learning roadmap',
+  salary: 'Salary growth',
+  promotion: 'Promotion readiness',
+  career_path: 'Career paths',
+  general: 'General coaching',
+};
+
+export function isCoachFocus(value: string): value is CoachFocus {
+  return (COACH_FOCUSES as string[]).includes(value);
+}
+
+export interface CoachMessageDto {
+  id: string;
+  role: CoachMessageRole;
+  content: string;
+  /** Present on assistant turns */
+  source?: 'template' | 'llm' | string;
+  createdAt: string;
+}
+
+export interface CoachContextDto {
+  summary: string;
+  topGaps: Array<{ skill: string; priority: string; reason: string }>;
+  roadmapSteps: Array<{ title: string; skill: string; estimatedHours: number | null }>;
+  certifications: Array<{ name: string; skill: string }>;
+  careerPaths: Array<{ title: string; readinessPct: number; detail: string }>;
+  salaryDetail: string | null;
+  promotion: {
+    score: number;
+    level: string;
+    targetSeniority: string;
+    detail: string;
+    checklistOpen: string[];
+  };
+  market: { activeJobs: number; skillsAnalyzed: number };
+}
+
+export interface CareerCoachSessionDto {
+  id: string;
+  userId: string;
+  status: CoachSessionStatus | string;
+  focus: CoachFocus | string;
+  title: string | null;
+  messages: CoachMessageDto[];
+  context: CoachContextDto | null;
+  summary: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+}
