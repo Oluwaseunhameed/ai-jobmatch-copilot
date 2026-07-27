@@ -31,3 +31,15 @@ export {
   type ResumeParseJobData,
   type ResumeParseTrigger,
 } from './resume-parse';
+
+export {
+  RESUME_OPTIMIZE_MAX_ATTEMPTS,
+  RESUME_OPTIMIZE_QUEUE,
+  createResumeOptimizeWorker,
+  enqueueResumeOptimize,
+  getResumeOptimizeQueue,
+  type EnqueueOptimizeResult,
+  type ResumeOptimizeJob,
+  type ResumeOptimizeJobData,
+  type ResumeOptimizeTrigger,
+} from './resume-optimize';

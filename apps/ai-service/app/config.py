@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     llm_enrichment_enabled: bool = True
     llm_timeout_seconds: int = 12
 
+    # Resume optimisation (Module 4 full) — longer timeout; degrades to keyword tips.
+    # Local Ollama cold-starts often need 2–3 minutes on first request.
+    llm_optimize_enabled: bool = True
+    llm_optimize_timeout_seconds: int = 180
+    # Empty string falls back to litellm_model at runtime.
+    llm_optimize_model: str = ""
+
     # Embeddings power semantic job search. Unlike chat completion, a local model
     # is genuinely competitive here, so this defaults on.
     # embedding_dimensions must match the vector(n) column in the jobs table;

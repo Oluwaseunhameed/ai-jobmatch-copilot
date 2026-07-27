@@ -34,7 +34,7 @@ export function freePlanFeatures(): PlanFeature[] {
     { key: 'saved', label: `Up to ${limits.maxSavedJobs} saved roles` },
     {
       key: 'optimize',
-      label: `${limits.aiOptimizePerMonth} AI resume optimisations / month (coming in Phase 2)`,
+      label: `${limits.aiOptimizePerMonth} AI resume optimisations / month`,
     },
   ];
 }

@@ -168,6 +168,57 @@ export function parseResume(id: string) {
   });
 }
 
+export type ResumeOptimization = {
+  id: string;
+  userId: string;
+  resumeId: string;
+  jobId: string;
+  status: string;
+  error: string | null;
+  beforeScore: number | null;
+  afterScore: number | null;
+  versionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  job?: { title: string; slug: string; companyName: string };
+  version?: { id: string; label: string; source: string; createdAt: string } | null;
+  before?: {
+    text: string;
+    headline: string | null;
+    summary: string | null;
+    skills: string[];
+    atsScore: { score: number; matchedKeywords: string[]; missingKeywords: string[] };
+  };
+  after?: {
+    text: string;
+    headline: string | null;
+    summary: string | null;
+    skills: string[];
+    atsScore: { score: number; matchedKeywords: string[]; missingKeywords: string[] };
+  };
+  source?: string;
+  llm?: {
+    enabled: boolean;
+    used: boolean;
+    model: string | null;
+    error: string | null;
+    durationMs?: number | null;
+  };
+};
+
+export function startResumeOptimize(resumeId: string, jobId: string) {
+  return apiFetch<ResumeOptimization>(`/api/users/me/resumes/${resumeId}/optimize`, {
+    method: 'POST',
+    body: JSON.stringify({ jobId }),
+  });
+}
+
+export function getResumeOptimization(resumeId: string, optimizationId: string) {
+  return apiFetch<ResumeOptimization>(
+    `/api/users/me/resumes/${resumeId}/optimizations/${optimizationId}`,
+  );
+}
+
 export function applyResumeToProfile(
   id: string,
   options?: { applyHeadline?: boolean; applySummary?: boolean; applySkills?: boolean },

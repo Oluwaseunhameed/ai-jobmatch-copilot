@@ -27,8 +27,9 @@ model User {
 
   profile         CareerProfile?
   preferences     UserPreference?
-  resumes         Resume[]
-  jobInteractions JobInteraction[]
+  resumes             Resume[]
+  jobInteractions     JobInteraction[]
+  resumeOptimizations ResumeOptimization[]
 
   @@unique([email])
   @@map("user")
@@ -144,7 +145,8 @@ model Resume {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  versions ResumeVersion[]
+  versions       ResumeVersion[]
+  optimizations  ResumeOptimization[]
 
   @@index([userId])
   @@index([userId, isPrimary])
@@ -164,8 +166,40 @@ model ResumeVersion {
 
   createdAt DateTime @default(now()) @map("created_at")
 
+  optimization ResumeOptimization?
+
   @@index([resumeId])
   @@map("resume_versions")
+}
+
+/// Phase 2 Module 4 — tailor a resume to a job with before/after keyword-fit scores.
+model ResumeOptimization {
+  id       String @id @default(cuid())
+  userId   String @map("user_id")
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resumeId String @map("resume_id")
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobId    String @map("job_id")
+  job      Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  /// queued | processing | ready | failed
+  status String  @default("queued")
+  error  String?
+
+  beforeScore Int? @map("before_score")
+  afterScore  Int? @map("after_score")
+  resultJson  Json? @map("result_json")
+
+  versionId String?        @unique @map("version_id")
+  version   ResumeVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@index([resumeId, jobId])
+  @@index([status])
+  @@map("resume_optimizations")
 }
 
 // ---------------------------------------------------------------------------
@@ -247,7 +281,8 @@ model Job {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  interactions JobInteraction[]
+  interactions    JobInteraction[]
+  optimizations   ResumeOptimization[]
 
   @@unique([source, externalId])
   @@index([companyId])

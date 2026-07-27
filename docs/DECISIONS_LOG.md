@@ -133,11 +133,11 @@ Format: **Decision · Context · Options · Outcome · Date**
 
 ---
 
-## ADR-013: Free tier framing without Stripe
+## ADR-014: Resume optimisation — keyword-fit score + LiteLLM rewrite
 
-**Context:** Module 19 needs subscription product framing for the MVP without billing infrastructure.
-**Options:** Stripe Checkout day 1, Clerk Billing, Free-only copy/constants with Pro deferred.
-**Outcome:** **Accepted** — Ship a **Free plan** settings panel and shared limit constants (`FREE_PLAN_LIMITS`: 5 resumes, 50 saved jobs, 5 optimize runs/month reserved). No `Subscription` table or Stripe until Phase 2.
-**Rationale:** Phase 1 exit does not require payments; hard paywalls would slow the MVP. Constants give a single source of truth when enforcement and Pro arrive.
+**Context:** Phase 2 Module 4 needs before/after resume tailoring for a job without claiming vendor ATS accuracy.
+**Options:** Commercial ATS APIs, embedding-only rewrite, deterministic keyword coverage + optional LiteLLM rewrite.
+**Outcome:** **Accepted** — Always compute **job-skill keyword fit** (0–100). Best-effort LiteLLM rewrite of headline/summary/skills via `POST /v1/resumes/optimize`; degrade to heuristic keyword tips when Ollama is down. Persist `ResumeOptimization` + `ResumeVersion(source=optimized)`.
+**Rationale:** Matches ADR-005/012 style (explainable score, graceful degradation). True ATS parsers and PDF export stay later.
 **Status:** ✅ Accepted
 **Date:** 2026-07-27

@@ -423,6 +423,9 @@ export function ResumeLibrary() {
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {formatBytes(resume.fileSize)} · {formatDate(resume.updatedAt)}
+                          {(resume.versions?.filter((v) => v.source === 'optimized').length ?? 0) >
+                            0 &&
+                            ` · ${resume.versions!.filter((v) => v.source === 'optimized').length} optimized`}
                         </span>
                       </div>
 

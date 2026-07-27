@@ -6,6 +6,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from app.services.extract import ExtractionError, extract_text
+from app.services.optimize import OptimizeResumeInput, OptimizeResponse, optimize_resume
 from app.services.structure import structure_resume_text
 
 router = APIRouter(prefix="/v1/resumes", tags=["resumes"])
@@ -94,3 +95,17 @@ async def parse_resume(
         status="ready",
         llm=LlmMetadata(**(structured.get("llm") or {})),
     )
+
+
+@router.post("/optimize", response_model=OptimizeResponse)
+async def optimize_resume_endpoint(body: OptimizeResumeInput) -> OptimizeResponse:
+    """Tailor resume fields to a job and return before/after keyword-fit scores."""
+    if not body.resume_text.strip() and not body.skills and not body.summary:
+        raise HTTPException(
+            status_code=400,
+            detail="Resume text or structured fields are required",
+        )
+    if not body.job.title.strip():
+        raise HTTPException(status_code=400, detail="Job title is required")
+
+    return optimize_resume(body)

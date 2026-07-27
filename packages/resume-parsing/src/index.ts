@@ -7,6 +7,16 @@ export {
   type ResumeParseTrigger,
 } from './parse';
 
+export {
+  runResumeOptimization,
+  toOptimizationDto,
+  type AiOptimizeResponse,
+  type AtsScoreBlock,
+  type OptimizeSnapshot,
+  type ResumeOptimizeTrigger,
+  type RunOptimizeInput,
+} from './optimize';
+
 export { ResumeParseError, classifyParseError, type ParseFailureKind } from './errors';
 
 export {
