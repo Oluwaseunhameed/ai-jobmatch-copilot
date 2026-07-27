@@ -201,8 +201,8 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
                       void saveAttempt({
                         problemId: problem.id,
                         status,
-                        minutesSpent: attempt?.minutesSpent ?? Math.round(problem.timeLimitMinutes * 0.6),
-                        selfRating: attempt?.selfRating ?? (status === 'solved' ? 4 : 3),
+                        minutesSpent: attempt?.minutesSpent ?? null,
+                        selfRating: attempt?.selfRating ?? null,
                         notes: attempt?.notes ?? null,
                       })
                     }
@@ -220,7 +220,10 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
                     onClick={() =>
                       void saveAttempt({
                         problemId: problem.id,
-                        status: attempt?.status && attempt.status !== 'todo' ? attempt.status : 'attempted',
+                        status:
+                          attempt?.status && attempt.status !== 'todo'
+                            ? attempt.status
+                            : 'attempted',
                         minutesSpent: attempt?.minutesSpent ?? null,
                         selfRating: value,
                         notes: attempt?.notes ?? null,
