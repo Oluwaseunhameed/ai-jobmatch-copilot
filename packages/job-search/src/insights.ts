@@ -3,10 +3,10 @@ import type {
   FitSignal,
   JobDto,
   JobInsightsDto,
-  LearningRecommendation,
   SkillGapItem,
 } from '@jobmatch/types';
 
+import { learningForSkill } from './growth';
 import { matchJobSkills, normalizeSkill } from './match';
 
 export type ProfileForInsights = {
@@ -26,148 +26,6 @@ const SENIORITY_YEARS: Record<string, { min: number; max: number; label: string 
   senior: { min: 5, max: 10, label: 'Senior' },
   lead: { min: 8, max: 14, label: 'Lead' },
   principal: { min: 10, max: 99, label: 'Principal' },
-};
-
-/** Curated learning paths for common missing skills (offline-friendly, no LLM). */
-const LEARNING_CATALOG: Record<
-  string,
-  Omit<LearningRecommendation, 'skill'>[]
-> = {
-  typescript: [
-    {
-      title: 'TypeScript Handbook',
-      provider: 'typescriptlang.org',
-      url: 'https://www.typescriptlang.org/docs/handbook/intro.html',
-      type: 'docs',
-      estimatedHours: 8,
-    },
-  ],
-  javascript: [
-    {
-      title: 'JavaScript.info — Modern Tutorial',
-      provider: 'javascript.info',
-      url: 'https://javascript.info/',
-      type: 'course',
-      estimatedHours: 40,
-    },
-  ],
-  react: [
-    {
-      title: 'React documentation — Learn',
-      provider: 'react.dev',
-      url: 'https://react.dev/learn',
-      type: 'docs',
-      estimatedHours: 12,
-    },
-  ],
-  nextjs: [
-    {
-      title: 'Next.js App Router docs',
-      provider: 'nextjs.org',
-      url: 'https://nextjs.org/docs/app',
-      type: 'docs',
-      estimatedHours: 6,
-    },
-  ],
-  node: [
-    {
-      title: 'Node.js Getting Started',
-      provider: 'nodejs.org',
-      url: 'https://nodejs.org/en/learn/getting-started/introduction-to-nodejs',
-      type: 'docs',
-      estimatedHours: 6,
-    },
-  ],
-  python: [
-    {
-      title: 'Python for Everybody (free course)',
-      provider: 'Coursera / UMich',
-      url: 'https://www.coursera.org/specializations/python',
-      type: 'course',
-      estimatedHours: 60,
-    },
-  ],
-  postgresql: [
-    {
-      title: 'PostgreSQL Tutorial',
-      provider: 'postgresql.org',
-      url: 'https://www.postgresql.org/docs/current/tutorial.html',
-      type: 'docs',
-      estimatedHours: 10,
-    },
-  ],
-  aws: [
-    {
-      title: 'AWS Cloud Practitioner essentials',
-      provider: 'AWS Skill Builder',
-      url: 'https://aws.amazon.com/training/digital/aws-cloud-practitioner-essentials/',
-      type: 'course',
-      estimatedHours: 12,
-    },
-  ],
-  kubernetes: [
-    {
-      title: 'Kubernetes Basics',
-      provider: 'kubernetes.io',
-      url: 'https://kubernetes.io/docs/tutorials/kubernetes-basics/',
-      type: 'docs',
-      estimatedHours: 8,
-    },
-  ],
-  graphql: [
-    {
-      title: 'GraphQL introduction',
-      provider: 'graphql.org',
-      url: 'https://graphql.org/learn/',
-      type: 'docs',
-      estimatedHours: 4,
-    },
-  ],
-  go: [
-    {
-      title: 'A Tour of Go',
-      provider: 'go.dev',
-      url: 'https://go.dev/tour/',
-      type: 'practice',
-      estimatedHours: 4,
-    },
-  ],
-  docker: [
-    {
-      title: 'Docker Getting Started',
-      provider: 'Docker',
-      url: 'https://docs.docker.com/get-started/',
-      type: 'docs',
-      estimatedHours: 4,
-    },
-  ],
-  'machine learning': [
-    {
-      title: 'Machine Learning Crash Course',
-      provider: 'Google Developers',
-      url: 'https://developers.google.com/machine-learning/crash-course',
-      type: 'course',
-      estimatedHours: 15,
-    },
-  ],
-  redis: [
-    {
-      title: 'Redis University — RU101',
-      provider: 'Redis',
-      url: 'https://university.redis.io/academy/course/ru101',
-      type: 'course',
-      estimatedHours: 6,
-    },
-  ],
-  terraform: [
-    {
-      title: 'Get Started with Terraform',
-      provider: 'HashiCorp',
-      url: 'https://developer.hashicorp.com/terraform/tutorials/aws-get-started',
-      type: 'docs',
-      estimatedHours: 6,
-    },
-  ],
 };
 
 function seniorityFit(jobSeniority: string, years: number | null | undefined): FitSignal {
@@ -366,23 +224,6 @@ function gapReason(skill: string, priority: SkillGapItem['priority']) {
   if (priority === 'high') return 'Listed early in requirements or core skills for this role.';
   if (priority === 'medium') return 'Expected skill for this role.';
   return 'Nice-to-have or secondary skill for this posting.';
-}
-
-function learningForSkill(skill: string): LearningRecommendation[] {
-  const key = normalizeSkill(skill);
-  const catalog = LEARNING_CATALOG[key];
-  if (catalog?.length) {
-    return catalog.map((entry) => ({ skill, ...entry }));
-  }
-  return [
-    {
-      skill,
-      title: `Learn ${skill}`,
-      provider: 'Search',
-      url: `https://www.google.com/search?q=${encodeURIComponent(`${skill} tutorial course`)}`,
-      type: 'course',
-    },
-  ];
 }
 
 function buildSummary(input: {

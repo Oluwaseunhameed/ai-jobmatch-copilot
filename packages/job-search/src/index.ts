@@ -28,6 +28,16 @@ export { buildCompanyProfile, type CompanyJobInput } from './company-profile';
 export { getCompanyProfile } from './company-service';
 
 export {
+  buildCareerGrowthHub,
+  learningForSkill,
+  LEARNING_CATALOG,
+  type GrowthJobInput,
+  type GrowthProfileInput,
+} from './growth';
+
+export { getCareerGrowthHub } from './growth-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,

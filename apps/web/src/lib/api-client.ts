@@ -565,6 +565,82 @@ export function getCompanyProfile(slug: string) {
   return apiFetch<CompanyProfile>(`/api/companies/${encodeURIComponent(slug)}`);
 }
 
+export type CareerGrowthHub = {
+  summary: string;
+  skillGaps: Array<{
+    skill: string;
+    priority: 'high' | 'medium' | 'low';
+    jobCount: number;
+    demandPct: number;
+    reason: string;
+  }>;
+  roadmap: Array<{
+    order: number;
+    skill: string;
+    title: string;
+    description: string;
+    estimatedHours: number | null;
+    resources: Array<{
+      skill: string;
+      title: string;
+      provider: string;
+      url: string;
+      type: 'course' | 'docs' | 'practice';
+      estimatedHours?: number;
+    }>;
+  }>;
+  certifications: Array<{
+    name: string;
+    provider: string;
+    skill: string;
+    url: string;
+    level: 'foundational' | 'associate' | 'professional';
+  }>;
+  trendingTechnologies: Array<{
+    skill: string;
+    jobCount: number;
+    demandPct: number;
+    have: boolean;
+  }>;
+  careerPaths: Array<{
+    id: string;
+    title: string;
+    currentLevel: string;
+    nextLevel: string;
+    readinessPct: number;
+    focusSkills: string[];
+    detail: string;
+  }>;
+  salaryGrowth: {
+    currency: string;
+    period: string;
+    expectation: number | null;
+    marketMedian: number | null;
+    marketMin: number | null;
+    marketMax: number | null;
+    roleCount: number;
+    deltaPct: number | null;
+    detail: string;
+  } | null;
+  promotionReadiness: {
+    score: number;
+    level: 'strong' | 'partial' | 'gap' | 'unknown';
+    targetSeniority: string;
+    yearsGap: number | null;
+    skillCoveragePct: number | null;
+    checklist: Array<{ id: string; label: string; done: boolean; detail: string }>;
+    detail: string;
+  };
+  market: {
+    activeJobs: number;
+    skillsAnalyzed: number;
+  };
+};
+
+export function getCareerGrowthHub() {
+  return apiFetch<CareerGrowthHub>('/api/users/me/growth');
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

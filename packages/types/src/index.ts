@@ -486,3 +486,87 @@ export interface CompanyProfileDto {
   openRoles: CompanyOpenRoleDto[];
   viewer?: CompanyViewerStatsDto;
 }
+
+// ---------------------------------------------------------------------------
+// Career Growth Hub — Module 15
+// ---------------------------------------------------------------------------
+
+export interface MarketSkillDemandDto {
+  skill: string;
+  jobCount: number;
+  /** Share of active jobs requesting this skill (0–100). */
+  demandPct: number;
+  have: boolean;
+}
+
+export interface GrowthSkillGapDto {
+  skill: string;
+  priority: 'high' | 'medium' | 'low';
+  jobCount: number;
+  demandPct: number;
+  reason: string;
+}
+
+export interface RoadmapStepDto {
+  order: number;
+  skill: string;
+  title: string;
+  description: string;
+  estimatedHours: number | null;
+  resources: LearningRecommendation[];
+}
+
+export interface CertificationSuggestionDto {
+  name: string;
+  provider: string;
+  skill: string;
+  url: string;
+  level: 'foundational' | 'associate' | 'professional';
+}
+
+export interface CareerPathSuggestionDto {
+  id: string;
+  title: string;
+  currentLevel: string;
+  nextLevel: string;
+  readinessPct: number;
+  focusSkills: string[];
+  detail: string;
+}
+
+export interface SalaryGrowthInsightDto {
+  currency: string;
+  period: string;
+  expectation: number | null;
+  marketMedian: number | null;
+  marketMin: number | null;
+  marketMax: number | null;
+  roleCount: number;
+  deltaPct: number | null;
+  detail: string;
+}
+
+export interface PromotionReadinessDto {
+  score: number;
+  level: FitLevel;
+  targetSeniority: string;
+  yearsGap: number | null;
+  skillCoveragePct: number | null;
+  checklist: Array<{ id: string; label: string; done: boolean; detail: string }>;
+  detail: string;
+}
+
+export interface CareerGrowthHubDto {
+  summary: string;
+  skillGaps: GrowthSkillGapDto[];
+  roadmap: RoadmapStepDto[];
+  certifications: CertificationSuggestionDto[];
+  trendingTechnologies: MarketSkillDemandDto[];
+  careerPaths: CareerPathSuggestionDto[];
+  salaryGrowth: SalaryGrowthInsightDto | null;
+  promotionReadiness: PromotionReadinessDto;
+  market: {
+    activeJobs: number;
+    skillsAnalyzed: number;
+  };
+}

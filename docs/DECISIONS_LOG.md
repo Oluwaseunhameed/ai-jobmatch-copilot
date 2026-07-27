@@ -218,3 +218,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Reuses seed + job catalog data already in Postgres; funding/interview difficulty deferred until licensed sources or enough application telemetry exist.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-022: Career Growth Hub — market-demand gaps + curated roadmaps
+
+**Context:** Phase 3 Module 15 needs skill-gap analysis, learning roadmaps, certifications, career paths, salary growth, and promotion readiness without waiting on an AI coach (Module 16).
+**Options:** LLM coach day 1; third-party L&D APIs; deterministic hub comparing profile skills to active job-catalog demand with curated learning/cert catalogs.
+**Outcome:** **Accepted** — `buildCareerGrowthHub()` ranks market skill demand from active jobs, surfaces gaps vs the profile, builds a prioritised learning roadmap (shared catalog with Module 6), suggests certifications, career ladders from desired roles, salary vs catalog medians, and a promotion-readiness checklist toward the next seniority band. Exposed via `GET /api/users/me/growth` and `/growth`.
+**Rationale:** Explainable and offline-friendly; Module 16 can later layer conversational coaching without changing the DTO contract.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, FileText, KanbanSquare, LayoutDashboard, Menu, Settings, UserRound, X } from 'lucide-react';
+import { Briefcase, FileText, KanbanSquare, LayoutDashboard, Menu, Route, Settings, UserRound, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { SignOutButton } from '@/components/auth/sign-out-button';
@@ -15,6 +15,7 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/jobs', label: 'Jobs', icon: Briefcase },
   { href: '/applications', label: 'Applications', icon: KanbanSquare },
+  { href: '/growth', label: 'Growth', icon: Route },
   { href: '/profile', label: 'Profile', icon: UserRound },
   { href: '/resumes', label: 'Resumes', icon: FileText },
   { href: '/settings/account', label: 'Settings', icon: Settings },

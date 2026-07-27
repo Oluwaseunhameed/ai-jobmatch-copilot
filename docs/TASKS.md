@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 3 — Module 7 (Company Intelligence) ✅
+## Current Sprint: Phase 3 — Module 15 (Career Growth Hub) ✅
 
 ### Phase 0 — Complete ✅
 
@@ -8,21 +8,26 @@
 
 ### Phase 2 — Complete ✅ (Modules 4 full, 9, 11, 17, 19 Pro billing)
 
-### Phase 3 — Module 5: Job alerts, saved searches, trending ✅
+### Phase 3 — Modules 5–7 ✅
 
-### Phase 3 — Module 6: Rich job insights ✅
+### Phase 3 — Module 15: Career Growth Hub ✅
 
-### Phase 3 — Module 7: Company intelligence profiles ✅
+- [x] `CareerGrowthHubDto` types (gaps, roadmap, certs, paths, salary, promotion)
+- [x] Deterministic growth engine vs job-catalog demand in `@jobmatch/job-search`
+- [x] `GET /api/users/me/growth` + `/growth` page + nav link
+- [x] Shared learning catalog with Module 6 insights
+- [x] ADR-022 + unit tests
 
-- [x] `CompanyProfileDto` types (hiring stats, stack, culture signals, salary bands)
-- [x] Deterministic company intelligence in `@jobmatch/job-search`
-- [x] `GET /api/companies/[slug]` + `/companies/[slug]` page
-- [x] Job detail links to full company profile
-- [x] ADR-021 + unit tests
+### Phase 3 — Remaining
 
-### Phase 3 — Next up
+- [ ] Search upgrade (Meilisearch/OpenSearch) — deferred until scale demands it
 
-- [ ] Module 15 — Career Growth Hub (roadmaps)
+### Phase 4 — Next up
+
+- [ ] Module 12 — AI Interview Preparation
+- [ ] Module 13 — Coding Assessment Prep
+- [ ] Module 16 — AI Career Coach
+- [ ] Module 14 — Portfolio & Project Builder
 
 ---
 
@@ -59,3 +64,5 @@
 | Nest job insights parity                     | Module 6   | Low      | BFF is primary product path                           |
 | External funding / interview data            | Module 7   | Medium   | Deterministic job-derived intelligence shipped        |
 | Nest company profile parity                  | Module 7   | Low      | BFF is primary product path                           |
+| LLM personalized coaching                    | Module 15  | Medium   | Deterministic hub shipped; Module 16 owns AI coach    |
+| Nest growth hub parity                       | Module 15  | Low      | BFF is primary product path                           |

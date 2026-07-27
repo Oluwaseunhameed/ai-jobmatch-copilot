@@ -305,6 +305,12 @@ export default async function DashboardPage() {
               </Link>
             </Button>
             <Button asChild size="sm" variant="outline">
+              <Link href="/growth">
+                Growth plan
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
               <Link href="/resumes">
                 {resumeCount === 0 ? 'Upload resume' : 'Resumes'}
                 <ArrowRight className="h-4 w-4" />
