@@ -16,6 +16,8 @@
 - [x] BFF list / create / get / patch / delete
 - [x] Auto-attach latest ready `ApplicationDraft` on create
 - [x] `/applications` Kanban board with stage moves + notes
+- [x] Drag-and-drop between columns (select remains for accessibility)
+- [x] Dashboard pipeline counts + recent applications
 - [x] Job detail “Track application” panel
 - [x] Nav entry + Free plan framing
 
@@ -47,7 +49,6 @@
 | Enforce Free plan limit ceilings             | Module 19  | Medium   | Framing only; gate uploads/saves/optimise when needed |
 | Subscription table + Stripe webhooks         | Module 19  | Medium   | Phase 2 Pro billing                                   |
 | Nest applications CRUD parity                | Module 11  | Low      | BFF is primary product path                           |
-| Drag-and-drop Kanban                         | Module 11  | Low      | Stage select on cards for MVP                         |
 | Application documents / attachments          | Module 11  | Low      | Architecture lists Documents; link drafts only today  |
 | Nest application-draft endpoints parity      | Module 9   | Low      | Worker registered; BFF is primary product path        |
 | Cover letter PDF / DOCX export               | Module 9   | Low      | Copyable text only today                              |

@@ -6,7 +6,7 @@ import {
   APPLICATION_STAGES,
   type ApplicationStage,
 } from '@jobmatch/types';
-import { ExternalLink, Trash2 } from 'lucide-react';
+import { ExternalLink, GripVertical, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,10 @@ import {
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
+import { ApplicationBoardSkeleton } from './application-board-skeleton';
+
+const DRAG_TYPE = 'application/x-jobmatch-application-id';
+
 export function ApplicationBoard() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +30,8 @@ export function ApplicationBoard() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState('');
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropStage, setDropStage] = useState<ApplicationStage | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
@@ -63,12 +69,34 @@ export function ApplicationBoard() {
   }, [selected?.id, selected?.notes]);
 
   async function move(id: string, stage: ApplicationStage) {
+    const current = applications.find((row) => row.id === id);
+    if (!current || current.stage === stage) return;
+
+    const previousStage = current.stage;
+    const previousLabel = current.stageLabel;
+
+    // Optimistic move so the board feels immediate.
+    setApplications((rows) =>
+      rows.map((row) =>
+        row.id === id
+          ? { ...row, stage, stageLabel: APPLICATION_STAGE_LABELS[stage] }
+          : row,
+      ),
+    );
     setBusyId(id);
     setError(null);
+
     try {
       const updated = await updateApplication(id, { stage });
       setApplications((rows) => rows.map((row) => (row.id === id ? updated : row)));
     } catch (err) {
+      setApplications((rows) =>
+        rows.map((row) =>
+          row.id === id
+            ? { ...row, stage: previousStage, stageLabel: previousLabel }
+            : row,
+        ),
+      );
       setError(err instanceof Error ? err.message : 'Could not update stage');
     } finally {
       setBusyId(null);
@@ -105,13 +133,40 @@ export function ApplicationBoard() {
     }
   }
 
+  function onDragStart(event: React.DragEvent, id: string) {
+    event.dataTransfer.setData(DRAG_TYPE, id);
+    event.dataTransfer.setData('text/plain', id);
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggingId(id);
+  }
+
+  function onDragEnd() {
+    setDraggingId(null);
+    setDropStage(null);
+  }
+
+  function onColumnDragOver(event: React.DragEvent, stage: ApplicationStage) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    if (dropStage !== stage) setDropStage(stage);
+  }
+
+  function onColumnDragLeave(event: React.DragEvent, stage: ApplicationStage) {
+    const related = event.relatedTarget as Node | null;
+    if (related && event.currentTarget.contains(related)) return;
+    if (dropStage === stage) setDropStage(null);
+  }
+
+  function onColumnDrop(event: React.DragEvent, stage: ApplicationStage) {
+    event.preventDefault();
+    const id = event.dataTransfer.getData(DRAG_TYPE) || event.dataTransfer.getData('text/plain');
+    setDropStage(null);
+    setDraggingId(null);
+    if (id) void move(id, stage);
+  }
+
   if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Spinner size="sm" />
-        Loading pipeline…
-      </div>
-    );
+    return <ApplicationBoardSkeleton />;
   }
 
   if (applications.length === 0) {
@@ -136,11 +191,21 @@ export function ApplicationBoard() {
         </p>
       )}
 
+      <p className="text-xs text-muted-foreground">
+        Drag cards between columns, or use the stage menu on each card.
+      </p>
+
       <div className="flex gap-3 overflow-x-auto pb-2">
         {APPLICATION_STAGES.map((stage) => (
           <section
             key={stage}
-            className="flex w-64 shrink-0 flex-col rounded-xl border border-border/80 bg-muted/20"
+            onDragOver={(event) => onColumnDragOver(event, stage)}
+            onDragLeave={(event) => onColumnDragLeave(event, stage)}
+            onDrop={(event) => onColumnDrop(event, stage)}
+            className={cn(
+              'flex w-64 shrink-0 flex-col rounded-xl border border-border/80 bg-muted/20 transition',
+              dropStage === stage && 'border-primary/50 bg-primary/5 ring-2 ring-primary/30',
+            )}
           >
             <header className="flex items-center justify-between gap-2 border-b border-border/70 px-3 py-2.5">
               <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -150,28 +215,41 @@ export function ApplicationBoard() {
                 {byStage[stage].length}
               </span>
             </header>
-            <div className="flex flex-1 flex-col gap-2 p-2">
+            <div className="flex min-h-28 flex-1 flex-col gap-2 p-2">
               {byStage[stage].map((row) => (
                 <article
                   key={row.id}
+                  draggable={busyId !== row.id}
+                  onDragStart={(event) => onDragStart(event, row.id)}
+                  onDragEnd={onDragEnd}
                   className={cn(
                     'rounded-lg border border-border bg-background p-3 shadow-soft transition',
                     selectedId === row.id && 'ring-2 ring-primary/40',
+                    draggingId === row.id && 'opacity-50',
+                    busyId === row.id ? 'cursor-wait' : 'cursor-grab active:cursor-grabbing',
                   )}
                 >
-                  <button
-                    type="button"
-                    className="w-full text-left"
-                    onClick={() => setSelectedId(row.id)}
-                  >
-                    <p className="text-xs font-medium text-primary">
-                      {row.job?.companyName ?? 'Company'}
-                    </p>
-                    <p className="mt-1 text-sm font-medium leading-snug">{row.job?.title ?? 'Role'}</p>
-                    {row.job?.location && (
-                      <p className="mt-1 text-xs text-muted-foreground">{row.job.location}</p>
-                    )}
-                  </button>
+                  <div className="flex items-start gap-2">
+                    <GripVertical
+                      className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/70"
+                      aria-hidden
+                    />
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 text-left"
+                      onClick={() => setSelectedId(row.id)}
+                    >
+                      <p className="text-xs font-medium text-primary">
+                        {row.job?.companyName ?? 'Company'}
+                      </p>
+                      <p className="mt-1 text-sm font-medium leading-snug">
+                        {row.job?.title ?? 'Role'}
+                      </p>
+                      {row.job?.location && (
+                        <p className="mt-1 text-xs text-muted-foreground">{row.job.location}</p>
+                      )}
+                    </button>
+                  </div>
 
                   <label className="mt-3 block">
                     <span className="sr-only">Move stage</span>
@@ -181,6 +259,7 @@ export function ApplicationBoard() {
                       onChange={(event) =>
                         void move(row.id, event.target.value as ApplicationStage)
                       }
+                      onPointerDown={(event) => event.stopPropagation()}
                       className="h-8 w-full rounded-md border border-border bg-background px-2 text-xs"
                     >
                       {APPLICATION_STAGES.map((option) => (
@@ -193,7 +272,9 @@ export function ApplicationBoard() {
                 </article>
               ))}
               {byStage[stage].length === 0 && (
-                <p className="px-1 py-6 text-center text-xs text-muted-foreground">Empty</p>
+                <p className="px-1 py-6 text-center text-xs text-muted-foreground">
+                  {dropStage === stage ? 'Drop here' : 'Empty'}
+                </p>
               )}
             </div>
           </section>
