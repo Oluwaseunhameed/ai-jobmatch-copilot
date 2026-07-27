@@ -92,6 +92,7 @@ User ──┬── CareerProfile ──┬── Skills
 - Onboarding and career profile forms
 - Resume upload/builder UI
 - Job search, job detail, rich match insights (fit signals, skill gaps, learning paths)
+- Company intelligence profiles (`/companies/[slug]`)
 - Application tracker (Kanban)
 - Dashboard and analytics
 - Settings (theme, language, notifications; account security via Clerk)

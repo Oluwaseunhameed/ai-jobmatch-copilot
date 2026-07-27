@@ -207,3 +207,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Explainable, fast, no AI dependency for MVP rich insights; LLM narratives can extend later without changing the DTO contract.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-021: Company intelligence — job-derived aggregates (no external enrichment)
+
+**Context:** Phase 3 Module 7 needs dedicated company profiles (hiring, stack, culture, compensation themes) without third-party company APIs on day one.
+**Options:** Crunchbase/Clearbit enrichment; manual admin curation; aggregate intelligence from existing `Company` + active `Job` rows.
+**Outcome:** **Accepted** — `buildCompanyProfile()` derives open-role counts, posting velocity, tech-stack frequency, benefits themes, work-mode/seniority mix, salary bands, and culture signals from active listings. User-specific viewer stats (saved roles, applications, avg match). Exposed via `GET /api/companies/[slug]` and `/companies/[slug]` page; job detail links to full profile.
+**Rationale:** Reuses seed + job catalog data already in Postgres; funding/interview difficulty deferred until licensed sources or enough application telemetry exist.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

@@ -411,3 +411,78 @@ export const APPLICATION_STAGE_LABELS: Record<ApplicationStage, string> = {
 export function isApplicationStage(value: string): value is ApplicationStage {
   return (APPLICATION_STAGES as string[]).includes(value);
 }
+
+// ---------------------------------------------------------------------------
+// Company intelligence — Module 7
+// ---------------------------------------------------------------------------
+
+export type HiringVelocity = 'accelerating' | 'steady' | 'slow' | 'unknown';
+
+export interface CompanyHiringStatsDto {
+  openRoles: number;
+  postedLast30Days: number;
+  postedLast90Days: number;
+  velocity: HiringVelocity;
+}
+
+export interface CompanySkillStatDto {
+  skill: string;
+  count: number;
+}
+
+export interface CompanyMixStatDto {
+  value: string;
+  count: number;
+}
+
+export interface CompanySalaryEstimateDto {
+  currency: string;
+  period: string;
+  min: number | null;
+  max: number | null;
+  median: number | null;
+  roleCount: number;
+}
+
+export interface CompanyCultureSignalDto {
+  key: string;
+  label: string;
+  level: FitLevel;
+  detail: string;
+}
+
+export interface CompanyOpenRoleDto {
+  id: string;
+  slug: string;
+  title: string;
+  workMode: string;
+  seniority: string;
+  location: string | null;
+  postedAt: string;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  salaryCurrency: string;
+  salaryPeriod: string;
+  matchScore?: number;
+}
+
+export interface CompanyViewerStatsDto {
+  savedRoles: number;
+  applications: number;
+  avgMatchScore: number | null;
+}
+
+export interface CompanyProfileDto {
+  company: CompanyDto;
+  summary: string;
+  hiring: CompanyHiringStatsDto;
+  techStack: CompanySkillStatDto[];
+  benefits: string[];
+  locations: string[];
+  workModeMix: CompanyMixStatDto[];
+  seniorityMix: CompanyMixStatDto[];
+  salaryEstimates: CompanySalaryEstimateDto[];
+  cultureSignals: CompanyCultureSignalDto[];
+  openRoles: CompanyOpenRoleDto[];
+  viewer?: CompanyViewerStatsDto;
+}

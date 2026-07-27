@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 3 — Module 6 (Job Intelligence) ✅
+## Current Sprint: Phase 3 — Module 7 (Company Intelligence) ✅
 
 ### Phase 0 — Complete ✅
 
@@ -12,15 +12,16 @@
 
 ### Phase 3 — Module 6: Rich job insights ✅
 
-- [x] `JobInsightsDto` types (fit signals, skill gaps, learning recs)
-- [x] Deterministic insights engine in `@jobmatch/job-search`
-- [x] `GET /api/jobs/[slug]/insights`
-- [x] Job detail insights panel (gaps + learning paths + fit signals)
-- [x] ADR-020 + unit tests
+### Phase 3 — Module 7: Company intelligence profiles ✅
+
+- [x] `CompanyProfileDto` types (hiring stats, stack, culture signals, salary bands)
+- [x] Deterministic company intelligence in `@jobmatch/job-search`
+- [x] `GET /api/companies/[slug]` + `/companies/[slug]` page
+- [x] Job detail links to full company profile
+- [x] ADR-021 + unit tests
 
 ### Phase 3 — Next up
 
-- [ ] Module 7 — Company intelligence profiles
 - [ ] Module 15 — Career Growth Hub (roadmaps)
 
 ---
@@ -56,3 +57,5 @@
 | employmentType / country / salaryMin in UI   | Module 5   | Low      | API-ready; Jobs UI uses q/workMode/seniority for now  |
 | Skill.level / years in match scoring         | Module 6   | Low      | Profile proficiency not weighted yet                |
 | Nest job insights parity                     | Module 6   | Low      | BFF is primary product path                           |
+| External funding / interview data            | Module 7   | Medium   | Deterministic job-derived intelligence shipped        |
+| Nest company profile parity                  | Module 7   | Low      | BFF is primary product path                           |

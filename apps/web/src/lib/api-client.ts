@@ -512,6 +512,59 @@ export function getJobInsights(slug: string) {
   return apiFetch<JobInsights>(`/api/jobs/${encodeURIComponent(slug)}/insights`);
 }
 
+export type CompanyProfile = {
+  company: Job['company'];
+  summary: string;
+  hiring: {
+    openRoles: number;
+    postedLast30Days: number;
+    postedLast90Days: number;
+    velocity: 'accelerating' | 'steady' | 'slow' | 'unknown';
+  };
+  techStack: Array<{ skill: string; count: number }>;
+  benefits: string[];
+  locations: string[];
+  workModeMix: Array<{ value: string; count: number }>;
+  seniorityMix: Array<{ value: string; count: number }>;
+  salaryEstimates: Array<{
+    currency: string;
+    period: string;
+    min: number | null;
+    max: number | null;
+    median: number | null;
+    roleCount: number;
+  }>;
+  cultureSignals: Array<{
+    key: string;
+    label: string;
+    level: 'strong' | 'partial' | 'gap' | 'unknown';
+    detail: string;
+  }>;
+  openRoles: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    workMode: string;
+    seniority: string;
+    location: string | null;
+    postedAt: string;
+    salaryMin: number | null;
+    salaryMax: number | null;
+    salaryCurrency: string;
+    salaryPeriod: string;
+    matchScore?: number;
+  }>;
+  viewer?: {
+    savedRoles: number;
+    applications: number;
+    avgMatchScore: number | null;
+  };
+};
+
+export function getCompanyProfile(slug: string) {
+  return apiFetch<CompanyProfile>(`/api/companies/${encodeURIComponent(slug)}`);
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

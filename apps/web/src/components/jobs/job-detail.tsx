@@ -49,7 +49,12 @@ export function JobDetail({ job: initial }: { job: Job }) {
 
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
-            <p className="text-sm font-medium text-primary">{job.company.name}</p>
+            <Link
+              href={`/companies/${job.company.slug}`}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              {job.company.name}
+            </Link>
             <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
               {job.title}
             </h1>
@@ -139,7 +144,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
               <p className="mt-1 text-sm text-muted-foreground">{job.company.industry}</p>
             )}
             {job.company.about && (
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-muted-foreground">
                 {job.company.about}
               </p>
             )}
@@ -157,6 +162,12 @@ export function JobDetail({ job: initial }: { job: Job }) {
                 </div>
               )}
             </dl>
+            <Link
+              href={`/companies/${job.company.slug}`}
+              className="mt-4 inline-flex text-sm font-medium text-primary hover:underline"
+            >
+              View company intelligence →
+            </Link>
           </div>
 
           {job.skills.length > 0 && (

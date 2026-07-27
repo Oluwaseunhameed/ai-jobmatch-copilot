@@ -23,6 +23,10 @@ export {
 
 export { getJobInsights } from './insights-service';
 
+export { buildCompanyProfile, type CompanyJobInput } from './company-profile';
+
+export { getCompanyProfile } from './company-service';
+
 export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,

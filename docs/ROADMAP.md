@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 3 — Module 6 (Rich job insights) complete; Module 7 next
+**Next:** Phase 3 — Module 7 (Company intelligence) complete; Module 15 next
 
 ---
 
@@ -73,7 +73,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 
 - Module 5 — Job alerts, saved searches, trending jobs ✅
 - Module 6 — Rich job insights, skill gap, learning recs ✅
-- Module 7 — Company intelligence profiles
+- Module 7 — Company intelligence profiles ✅
 - Module 15 — Career Growth Hub (skill gaps, roadmaps)
 - Search upgrade (Meilisearch/OpenSearch)
 
