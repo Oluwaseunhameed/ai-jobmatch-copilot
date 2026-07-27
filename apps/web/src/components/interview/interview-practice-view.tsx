@@ -21,7 +21,7 @@ function categoryLabel(category: string) {
 
 export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }) {
   const [prep, setPrep] = useState(initial);
-  const [pending, setPending] = useState(false);
+  const [pendingQuestionId, setPendingQuestionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
 
@@ -36,7 +36,8 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
       : prep.questions.filter((q) => q.category === activeCategory);
 
   async function rate(questionId: string, selfRating: number) {
-    setPending(true);
+    if (pendingQuestionId) return;
+    setPendingQuestionId(questionId);
     setError(null);
     const nextPractice = [
       ...prep.practice.filter((p) => p.questionId !== questionId),
@@ -48,7 +49,7 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save rating');
     } finally {
-      setPending(false);
+      setPendingQuestionId(null);
     }
   }
 
@@ -139,14 +140,13 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
                     key={value}
                     size="sm"
                     variant={rating === value ? 'default' : 'outline'}
-                    disabled={pending}
+                    disabled={pendingQuestionId === question.id}
                     onClick={() => void rate(question.id, value)}
                   >
-                    {pending && rating !== value ? null : null}
                     {value}
                   </Button>
                 ))}
-                {pending && <Spinner size="sm" />}
+                {pendingQuestionId === question.id && <Spinner size="sm" />}
               </div>
             </li>
           );
