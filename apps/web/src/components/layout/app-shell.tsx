@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   Menu,
   MessageSquareQuote,
+  Network,
   Route,
   Settings,
   UserRound,
@@ -43,6 +44,7 @@ const NAV_SECTIONS: NavSection[] = [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/jobs', label: 'Jobs', icon: Briefcase },
       { href: '/applications', label: 'Applications', icon: KanbanSquare },
+      { href: '/network', label: 'Network', icon: Network },
     ],
   },
   {

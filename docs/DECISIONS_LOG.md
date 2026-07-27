@@ -273,3 +273,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Ships the architecture `Projects[]` need as an explainable content library that feeds resumes/applications without CDN or third-party sync.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
+
+---
+
+## ADR-027: Professional Networking — user CRM + public company/job signals
+
+**Context:** Phase 5 Module 8 needs networking support without LinkedIn scraping or auto-messaging (roadmap: “public data only”).
+**Options:** LinkedIn unofficial APIs; people-enrichment vendors; user-owned contact CRM seeded by saved jobs/applications plus copyable talk tracks.
+**Outcome:** **Accepted** — `NetworkingContact` stores manual contacts (optional `Company` link, public profile URL, status). Hub builds **target companies** from applications/saved/viewed jobs and public website/careers/source URLs already in the catalog. Talk-track templates are copy-paste only. Exposed via `/network` and `GET/POST/PATCH/DELETE /api/users/me/network`. Scraping, auto-send, and connection graphs deferred.
+**Rationale:** Respects legal/ToS constraints while making outreach practical for companies the user already engages with in-product.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28

@@ -114,6 +114,25 @@ export {
 } from './portfolio-service';
 
 export {
+  buildNetworkingHub,
+  buildNetworkingTargets,
+  buildResearchLinks,
+  buildTalkTracks,
+  normalizeContactInput,
+  toNetworkingContactDto,
+  type NetworkingContactInput,
+} from './networking';
+
+export {
+  createNetworkingContact,
+  deleteNetworkingContact,
+  getNetworkingContact,
+  getNetworkingHub,
+  listNetworkingContacts,
+  updateNetworkingContact,
+} from './networking-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,

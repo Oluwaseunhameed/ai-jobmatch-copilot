@@ -1116,6 +1116,164 @@ export function deletePortfolioProject(id: string) {
   });
 }
 
+export type NetworkingRoleType =
+  | 'recruiter'
+  | 'hiring_manager'
+  | 'engineer'
+  | 'founder'
+  | 'other';
+
+export type NetworkingContactStatus =
+  | 'to_contact'
+  | 'researched'
+  | 'reached_out'
+  | 'conversing'
+  | 'closed';
+
+export type NetworkingContact = {
+  id: string;
+  userId: string;
+  companyId: string | null;
+  companyName: string | null;
+  fullName: string;
+  roleType: NetworkingRoleType | string;
+  title: string | null;
+  profileUrl: string | null;
+  email: string | null;
+  status: NetworkingContactStatus | string;
+  notes: string | null;
+  relatedJobId: string | null;
+  lastTouchedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company?: {
+    id: string;
+    name: string;
+    slug: string;
+    websiteUrl: string | null;
+  } | null;
+};
+
+export type NetworkingTarget = {
+  id: string;
+  companyId: string;
+  companyName: string;
+  companySlug: string;
+  websiteUrl: string | null;
+  industry: string | null;
+  location: string | null;
+  reason: string;
+  source: string;
+  openRoles: number;
+  sampleJob?: {
+    id: string;
+    title: string;
+    slug: string;
+    applyUrl: string | null;
+    sourceUrl: string | null;
+  } | null;
+  researchLinks: Array<{ label: string; url: string }>;
+};
+
+export type NetworkingTalkTrack = {
+  id: string;
+  channel: 'email' | 'linkedin_dm' | 'careers_note' | string;
+  title: string;
+  subject: string | null;
+  body: string;
+  detail: string;
+};
+
+export type NetworkingHub = {
+  summary: string;
+  contactCount: number;
+  activeCount: number;
+  contacts: NetworkingContact[];
+  targets: NetworkingTarget[];
+  talkTracks: NetworkingTalkTrack[];
+};
+
+export const NETWORKING_ROLE_TYPES: NetworkingRoleType[] = [
+  'recruiter',
+  'hiring_manager',
+  'engineer',
+  'founder',
+  'other',
+];
+
+export const NETWORKING_CONTACT_STATUSES: NetworkingContactStatus[] = [
+  'to_contact',
+  'researched',
+  'reached_out',
+  'conversing',
+  'closed',
+];
+
+export const NETWORKING_ROLE_LABELS: Record<NetworkingRoleType, string> = {
+  recruiter: 'Recruiter',
+  hiring_manager: 'Hiring manager',
+  engineer: 'Engineer',
+  founder: 'Founder',
+  other: 'Other',
+};
+
+export const NETWORKING_STATUS_LABELS: Record<NetworkingContactStatus, string> = {
+  to_contact: 'To contact',
+  researched: 'Researched',
+  reached_out: 'Reached out',
+  conversing: 'Conversing',
+  closed: 'Closed',
+};
+
+export function getNetworkingHub() {
+  return apiFetch<NetworkingHub>('/api/users/me/network');
+}
+
+export function createNetworkingContact(input: {
+  fullName: string;
+  companyId?: string | null;
+  companyName?: string | null;
+  roleType?: string;
+  title?: string | null;
+  profileUrl?: string | null;
+  email?: string | null;
+  status?: string;
+  notes?: string | null;
+  relatedJobId?: string | null;
+}) {
+  return apiFetch<NetworkingContact>('/api/users/me/network', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateNetworkingContact(
+  id: string,
+  input: {
+    fullName: string;
+    companyId?: string | null;
+    companyName?: string | null;
+    roleType?: string;
+    title?: string | null;
+    profileUrl?: string | null;
+    email?: string | null;
+    status?: string;
+    notes?: string | null;
+    relatedJobId?: string | null;
+  },
+) {
+  return apiFetch<NetworkingContact>(`/api/users/me/network/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteNetworkingContact(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/users/me/network/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

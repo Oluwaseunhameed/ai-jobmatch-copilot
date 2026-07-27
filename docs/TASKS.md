@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 4 — Module 14 (Portfolio) ✅
+## Current Sprint: Phase 5 — Module 8 (Networking) ✅
 
 ### Phase 0 — Complete ✅
 
@@ -10,24 +10,20 @@
 
 ### Phase 3 — Modules 5–7, 15 ✅ (search upgrade deferred)
 
-### Phase 4 — Module 12: AI Interview Preparation ✅
+### Phase 4 — Modules 12, 13, 16, 14 ✅
 
-### Phase 4 — Module 13: Coding Assessment Prep ✅
+### Phase 5 — Module 8: Professional Networking
 
-### Phase 4 — Module 16: AI Career Coach ✅
-
-### Phase 4 — Module 14: Portfolio & Project Builder
-
-- [x] `PortfolioProject` model + migration
-- [x] Skill-gap project suggestions + resume bullet builder + readiness score
-- [x] `GET/POST /api/users/me/portfolio` + `[id]` GET/PATCH/DELETE
-- [x] `/portfolio` hub + project editor + Growth Hub CTA + nav
-- [x] ADR-026 + unit tests
-- [ ] Hosted public portfolio site / GitHub import — deferred
+- [x] `NetworkingContact` model + migration
+- [x] Target companies from saved/applied/viewed jobs + public research links
+- [x] Copyable talk tracks (email / LinkedIn DM paste / careers note)
+- [x] `GET/POST /api/users/me/network` + `[id]` GET/PATCH/DELETE
+- [x] `/network` hub + company CTA + nav
+- [x] ADR-027 + unit tests
+- [ ] LinkedIn scrape / auto-send — deferred (public data only)
 
 ### Phase 5 — Next up
 
-- [ ] Module 8 — Professional Networking
 - [ ] Module 10 — Smart Application Automation
 - [ ] Module 20 — Full Admin Portal
 
@@ -76,3 +72,5 @@
 | Coach long-term memory / tool agents         | Module 16  | Medium   | Session JSON only for MVP                             |
 | Nest portfolio parity                        | Module 14  | Low      | BFF is primary product path                           |
 | Hosted portfolio site / GitHub project sync  | Module 14  | Medium   | Project library + suggestions shipped                 |
+| Nest networking parity                       | Module 8   | Low      | BFF is primary product path                           |
+| LinkedIn scrape / auto-message               | Module 8   | —        | Explicitly out of scope (ADR-027)                     |

@@ -38,6 +38,7 @@ model User {
   codingSessions      CodingPracticeSession[]
   coachSessions       CareerCoachSession[]
   portfolioProjects   PortfolioProject[]
+  networkingContacts  NetworkingContact[]
 
   @@unique([email])
   @@map("user")
@@ -293,7 +294,8 @@ model Company {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  jobs Job[]
+  jobs               Job[]
+  networkingContacts NetworkingContact[]
 
   @@map("companies")
 }
@@ -593,5 +595,47 @@ model PortfolioProject {
   @@index([userId, sortOrder])
   @@index([userId, createdAt])
   @@map("portfolio_projects")
+}
+
+// ---------------------------------------------------------------------------
+// Professional Networking — Module 8 (public data only)
+// ---------------------------------------------------------------------------
+model NetworkingContact {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Optional link to a catalog company
+  companyId String?  @map("company_id")
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  /// Free-text company label when not linked (or display override)
+  companyName String? @map("company_name")
+
+  fullName String  @map("full_name")
+  /// recruiter | hiring_manager | engineer | founder | other
+  roleType String  @default("recruiter") @map("role_type")
+  title    String?
+
+  /// Public URLs only (LinkedIn profile URL user pastes, company site, etc.)
+  profileUrl String? @map("profile_url")
+  email      String?
+
+  /// to_contact | researched | reached_out | conversing | closed
+  status String @default("to_contact")
+  notes  String? @db.Text
+
+  /// Optional job this outreach relates to
+  relatedJobId String? @map("related_job_id")
+
+  lastTouchedAt DateTime? @map("last_touched_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([companyId])
+  @@map("networking_contacts")
 }
 

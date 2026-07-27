@@ -898,3 +898,124 @@ export interface PortfolioBriefDto {
     websiteUrl: string | null;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Professional Networking — Module 8
+// ---------------------------------------------------------------------------
+
+export type NetworkingRoleType =
+  | 'recruiter'
+  | 'hiring_manager'
+  | 'engineer'
+  | 'founder'
+  | 'other';
+
+export type NetworkingContactStatus =
+  | 'to_contact'
+  | 'researched'
+  | 'reached_out'
+  | 'conversing'
+  | 'closed';
+
+export const NETWORKING_ROLE_TYPES: NetworkingRoleType[] = [
+  'recruiter',
+  'hiring_manager',
+  'engineer',
+  'founder',
+  'other',
+];
+
+export const NETWORKING_CONTACT_STATUSES: NetworkingContactStatus[] = [
+  'to_contact',
+  'researched',
+  'reached_out',
+  'conversing',
+  'closed',
+];
+
+export const NETWORKING_ROLE_LABELS: Record<NetworkingRoleType, string> = {
+  recruiter: 'Recruiter',
+  hiring_manager: 'Hiring manager',
+  engineer: 'Engineer',
+  founder: 'Founder',
+  other: 'Other',
+};
+
+export const NETWORKING_STATUS_LABELS: Record<NetworkingContactStatus, string> = {
+  to_contact: 'To contact',
+  researched: 'Researched',
+  reached_out: 'Reached out',
+  conversing: 'Conversing',
+  closed: 'Closed',
+};
+
+export function isNetworkingRoleType(value: string): value is NetworkingRoleType {
+  return (NETWORKING_ROLE_TYPES as string[]).includes(value);
+}
+
+export function isNetworkingContactStatus(value: string): value is NetworkingContactStatus {
+  return (NETWORKING_CONTACT_STATUSES as string[]).includes(value);
+}
+
+export interface NetworkingContactDto {
+  id: string;
+  userId: string;
+  companyId: string | null;
+  companyName: string | null;
+  fullName: string;
+  roleType: NetworkingRoleType | string;
+  title: string | null;
+  profileUrl: string | null;
+  email: string | null;
+  status: NetworkingContactStatus | string;
+  notes: string | null;
+  relatedJobId: string | null;
+  lastTouchedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company?: {
+    id: string;
+    name: string;
+    slug: string;
+    websiteUrl: string | null;
+  } | null;
+}
+
+export interface NetworkingTargetDto {
+  id: string;
+  companyId: string;
+  companyName: string;
+  companySlug: string;
+  websiteUrl: string | null;
+  industry: string | null;
+  location: string | null;
+  reason: string;
+  source: 'saved_job' | 'application' | 'viewed' | string;
+  openRoles: number;
+  sampleJob?: {
+    id: string;
+    title: string;
+    slug: string;
+    applyUrl: string | null;
+    sourceUrl: string | null;
+  } | null;
+  researchLinks: Array<{ label: string; url: string }>;
+}
+
+export interface NetworkingTalkTrackDto {
+  id: string;
+  channel: 'email' | 'linkedin_dm' | 'careers_note';
+  title: string;
+  subject: string | null;
+  body: string;
+  detail: string;
+}
+
+export interface NetworkingHubDto {
+  summary: string;
+  contactCount: number;
+  activeCount: number;
+  contacts: NetworkingContactDto[];
+  targets: NetworkingTargetDto[];
+  talkTracks: NetworkingTalkTrackDto[];
+}

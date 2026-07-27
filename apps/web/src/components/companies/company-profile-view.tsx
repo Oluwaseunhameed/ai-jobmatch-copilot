@@ -124,6 +124,12 @@ export function CompanyProfileView({ profile }: { profile: CompanyProfile }) {
                   <ExternalLink className="h-3 w-3" />
                 </a>
               )}
+              <Link
+                href="/network"
+                className="inline-flex items-center gap-1.5 hover:text-foreground"
+              >
+                Plan outreach
+              </Link>
             </div>
           </div>
         </div>
