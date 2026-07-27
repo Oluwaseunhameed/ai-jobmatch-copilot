@@ -174,3 +174,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Transport and settings UI already existed; minimal hooks deliver ROADMAP value while keeping digests and push out of scope.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-018: Billing — Lemon Squeezy (global) + Paystack (Nigeria)
+
+**Context:** Phase 2 Module 19 needs Pro subscriptions and one-time purchases. Stripe is common but weaker for Nigerian cards/NGN; Lemon Squeezy covers global SaaS checkout well.
+**Options:** Stripe-only; Paystack-only; Lemon Squeezy + Paystack dual providers; Paddle.
+**Outcome:** **Accepted** — Dual providers. Lemon Squeezy is the default global checkout (cards / subscriptions / one-time variants). Paystack serves Nigerian customers (NGN plan code or one-time amount in kobo). Region hint from `CareerProfile.country`; user can override on Settings → Plan. Webhooks on the Next.js BFF upsert a `Subscription` row; Free/Pro ceilings enforced on resume upload, job save, optimise, and cover-letter generation.
+**Rationale:** Matches product geography (global + Nigeria), avoids Stripe Nigeria friction, keeps billing in the BFF next to Clerk webhooks without a Nest dependency for this slice.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

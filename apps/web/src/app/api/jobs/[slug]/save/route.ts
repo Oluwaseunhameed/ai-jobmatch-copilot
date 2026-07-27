@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@jobmatch/database';
 
 import { requireAppUser } from '@/lib/auth';
+import { PlanLimitError, assertWithinPlanLimit } from '@/lib/billing/limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,24 @@ export async function POST(_request: Request, { params }: Params) {
 
   if (!job) {
     return NextResponse.json({ error: { message: 'Job not found' } }, { status: 404 });
+  }
+
+  const alreadySaved = await prisma.jobInteraction.findUnique({
+    where: {
+      userId_jobId_type: { userId: app.user.id, jobId: job.id, type: 'saved' },
+    },
+    select: { id: true },
+  });
+
+  if (!alreadySaved) {
+    try {
+      await assertWithinPlanLimit(app.user.id, 'saved_job');
+    } catch (error) {
+      if (error instanceof PlanLimitError) {
+        return NextResponse.json({ error: error.toJSON() }, { status: error.status });
+      }
+      throw error;
+    }
   }
 
   await prisma.jobInteraction.upsert({

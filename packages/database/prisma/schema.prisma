@@ -32,6 +32,7 @@ model User {
   resumeOptimizations ResumeOptimization[]
   applicationDrafts   ApplicationDraft[]
   applications        Application[]
+  subscription        Subscription?
 
   @@unique([email])
   @@map("user")
@@ -377,4 +378,34 @@ model JobInteraction {
   @@index([userId, type])
   @@index([jobId])
   @@map("job_interactions")
+}
+
+// ---------------------------------------------------------------------------
+// Billing — Module 19 (Lemon Squeezy global + Paystack Nigeria)
+// ---------------------------------------------------------------------------
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// free | pro (pro while status is active/on_trial)
+  planId String @default("free") @map("plan_id")
+  /// active | on_trial | past_due | canceled | expired | inactive
+  status String @default("inactive")
+  /// lemon_squeezy | paystack
+  provider String?
+
+  providerCustomerId     String? @map("provider_customer_id")
+  providerSubscriptionId String? @unique @map("provider_subscription_id")
+  providerVariantId      String? @map("provider_variant_id")
+
+  currentPeriodEnd  DateTime? @map("current_period_end")
+  cancelAtPeriodEnd Boolean   @default(false) @map("cancel_at_period_end")
+  rawMeta           Json?     @map("raw_meta")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([provider, status])
+  @@map("subscriptions")
 }

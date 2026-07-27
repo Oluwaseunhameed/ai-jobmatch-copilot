@@ -3,6 +3,7 @@ import { prisma } from '@jobmatch/database';
 import { toApplicationDraftDto } from '@jobmatch/resume-parsing';
 
 import { requireAppUser } from '@/lib/auth';
+import { PlanLimitError, assertWithinPlanLimit } from '@/lib/billing/limits';
 import { requestApplicationGenerate } from '@/lib/application-generate';
 
 export const dynamic = 'force-dynamic';
@@ -106,6 +107,15 @@ export async function POST(request: Request) {
   });
   if (existing) {
     return NextResponse.json(toApplicationDraftDto(existing), { status: 202 });
+  }
+
+  try {
+    await assertWithinPlanLimit(app.user.id, 'cover_letter');
+  } catch (error) {
+    if (error instanceof PlanLimitError) {
+      return NextResponse.json({ error: error.toJSON() }, { status: error.status });
+    }
+    throw error;
   }
 
   const draft = await prisma.applicationDraft.create({

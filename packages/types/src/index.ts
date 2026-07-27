@@ -267,26 +267,33 @@ export interface HealthCheckResponse {
   timestamp: string;
 }
 
-/** Subscription framing (Module 19). Stripe / Pro wiring is Phase 2. */
+/** Subscription & billing (Module 19). Lemon Squeezy (global) + Paystack (Nigeria). */
 export type PlanId = 'free' | 'pro';
+
+export type BillingProvider = 'lemon_squeezy' | 'paystack';
 
 export type PlanLimits = {
   maxResumes: number;
   maxSavedJobs: number;
-  /** Reserved for Phase 2 ATS optimize runs; shown in Free framing today. */
   aiOptimizePerMonth: number;
-  /** Cover letter / short-answer drafts per month (Module 9). */
   aiCoverLettersPerMonth: number;
 };
 
 export const FREE_PLAN_ID: PlanId = 'free';
+export const PRO_PLAN_ID: PlanId = 'pro';
 
-/** Soft Free-tier ceilings used for product copy (enforcement can come later). */
 export const FREE_PLAN_LIMITS: PlanLimits = {
   maxResumes: 5,
   maxSavedJobs: 50,
   aiOptimizePerMonth: 5,
   aiCoverLettersPerMonth: 5,
+};
+
+export const PRO_PLAN_LIMITS: PlanLimits = {
+  maxResumes: 50,
+  maxSavedJobs: 500,
+  aiOptimizePerMonth: 50,
+  aiCoverLettersPerMonth: 50,
 };
 
 export const PLAN_LABELS: Record<PlanId, string> = {

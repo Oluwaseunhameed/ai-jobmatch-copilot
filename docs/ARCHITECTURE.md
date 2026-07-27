@@ -101,7 +101,7 @@ User ──┬── CareerProfile ──┬── Skills
 - Auth integration (Better Auth or Auth.js)
 - CRUD for profiles, resumes, applications
 - Job search proxy and saved jobs
-- Billing webhooks (Stripe)
+- Billing webhooks (Lemon Squeezy + Paystack; Next.js BFF)
 - Admin endpoints with RBAC
 - Enqueues background jobs
 

@@ -3,6 +3,7 @@ import { prisma } from '@jobmatch/database';
 import { toOptimizationDto } from '@jobmatch/resume-parsing';
 
 import { requireAppUser } from '@/lib/auth';
+import { PlanLimitError, assertWithinPlanLimit } from '@/lib/billing/limits';
 import { requestResumeOptimize } from '@/lib/resume-optimize';
 
 export const dynamic = 'force-dynamic';
@@ -96,6 +97,15 @@ export async function POST(request: Request, { params }: Params) {
   });
   if (existing) {
     return NextResponse.json(toOptimizationDto(existing), { status: 202 });
+  }
+
+  try {
+    await assertWithinPlanLimit(app.user.id, 'optimize');
+  } catch (error) {
+    if (error instanceof PlanLimitError) {
+      return NextResponse.json({ error: error.toJSON() }, { status: error.status });
+    }
+    throw error;
   }
 
   const optimization = await prisma.resumeOptimization.create({

@@ -1,26 +1,27 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 2 — Module 17 (Notifications)
+## Current Sprint: Phase 2 — Module 19 (Billing) ✅
 
 ### Phase 0 — Complete ✅
 
 ### Phase 1 — Complete ✅ (Modules 1–6, 18, 19 Free framing)
 
-### Phase 2 — Module 4 / 9 / 11 ✅
+### Phase 2 — Module 4 / 9 / 11 / 17 ✅
 
-### Phase 2 — Module 17: Notifications (email) ✅
+### Phase 2 — Module 19: Pro billing (Lemon Squeezy + Paystack) ✅
 
-- [x] Product email templates (optimise complete, draft ready, stage change, reminder)
-- [x] Preference-gated sends via `emailApplicationUpdates`
-- [x] Hooks on resume optimise + application draft runners
-- [x] Stage-change email from applications PATCH
-- [x] Idle application reminder sweep (Nest worker; `lastReminderAt`)
-- [x] Document Resend / EMAIL_FROM / reminder env vars
-- [x] Settings copy clarifies live vs coming-soon prefs
+- [x] `Subscription` model + migration
+- [x] Lemon Squeezy checkout + signed webhooks (global)
+- [x] Paystack checkout + signed webhooks (Nigeria / NGN)
+- [x] Region routing from career profile country
+- [x] Settings Plan UI with provider choice
+- [x] Enforce Free/Pro ceilings (resumes, saves, optimise, cover letters)
+- [x] ADR-018 + env docs
 
-### Phase 2 — Next up
+### Phase 3 — Next up
 
-- [ ] Module 19 — Pro tier + Stripe billing
+- [ ] Module 5 — Job alerts, saved searches
+- [ ] Module 6 — Rich job insights
 
 ---
 
@@ -42,8 +43,8 @@
 | Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` treated as requirements for now |
 | Dedicated saved-jobs route                   | Module 18  | Low      | Dashboard lists recent saves; full list via Jobs UI   |
 | Charts / advanced analytics                  | Module 18  | Low      | Phase 6; Free tier stays a quiet readout              |
-| Enforce Free plan limit ceilings             | Module 19  | Medium   | Framing only; gate uploads/saves/optimise when needed |
-| Subscription table + Stripe webhooks         | Module 19  | Medium   | Phase 2 Pro billing                                   |
+| Enforce Free plan limit ceilings             | Module 19  | —        | ✅ Done — resume/save/optimise/cover letter gates     |
+| Subscription + Lemon/Paystack webhooks       | Module 19  | —        | ✅ Done — ADR-018                                     |
 | Nest applications CRUD parity                | Module 11  | Low      | BFF is primary product path                           |
 | Application documents / attachments          | Module 11  | Low      | Architecture lists Documents; link drafts only today  |
 | Nest application-draft endpoints parity      | Module 9   | Low      | Worker registered; BFF is primary product path        |

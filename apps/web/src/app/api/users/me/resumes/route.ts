@@ -8,6 +8,7 @@ import {
 import { NextResponse } from 'next/server';
 
 import { requireAppUser } from '@/lib/auth';
+import { PlanLimitError, assertWithinPlanLimit } from '@/lib/billing/limits';
 import { requestResumeParse } from '@/lib/resume-parse';
 
 export async function GET() {
@@ -31,6 +32,15 @@ export async function POST(request: Request) {
   const app = await requireAppUser();
   if (!app) {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
+  }
+
+  try {
+    await assertWithinPlanLimit(app.user.id, 'resume');
+  } catch (error) {
+    if (error instanceof PlanLimitError) {
+      return NextResponse.json({ error: error.toJSON() }, { status: error.status });
+    }
+    throw error;
   }
 
   const form = await request.formData();

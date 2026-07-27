@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { requireAppUser } from '@/lib/auth';
 import { formatPostedAt } from '@/lib/api-client';
+import { getCurrentPlanId, PLAN_LABELS } from '@/lib/plan';
 import { cn } from '@/lib/utils';
 
 const GAP_LABELS: Record<string, string> = {
@@ -72,6 +73,7 @@ export default async function DashboardPage() {
     lastInteraction,
     openJobs,
     profileSkills,
+    planId,
   ] = await Promise.all([
     userId
       ? prisma.careerProfile.findUnique({
@@ -122,6 +124,7 @@ export default async function DashboardPage() {
       : Promise.resolve(null),
     prisma.job.count({ where: { isActive: true } }),
     userId ? loadProfileSkillNames(userId) : Promise.resolve([]),
+    userId ? getCurrentPlanId(userId) : Promise.resolve('free' as const),
   ]);
 
   const preparingCount = countStages(applicationsByStage, ['saved', 'preparing']);
@@ -173,9 +176,11 @@ export default async function DashboardPage() {
             href="/settings/plan"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Free
+            {PLAN_LABELS[planId]}
           </Link>
-          . Pro billing arrives in a later phase.
+          {planId === 'free'
+            ? '. Upgrade for higher AI and storage limits.'
+            : '. Higher limits are unlocked on your account.'}
         </p>
       </div>
 

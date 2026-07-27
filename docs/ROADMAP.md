@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 2 — Module 17 (Notifications) complete; Module 19 next
+**Next:** Phase 2 — Module 19 (Billing) complete; Phase 3 next
 
 ---
 
@@ -42,7 +42,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 - Module 5 — Job Discovery (seeded jobs + keyword/semantic search v1)
 - Module 6 — Job Intelligence (basic match score + missing skills)
 - Module 18 — Analytics Dashboard (minimal: profile completeness, jobs saved)
-- Module 19 — Subscription (Free tier only; Stripe wiring deferred)
+- Module 19 — Subscription (Free tier framing; Pro billing in Phase 2)
 
 **Exit criteria:**
 
@@ -63,7 +63,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 - Module 9 — AI Application Assistant (cover letter, short answers)
 - Module 11 — Application Tracker (Kanban pipeline)
 - Module 17 — Notifications (email: optimization complete, reminders)
-- Module 19 — Pro tier + Stripe billing
+- Module 19 — Pro tier + Lemon Squeezy (global) + Paystack (Nigeria)
 
 ---
 
