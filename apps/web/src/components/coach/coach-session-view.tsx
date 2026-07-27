@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
+import { CoachMarkdown } from '@/components/coach/coach-markdown';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
   COACH_FOCUS_LABELS,
-  sendCoachMessage,
+  streamCoachMessage,
   type CareerCoachSession,
   type CoachFocus,
+  type CoachMessage,
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
@@ -17,12 +19,13 @@ export function CoachSessionView({ session: initial }: { session: CareerCoachSes
   const [session, setSession] = useState(initial);
   const [draft, setDraft] = useState('');
   const [pending, setPending] = useState(false);
+  const [streaming, setStreaming] = useState<CoachMessage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [session.messages.length, pending]);
+  }, [session.messages.length, streaming?.content, pending]);
 
   async function send(message?: string) {
     const text = (message ?? draft).trim();
@@ -31,16 +34,55 @@ export function CoachSessionView({ session: initial }: { session: CareerCoachSes
     setPending(true);
     setError(null);
     setDraft('');
+
+    const optimisticUser: CoachMessage = {
+      id: `local_user_${Date.now()}`,
+      role: 'user',
+      content: text,
+      createdAt: new Date().toISOString(),
+    };
+    setSession((current) => ({
+      ...current,
+      messages: [...current.messages, optimisticUser],
+    }));
+
     try {
-      const next = await sendCoachMessage(session.id, text);
-      setSession(next);
+      await streamCoachMessage(session.id, text, {
+        onUser(message) {
+          setSession((current) => ({
+            ...current,
+            messages: [...current.messages.filter((m) => m.id !== optimisticUser.id), message],
+          }));
+        },
+        onAssistantStart(message) {
+          setStreaming({ ...message, content: '' });
+        },
+        onToken(chunk) {
+          setStreaming((current) =>
+            current ? { ...current, content: `${current.content}${chunk}` } : current,
+          );
+        },
+        onDone(next) {
+          setStreaming(null);
+          setSession(next);
+        },
+      });
     } catch (err) {
+      setStreaming(null);
       setError(err instanceof Error ? err.message : 'Could not send message');
       setDraft(text);
+      setSession((current) => ({
+        ...current,
+        messages: current.messages.filter((m) => m.id !== optimisticUser.id),
+      }));
     } finally {
       setPending(false);
     }
   }
+
+  const visibleMessages = streaming
+    ? [...session.messages, streaming]
+    : session.messages;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -65,17 +107,21 @@ export function CoachSessionView({ session: initial }: { session: CareerCoachSes
 
       <div className="surface-panel flex min-h-[28rem] flex-col p-4 sm:p-5">
         <div className="flex-1 space-y-4 overflow-y-auto pr-1">
-          {session.messages.map((message) => (
+          {visibleMessages.map((message) => (
             <div
               key={message.id}
               className={cn(
-                'max-w-[92%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed',
+                'max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
                 message.role === 'user'
-                  ? 'ml-auto bg-primary text-primary-foreground'
+                  ? 'ml-auto whitespace-pre-wrap bg-primary text-primary-foreground'
                   : 'bg-muted/60 text-foreground',
               )}
             >
-              {message.content}
+              {message.role === 'assistant' ? (
+                <CoachMarkdown content={message.content || (pending ? '…' : '')} />
+              ) : (
+                message.content
+              )}
               {message.role === 'assistant' && message.source ? (
                 <p className="mt-2 text-[11px] uppercase tracking-wider opacity-70">
                   {message.source === 'llm' ? 'AI' : 'Template'}
@@ -83,7 +129,7 @@ export function CoachSessionView({ session: initial }: { session: CareerCoachSes
               ) : null}
             </div>
           ))}
-          {pending ? (
+          {pending && !streaming ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Spinner size="sm" />
               Coach is thinking…

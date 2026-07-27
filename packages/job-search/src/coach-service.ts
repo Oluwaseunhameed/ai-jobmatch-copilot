@@ -96,7 +96,6 @@ async function generateAssistantReply(input: {
     };
   }
 
-  // Prefer AI template if service returned one; else local template.
   if (ai?.reply?.trim()) {
     return {
       content: ai.reply.trim(),
@@ -110,6 +109,229 @@ async function generateAssistantReply(input: {
     userMessage: input.userMessage,
     history: input.messages,
   });
+}
+
+async function* callCoachAiStream(input: {
+  focus: CoachFocus;
+  context: CoachContextDto;
+  messages: Array<{ role: string; content: string }>;
+  userMessage: string;
+}): AsyncGenerator<
+  | { type: 'meta'; source: 'template' | 'llm' | string }
+  | { type: 'token'; text: string }
+  | { type: 'done'; source: 'template' | 'llm' | string; reply: string }
+  | { type: 'fallback' }
+> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), coachTimeoutMs());
+  try {
+    const response = await fetch(`${aiServiceUrl()}/v1/coach/chat/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+      body: JSON.stringify({
+        focus: input.focus,
+        user_message: input.userMessage,
+        context: input.context,
+        messages: input.messages.slice(-12),
+      }),
+      signal: controller.signal,
+    });
+    if (!response.ok || !response.body) {
+      yield { type: 'fallback' };
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let sawDone = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() ?? '';
+      for (const part of parts) {
+        const line = part
+          .split('\n')
+          .map((l) => l.trim())
+          .find((l) => l.startsWith('data:'));
+        if (!line) continue;
+        const raw = line.slice(5).trim();
+        if (!raw || raw === '[DONE]') continue;
+        try {
+          const event = JSON.parse(raw) as {
+            type?: string;
+            text?: string;
+            source?: string;
+            reply?: string;
+          };
+          if (event.type === 'meta' && event.source) {
+            yield { type: 'meta', source: event.source };
+          } else if (event.type === 'token' && event.text) {
+            yield { type: 'token', text: event.text };
+          } else if (event.type === 'done' && event.reply != null) {
+            sawDone = true;
+            yield {
+              type: 'done',
+              source: event.source ?? 'template',
+              reply: event.reply,
+            };
+          }
+        } catch {
+          // ignore malformed SSE chunks
+        }
+      }
+    }
+
+    if (!sawDone) yield { type: 'fallback' };
+  } catch {
+    yield { type: 'fallback' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export type CoachStreamEvent =
+  | { type: 'user'; message: CoachMessageDto }
+  | { type: 'assistant_start'; message: CoachMessageDto; source: string }
+  | { type: 'token'; text: string }
+  | { type: 'done'; session: CareerCoachSessionDto }
+  | { type: 'error'; message: string };
+
+export async function* streamAppendCoachMessage(input: {
+  userId: string;
+  id: string;
+  message: string;
+}): AsyncGenerator<CoachStreamEvent> {
+  const existing = await prisma.careerCoachSession.findFirst({
+    where: { id: input.id, userId: input.userId },
+  });
+  if (!existing) {
+    yield { type: 'error', message: 'Not found' };
+    return;
+  }
+
+  const text = input.message.trim();
+  if (!text) {
+    yield { type: 'error', message: 'message is required' };
+    return;
+  }
+  if (text.length > 4000) {
+    yield { type: 'error', message: 'message is too long' };
+    return;
+  }
+
+  const focus = normalizeFocus(existing.focus);
+  const messages = Array.isArray(existing.messagesJson)
+    ? ([...(existing.messagesJson as unknown as CoachMessageDto[])] as CoachMessageDto[])
+    : [];
+  let context =
+    existing.contextJson && typeof existing.contextJson === 'object'
+      ? (existing.contextJson as unknown as CoachContextDto)
+      : null;
+
+  if (!context) {
+    const hub = await getCareerGrowthHub(input.userId);
+    context = snapCoachContext(hub);
+  }
+
+  const userMessage = makeMessage('user', text);
+  messages.push(userMessage);
+  yield { type: 'user', message: userMessage };
+
+  const history = messages.map((m) => ({ role: m.role, content: m.content }));
+  let source: 'template' | 'llm' | string = 'template';
+  let reply = '';
+  let started = false;
+
+  for await (const event of callCoachAiStream({
+    focus,
+    context,
+    messages: history,
+    userMessage: text,
+  })) {
+    if (event.type === 'fallback') {
+      if (reply.trim()) break;
+      const local = buildTemplateCoachReply({
+        context,
+        focus,
+        userMessage: text,
+        history: messages,
+      });
+      source = local.source;
+      reply = local.content;
+      if (!started) {
+        const placeholder = makeMessage('assistant', '', source);
+        yield { type: 'assistant_start', message: placeholder, source };
+        started = true;
+      }
+      for (let i = 0; i < reply.length; i += 28) {
+        const chunk = reply.slice(i, i + 28);
+        yield { type: 'token', text: chunk };
+        await sleep(12);
+      }
+      break;
+    }
+    if (event.type === 'meta') {
+      source = event.source;
+      const placeholder = makeMessage('assistant', '', source);
+      yield { type: 'assistant_start', message: placeholder, source };
+      started = true;
+    } else if (event.type === 'token') {
+      if (!started) {
+        const placeholder = makeMessage('assistant', '', source);
+        yield { type: 'assistant_start', message: placeholder, source };
+        started = true;
+      }
+      reply += event.text;
+      yield { type: 'token', text: event.text };
+    } else if (event.type === 'done') {
+      source = event.source;
+      reply = event.reply;
+    }
+  }
+
+  if (!reply.trim()) {
+    const local = buildTemplateCoachReply({
+      context,
+      focus,
+      userMessage: text,
+      history: messages,
+    });
+    source = local.source;
+    reply = local.content;
+    if (!started) {
+      yield {
+        type: 'assistant_start',
+        message: makeMessage('assistant', '', source),
+        source,
+      };
+    }
+    yield { type: 'token', text: reply };
+  }
+
+  messages.push(makeMessage('assistant', reply.trim(), source));
+  const title =
+    existing.title && existing.title.trim() ? existing.title : sessionTitle(focus, text);
+
+  const row = await prisma.careerCoachSession.update({
+    where: { id: existing.id },
+    data: {
+      messagesJson: messages as unknown as Prisma.InputJsonValue,
+      contextJson: context as unknown as Prisma.InputJsonValue,
+      title,
+      source,
+      status: 'active',
+    },
+  });
+
+  yield { type: 'done', session: toCareerCoachSessionDto(row) };
 }
 
 export async function listCoachSessions(userId: string): Promise<CareerCoachSessionDto[]> {

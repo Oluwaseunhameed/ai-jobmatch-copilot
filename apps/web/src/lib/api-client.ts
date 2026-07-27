@@ -894,6 +894,85 @@ export function sendCoachMessage(id: string, message: string) {
   });
 }
 
+export async function streamCoachMessage(
+  id: string,
+  message: string,
+  handlers: {
+    onUser?: (message: CoachMessage) => void;
+    onAssistantStart?: (message: CoachMessage) => void;
+    onToken?: (text: string) => void;
+    onDone?: (session: CareerCoachSession) => void;
+  },
+) {
+  const res = await fetch(`/api/users/me/coach-sessions/${encodeURIComponent(id)}/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+    },
+    body: JSON.stringify({ message }),
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error?.message ?? `Request failed: ${res.status}`);
+  }
+  if (!res.body) {
+    throw new Error('Streaming is not available');
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let completed = false;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() ?? '';
+
+    for (const part of parts) {
+      const line = part
+        .split('\n')
+        .map((l) => l.trim())
+        .find((l) => l.startsWith('data:'));
+      if (!line) continue;
+      const raw = line.slice(5).trim();
+      if (!raw) continue;
+
+      const event = JSON.parse(raw) as {
+        type: string;
+        message?: CoachMessage;
+        text?: string;
+        session?: CareerCoachSession;
+        source?: string;
+      };
+
+      if (event.type === 'error') {
+        throw new Error(
+          (event as { message?: string }).message ?? 'Could not stream coach reply',
+        );
+      }
+      if (event.type === 'user' && event.message) handlers.onUser?.(event.message);
+      if (event.type === 'assistant_start' && event.message) {
+        handlers.onAssistantStart?.(event.message);
+      }
+      if (event.type === 'token' && event.text) handlers.onToken?.(event.text);
+      if (event.type === 'done' && event.session) {
+        completed = true;
+        handlers.onDone?.(event.session);
+      }
+    }
+  }
+
+  if (!completed) {
+    throw new Error('Coach stream ended before completion');
+  }
+}
+
 export function deleteCoachSession(id: string) {
   return apiFetch<{ ok: boolean }>(`/api/users/me/coach-sessions/${encodeURIComponent(id)}`, {
     method: 'DELETE',

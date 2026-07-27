@@ -102,6 +102,131 @@ def chat(payload: CoachChatInput) -> CoachChatResponse:
     return CoachChatResponse(reply=template, source="template", llm=llm_meta)
 
 
+def iter_chat_events(payload: CoachChatInput):
+    """Yield SSE-ready dict events: meta → token* → done (or error)."""
+    user_message = " ".join(payload.user_message.split()).strip()[:MAX_MESSAGE_CHARS]
+    if not user_message:
+        reply = (
+            "Ask me about skill gaps, your learning roadmap, salary, "
+            "promotion readiness, or career paths."
+        )
+        yield {"type": "meta", "source": "template"}
+        yield {"type": "token", "text": reply}
+        yield {"type": "done", "source": "template", "reply": reply}
+        return
+
+    template = _template_reply(payload, user_message)
+    model = settings.litellm_model
+    meta = LlmMetadata(enabled=True, model=model)
+    started = time.perf_counter()
+
+    try:
+        import litellm
+    except ImportError:
+        meta.enabled = False
+        meta.error = "litellm is not installed (run: INSTALL_LLM=1 pnpm setup:ai)"
+        yield from _yield_template(template, meta)
+        return
+
+    assembled: list[str] = []
+    try:
+        stream = _stream_complete(litellm, model, payload, user_message)
+        first = next(stream, None)
+        if first is None:
+            raise RuntimeError("empty llm stream")
+
+        yield {"type": "meta", "source": "llm", "llm": meta.model_dump()}
+        assembled.append(first)
+        yield {"type": "token", "text": first}
+        for piece in stream:
+            assembled.append(piece)
+            yield {"type": "token", "text": piece}
+
+        reply = "".join(assembled).strip()
+        if not reply:
+            raise RuntimeError("empty llm stream")
+        meta.used = True
+        meta.durationMs = int((time.perf_counter() - started) * 1000)
+        yield {"type": "done", "source": "llm", "reply": reply, "llm": meta.model_dump()}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("coach llm stream failed: %s", exc)
+        meta.error = str(exc)[:300]
+        meta.durationMs = int((time.perf_counter() - started) * 1000)
+        if assembled:
+            reply = "".join(assembled).strip()
+            yield {
+                "type": "done",
+                "source": "llm",
+                "reply": reply,
+                "llm": meta.model_dump(),
+            }
+            return
+        yield from _yield_template(template, meta)
+
+
+def _yield_template(template: str, meta: LlmMetadata):
+    yield {"type": "meta", "source": "template", "llm": meta.model_dump()}
+    for chunk in _chunk_text(template):
+        yield {"type": "token", "text": chunk}
+    yield {
+        "type": "done",
+        "source": "template",
+        "reply": template,
+        "llm": meta.model_dump(),
+    }
+
+
+def _chunk_text(text: str, size: int = 28) -> list[str]:
+    if not text:
+        return []
+    return [text[i : i + size] for i in range(0, len(text), size)]
+
+
+def _stream_complete(
+    litellm: Any,
+    model: str,
+    payload: CoachChatInput,
+    user_message: str,
+):
+    context_blob = json.dumps(payload.context.model_dump(), ensure_ascii=True)[:6_000]
+    history = payload.messages[-MAX_HISTORY:]
+    history_lines = "\n".join(f"{m.role}: {m.content[:800]}" for m in history)
+
+    system = (
+        "You are a concise career coach for AI JobMatch Copilot. "
+        "Ground every recommendation in the provided Growth Hub context. "
+        "Do not invent employers, salaries, or credentials not present in context. "
+        "Keep replies under 220 words. Use short paragraphs or simple bullets. "
+        "You may use light Markdown only (**bold** for short labels, - for lists). "
+        "Do not use headings (#), tables, or HTML."
+    )
+    user = (
+        f"Focus area: {payload.focus}\n"
+        f"Growth Hub context JSON:\n{context_blob}\n\n"
+        f"Recent messages:\n{history_lines or '(none)'}\n\n"
+        f"User just said: {user_message}\n\n"
+        "Respond as the coach."
+    )
+
+    response = litellm.completion(
+        model=model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        temperature=0.4,
+        stream=True,
+    )
+    for chunk in response:
+        try:
+            delta = chunk.choices[0].delta.content
+        except (AttributeError, IndexError, KeyError, TypeError):
+            delta = None
+        if delta:
+            yield delta
+
+
+
 def _template_reply(payload: CoachChatInput, user_message: str) -> str:
     ctx = payload.context
     text = user_message.lower()
@@ -198,7 +323,9 @@ def _complete(litellm: Any, model: str, payload: CoachChatInput, user_message: s
         "You are a concise career coach for AI JobMatch Copilot. "
         "Ground every recommendation in the provided Growth Hub context. "
         "Do not invent employers, salaries, or credentials not present in context. "
-        "Keep replies under 220 words. Use short paragraphs or bullets."
+        "Keep replies under 220 words. Use short paragraphs or simple bullets. "
+        "You may use light Markdown only (**bold** for short labels, - for lists). "
+        "Do not use headings (#), tables, or HTML."
     )
     user = (
         f"Focus area: {payload.focus}\n"

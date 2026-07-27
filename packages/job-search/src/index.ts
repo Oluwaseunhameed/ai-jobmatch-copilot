@@ -90,6 +90,7 @@ export {
   deleteCoachSession,
   getCoachSession,
   listCoachSessions,
+  streamAppendCoachMessage,
 } from './coach-service';
 
 export {
