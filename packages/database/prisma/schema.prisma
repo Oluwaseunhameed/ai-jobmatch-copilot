@@ -250,6 +250,9 @@ model Application {
   stage String @default("preparing")
   notes String? @db.Text
 
+  /// Last Module 17 reminder email (stale pipeline nudge).
+  lastReminderAt DateTime? @map("last_reminder_at")
+
   resumeId String? @map("resume_id")
   resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
 

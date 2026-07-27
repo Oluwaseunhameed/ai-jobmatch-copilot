@@ -163,3 +163,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Clear product semantics (bookmark vs pipeline), attaches Module 9 drafts without blocking Module 17 notifications later.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-017: Notifications — Resend + preference-gated product email
+
+**Context:** Phase 2 Module 17 needs transactional email for optimisation complete and application reminders without building a full notification center.
+**Options:** Third-party only (Customer.io), in-app inbox first, Resend via existing `@jobmatch/email` with console fallback.
+**Outcome:** **Accepted** — Extend `@jobmatch/email` templates; send asynchronously from optimize/draft runners, application stage PATCH, and a Nest idle-pipeline reminder sweep. Gate all product application emails on `UserPreference.emailApplicationUpdates`. Without `RESEND_API_KEY`, log to console in development. Job alerts / weekly digest remain prefs-only until Phase 3.
+**Rationale:** Transport and settings UI already existed; minimal hooks deliver ROADMAP value while keeping digests and push out of scope.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

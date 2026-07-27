@@ -9,6 +9,45 @@ export const dynamic = 'force-dynamic';
 
 type Params = { params: Promise<{ id: string }> };
 
+/** Latest optimisation for this resume + job (survives page refresh). */
+export async function GET(request: Request, { params }: Params) {
+  const app = await requireAppUser();
+  if (!app) {
+    return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
+  }
+
+  const { id: resumeId } = await params;
+  const jobId = new URL(request.url).searchParams.get('jobId')?.trim();
+  if (!jobId) {
+    return NextResponse.json({ error: { message: 'jobId is required' } }, { status: 400 });
+  }
+
+  const resume = await prisma.resume.findFirst({
+    where: { id: resumeId, userId: app.user.id },
+    select: { id: true },
+  });
+  if (!resume) {
+    return NextResponse.json({ error: { message: 'Resume not found' } }, { status: 404 });
+  }
+
+  const row = await prisma.resumeOptimization.findFirst({
+    where: { userId: app.user.id, resumeId, jobId },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      job: { include: { company: true } },
+      version: true,
+    },
+  });
+
+  if (!row) {
+    return NextResponse.json({ error: { message: 'No optimisation yet' } }, { status: 404 });
+  }
+
+  return NextResponse.json(toOptimizationDto(row), {
+    headers: { 'Cache-Control': 'no-store' },
+  });
+}
+
 export async function POST(request: Request, { params }: Params) {
   const app = await requireAppUser();
   if (!app) {

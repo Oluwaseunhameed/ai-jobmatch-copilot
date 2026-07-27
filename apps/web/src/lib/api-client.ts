@@ -219,6 +219,13 @@ export function getResumeOptimization(resumeId: string, optimizationId: string) 
   );
 }
 
+export function getLatestResumeOptimization(resumeId: string, jobId: string) {
+  const qs = new URLSearchParams({ jobId });
+  return apiFetch<ResumeOptimization>(
+    `/api/users/me/resumes/${resumeId}/optimize?${qs.toString()}`,
+  );
+}
+
 export type ApplicationDraft = {
   id: string;
   userId: string;
@@ -255,6 +262,11 @@ export function startApplicationDraft(
 
 export function getApplicationDraft(draftId: string) {
   return apiFetch<ApplicationDraft>(`/api/users/me/application-drafts/${draftId}`);
+}
+
+export function getLatestApplicationDraft(resumeId: string, jobId: string) {
+  const qs = new URLSearchParams({ resumeId, jobId });
+  return apiFetch<ApplicationDraft>(`/api/users/me/application-drafts?${qs.toString()}`);
 }
 
 export type Application = {

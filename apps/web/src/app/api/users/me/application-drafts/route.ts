@@ -9,6 +9,40 @@ export const dynamic = 'force-dynamic';
 
 const MAX_QUESTIONS = 3;
 
+/** Latest draft for resume + job (survives page refresh). */
+export async function GET(request: Request) {
+  const app = await requireAppUser();
+  if (!app) {
+    return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
+  }
+
+  const params = new URL(request.url).searchParams;
+  const resumeId = params.get('resumeId')?.trim();
+  const jobId = params.get('jobId')?.trim();
+  if (!resumeId || !jobId) {
+    return NextResponse.json(
+      { error: { message: 'resumeId and jobId are required' } },
+      { status: 400 },
+    );
+  }
+
+  const row = await prisma.applicationDraft.findFirst({
+    where: { userId: app.user.id, resumeId, jobId },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      job: { include: { company: true } },
+    },
+  });
+
+  if (!row) {
+    return NextResponse.json({ error: { message: 'No draft yet' } }, { status: 404 });
+  }
+
+  return NextResponse.json(toApplicationDraftDto(row), {
+    headers: { 'Cache-Control': 'no-store' },
+  });
+}
+
 export async function POST(request: Request) {
   const app = await requireAppUser();
   if (!app) {

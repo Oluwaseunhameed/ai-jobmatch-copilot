@@ -5,6 +5,7 @@ import {
   isApplicationStage,
   toApplicationDto,
 } from '@jobmatch/job-search';
+import { notifyApplicationStageChanged } from '@jobmatch/resume-parsing';
 
 import { requireAppUser } from '@/lib/auth';
 
@@ -47,7 +48,13 @@ export async function PATCH(request: Request, { params }: Params) {
     draftId?: string | null;
   } | null;
 
-  if (!body || (body.stage === undefined && body.notes === undefined && body.resumeId === undefined && body.draftId === undefined)) {
+  if (
+    !body ||
+    (body.stage === undefined &&
+      body.notes === undefined &&
+      body.resumeId === undefined &&
+      body.draftId === undefined)
+  ) {
     return NextResponse.json(
       { error: { message: 'Provide stage, notes, resumeId, and/or draftId' } },
       { status: 400 },
@@ -56,7 +63,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   const existing = await prisma.application.findFirst({
     where: { id, userId: app.user.id },
-    select: { id: true, jobId: true },
+    select: { id: true, jobId: true, stage: true },
   });
   if (!existing) {
     return NextResponse.json({ error: { message: 'Application not found' } }, { status: 404 });
@@ -78,9 +85,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (body.notes !== undefined) {
     data.notes =
-      body.notes === null
-        ? null
-        : String(body.notes).trim().slice(0, 5_000) || null;
+      body.notes === null ? null : String(body.notes).trim().slice(0, 5_000) || null;
   }
 
   if (body.resumeId !== undefined) {
@@ -118,6 +123,15 @@ export async function PATCH(request: Request, { params }: Params) {
     data,
     include: applicationInclude,
   });
+
+  if (data.stage && data.stage !== existing.stage && updated.job) {
+    void notifyApplicationStageChanged({
+      userId: app.user.id,
+      jobTitle: updated.job.title,
+      companyName: updated.job.company.name,
+      stage: updated.stage,
+    });
+  }
 
   return NextResponse.json(toApplicationDto(updated));
 }

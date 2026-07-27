@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
   getApplicationDraft,
+  getLatestApplicationDraft,
   listResumes,
   startApplicationDraft,
   type ApplicationDraft,
@@ -22,6 +23,7 @@ export function ApplicationAssistantPanel({ jobId }: { jobId: string }) {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeId, setResumeId] = useState('');
   const [loadingList, setLoadingList] = useState(true);
+  const [loadingLatest, setLoadingLatest] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApplicationDraft | null>(null);
@@ -59,6 +61,43 @@ export function ApplicationAssistantPanel({ jobId }: { jobId: string }) {
     setRunning(false);
     setError('Generation is taking longer than expected. Refresh and try again.');
   }, []);
+
+  useEffect(() => {
+    if (!resumeId || !jobId) {
+      setResult(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingLatest(true);
+    setError(null);
+    setResult(null);
+    setCopied(null);
+
+    void getLatestApplicationDraft(resumeId, jobId)
+      .then((latest) => {
+        if (cancelled) return;
+        setResult(latest);
+        if (latest.status === 'queued' || latest.status === 'processing') {
+          setRunning(true);
+          void poll(latest);
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : '';
+        if (!message.toLowerCase().includes('no draft')) {
+          setError(message || 'Could not load previous draft');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingLatest(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resumeId, jobId, poll]);
 
   async function run() {
     if (!resumeId) return;
@@ -136,8 +175,15 @@ export function ApplicationAssistantPanel({ jobId }: { jobId: string }) {
           </label>
           <Button size="sm" disabled={running || !resumeId} onClick={() => void run()}>
             {running ? <Spinner size="sm" /> : <PenLine className="h-4 w-4" />}
-            {running ? 'Generating…' : 'Generate cover letter'}
+            {running
+              ? 'Generating…'
+              : result?.status === 'ready'
+                ? 'Regenerate cover letter'
+                : 'Generate cover letter'}
           </Button>
+          {loadingLatest && (
+            <p className="text-xs text-muted-foreground">Loading previous draft…</p>
+          )}
         </div>
       )}
 

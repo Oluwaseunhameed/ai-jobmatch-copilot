@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@jobmatch/database": "workspace:*",
-    "@jobmatch/storage": "workspace:*"
+    "@jobmatch/email": "workspace:*",
+    "@jobmatch/storage": "workspace:*",
+    "@jobmatch/types": "workspace:*"
   },
   "devDependencies": {
     "@jobmatch/typescript-config": "workspace:*",

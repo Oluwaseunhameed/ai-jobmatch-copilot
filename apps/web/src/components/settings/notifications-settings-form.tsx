@@ -78,25 +78,25 @@ export function NotificationsSettingsForm() {
   return (
     <div className="space-y-4 max-w-lg">
       <Toggle
-        id="job-alerts"
-        label="Job alerts"
-        description="Email when new jobs match your profile"
-        checked={prefs.emailJobAlerts}
-        onChange={(v) => setPrefs({ ...prefs, emailJobAlerts: v })}
-      />
-      <Toggle
         id="app-updates"
         label="Application updates"
-        description="Status changes on your applications"
+        description="Resume optimisations, cover-letter drafts, stage changes, and idle-application reminders"
         checked={prefs.emailApplicationUpdates}
         onChange={(v) => setPrefs({ ...prefs, emailApplicationUpdates: v })}
       />
       <Toggle
         id="digest"
         label="Weekly digest"
-        description="Summary of your job search activity"
+        description="Summary of your job search activity (coming soon)"
         checked={prefs.emailWeeklyDigest}
         onChange={(v) => setPrefs({ ...prefs, emailWeeklyDigest: v })}
+      />
+      <Toggle
+        id="job-alerts"
+        label="Job alerts"
+        description="Email when new jobs match your profile (coming soon)"
+        checked={prefs.emailJobAlerts}
+        onChange={(v) => setPrefs({ ...prefs, emailJobAlerts: v })}
       />
       <Toggle
         id="marketing"

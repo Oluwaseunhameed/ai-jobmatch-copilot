@@ -1,29 +1,25 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 2 — Module 11 (Application Tracker)
+## Current Sprint: Phase 2 — Module 17 (Notifications)
 
 ### Phase 0 — Complete ✅
 
 ### Phase 1 — Complete ✅ (Modules 1–6, 18, 19 Free framing)
 
-### Phase 2 — Module 4: Full resume optimisation ✅
+### Phase 2 — Module 4 / 9 / 11 ✅
 
-### Phase 2 — Module 9: AI Application Assistant ✅
+### Phase 2 — Module 17: Notifications (email) ✅
 
-### Phase 2 — Module 11: Application Tracker ✅
-
-- [x] `Application` schema + migration (stage, notes, optional resume/draft links)
-- [x] BFF list / create / get / patch / delete
-- [x] Auto-attach latest ready `ApplicationDraft` on create
-- [x] `/applications` Kanban board with stage moves + notes
-- [x] Drag-and-drop between columns (select remains for accessibility)
-- [x] Dashboard pipeline counts + recent applications
-- [x] Job detail “Track application” panel
-- [x] Nav entry + Free plan framing
+- [x] Product email templates (optimise complete, draft ready, stage change, reminder)
+- [x] Preference-gated sends via `emailApplicationUpdates`
+- [x] Hooks on resume optimise + application draft runners
+- [x] Stage-change email from applications PATCH
+- [x] Idle application reminder sweep (Nest worker; `lastReminderAt`)
+- [x] Document Resend / EMAIL_FROM / reminder env vars
+- [x] Settings copy clarifies live vs coming-soon prefs
 
 ### Phase 2 — Next up
 
-- [ ] Module 17 — Notifications (email)
 - [ ] Module 19 — Pro tier + Stripe billing
 
 ---
@@ -52,3 +48,6 @@
 | Application documents / attachments          | Module 11  | Low      | Architecture lists Documents; link drafts only today  |
 | Nest application-draft endpoints parity      | Module 9   | Low      | Worker registered; BFF is primary product path        |
 | Cover letter PDF / DOCX export               | Module 9   | Low      | Copyable text only today                              |
+| Weekly digest + job-alert emails             | Module 17  | Medium   | Prefs exist; senders deferred to Phase 3 alerts       |
+| NotificationLog / delivery audit             | Module 17  | Low      | Console + Resend dashboard for now                    |
+| In-app notification center                   | Module 17  | Low      | Email-only for this slice                             |

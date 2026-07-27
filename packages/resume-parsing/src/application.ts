@@ -1,6 +1,7 @@
 import { prisma, type Prisma } from '@jobmatch/database';
 
 import { createLogger, type StructuredLogger } from './logger';
+import { notifyApplicationDraftReady } from './notifications';
 import { aiServiceUrl } from './parse';
 
 export type ApplicationGenerateTrigger = 'manual' | 'retry';
@@ -137,6 +138,14 @@ export async function runApplicationGeneration(input: RunApplicationGenerateInpu
       durationMs: Date.now() - startedAt,
       source: result.source,
       llmUsed: result.llm?.used ?? false,
+    });
+
+    void notifyApplicationDraftReady({
+      userId,
+      jobTitle: updated.job.title,
+      companyName: updated.job.company.name,
+      jobSlug: updated.job.slug,
+      logger,
     });
 
     return updated;

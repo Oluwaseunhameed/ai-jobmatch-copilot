@@ -319,9 +319,15 @@ importers:
       '@jobmatch/database':
         specifier: workspace:*
         version: link:../database
+      '@jobmatch/email':
+        specifier: workspace:*
+        version: link:../email
       '@jobmatch/storage':
         specifier: workspace:*
         version: link:../storage
+      '@jobmatch/types':
+        specifier: workspace:*
+        version: link:../types
     devDependencies:
       '@jobmatch/typescript-config':
         specifier: workspace:*

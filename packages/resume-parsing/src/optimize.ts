@@ -1,6 +1,7 @@
 import { prisma, type Prisma } from '@jobmatch/database';
 
 import { createLogger, type StructuredLogger } from './logger';
+import { notifyOptimizationComplete } from './notifications';
 import { aiServiceUrl } from './parse';
 
 export type ResumeOptimizeTrigger = 'manual' | 'retry';
@@ -168,6 +169,16 @@ export async function runResumeOptimization(input: RunOptimizeInput) {
       afterScore: result.after.atsScore.score,
       source: result.source,
       llmUsed: result.llm?.used ?? false,
+    });
+
+    void notifyOptimizationComplete({
+      userId,
+      jobTitle: updated.job.title,
+      companyName: updated.job.company.name,
+      jobSlug: updated.job.slug,
+      beforeScore: result.before.atsScore.score,
+      afterScore: result.after.atsScore.score,
+      logger,
     });
 
     return updated;

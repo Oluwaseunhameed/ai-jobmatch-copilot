@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
+  getLatestResumeOptimization,
   getResumeOptimization,
   listResumes,
   startResumeOptimize,
@@ -23,6 +24,7 @@ export function ResumeOptimizePanel({ jobId }: { jobId: string }) {
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [resumeId, setResumeId] = useState('');
   const [loadingList, setLoadingList] = useState(true);
+  const [loadingLatest, setLoadingLatest] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ResumeOptimization | null>(null);
@@ -59,6 +61,43 @@ export function ResumeOptimizePanel({ jobId }: { jobId: string }) {
     setRunning(false);
     setError('Optimisation is taking longer than expected. Refresh and try again.');
   }, []);
+
+  useEffect(() => {
+    if (!resumeId || !jobId) {
+      setResult(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingLatest(true);
+    setError(null);
+    setResult(null);
+
+    void getLatestResumeOptimization(resumeId, jobId)
+      .then((latest) => {
+        if (cancelled) return;
+        setResult(latest);
+        if (latest.status === 'queued' || latest.status === 'processing') {
+          setRunning(true);
+          void poll(latest);
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : '';
+        // No prior run for this resume+job is fine.
+        if (!message.toLowerCase().includes('no optimisation')) {
+          setError(message || 'Could not load previous optimisation');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingLatest(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resumeId, jobId, poll]);
 
   async function run() {
     if (!resumeId) return;
@@ -123,8 +162,15 @@ export function ResumeOptimizePanel({ jobId }: { jobId: string }) {
           </label>
           <Button size="sm" disabled={running || !resumeId} onClick={() => void run()}>
             {running ? <Spinner size="sm" /> : <Sparkles className="h-4 w-4" />}
-            {running ? 'Optimising…' : 'Optimize for this role'}
+            {running
+              ? 'Optimising…'
+              : result?.status === 'ready'
+                ? 'Re-optimize for this role'
+                : 'Optimize for this role'}
           </Button>
+          {loadingLatest && (
+            <p className="text-xs text-muted-foreground">Loading previous result…</p>
+          )}
         </div>
       )}
 

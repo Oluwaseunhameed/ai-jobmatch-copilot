@@ -57,3 +57,108 @@ export function emailChangeVerification(name: string, url: string) {
   const text = `Hi ${name}, confirm your new email: ${url}`;
   return { subject: `Confirm your new email — ${BRAND}`, html, text };
 }
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** Deep links for product emails — prefers NEXT_PUBLIC_APP_URL, then APP_URL. */
+export function appUrl(path: string) {
+  const base = (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.APP_URL ||
+    'http://localhost:3000'
+  ).replace(/\/$/, '');
+  return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+export function optimizationCompleteEmail(input: {
+  name: string;
+  jobTitle: string;
+  companyName: string;
+  beforeScore: number;
+  afterScore: number;
+  jobSlug: string;
+}) {
+  const url = appUrl(`/jobs/${input.jobSlug}`);
+  const name = escapeHtml(input.name);
+  const role = escapeHtml(`${input.jobTitle} at ${input.companyName}`);
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:18px;color:#18181b;">Resume optimisation ready</h2>
+    <p style="margin:0;color:#52525b;line-height:1.6;">
+      Hi ${name}, your tailored resume for <strong>${role}</strong> is ready.
+      Keyword fit moved from <strong>${input.beforeScore}%</strong> to <strong>${input.afterScore}%</strong>.
+    </p>
+    ${button(url, 'View job & version')}
+  `);
+  const text = `Hi ${input.name}, your resume optimisation for ${input.jobTitle} at ${input.companyName} is ready (${input.beforeScore}% → ${input.afterScore}%). ${url}`;
+  return { subject: `Resume ready for ${input.jobTitle} — ${BRAND}`, html, text };
+}
+
+export function applicationDraftReadyEmail(input: {
+  name: string;
+  jobTitle: string;
+  companyName: string;
+  jobSlug: string;
+}) {
+  const url = appUrl(`/jobs/${input.jobSlug}`);
+  const name = escapeHtml(input.name);
+  const role = escapeHtml(`${input.jobTitle} at ${input.companyName}`);
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:18px;color:#18181b;">Cover letter draft ready</h2>
+    <p style="margin:0;color:#52525b;line-height:1.6;">
+      Hi ${name}, your cover letter and short answers for <strong>${role}</strong> are ready to review and copy.
+    </p>
+    ${button(url, 'Open application assistant')}
+  `);
+  const text = `Hi ${input.name}, your cover letter draft for ${input.jobTitle} at ${input.companyName} is ready. ${url}`;
+  return { subject: `Cover letter ready for ${input.jobTitle} — ${BRAND}`, html, text };
+}
+
+export function applicationStageChangedEmail(input: {
+  name: string;
+  jobTitle: string;
+  companyName: string;
+  stageLabel: string;
+}) {
+  const url = appUrl('/applications');
+  const name = escapeHtml(input.name);
+  const role = escapeHtml(`${input.jobTitle} at ${input.companyName}`);
+  const stage = escapeHtml(input.stageLabel);
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:18px;color:#18181b;">Application stage updated</h2>
+    <p style="margin:0;color:#52525b;line-height:1.6;">
+      Hi ${name}, <strong>${role}</strong> is now in <strong>${stage}</strong>.
+    </p>
+    ${button(url, 'Open tracker')}
+  `);
+  const text = `Hi ${input.name}, ${input.jobTitle} at ${input.companyName} is now “${input.stageLabel}”. ${url}`;
+  return { subject: `${input.jobTitle} → ${input.stageLabel} — ${BRAND}`, html, text };
+}
+
+export function applicationReminderEmail(input: {
+  name: string;
+  jobTitle: string;
+  companyName: string;
+  stageLabel: string;
+  daysIdle: number;
+}) {
+  const url = appUrl('/applications');
+  const name = escapeHtml(input.name);
+  const role = escapeHtml(`${input.jobTitle} at ${input.companyName}`);
+  const stage = escapeHtml(input.stageLabel);
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:18px;color:#18181b;">Application reminder</h2>
+    <p style="margin:0;color:#52525b;line-height:1.6;">
+      Hi ${name}, <strong>${role}</strong> has been in <strong>${stage}</strong> for about ${input.daysIdle} days.
+      A quick follow-up or stage update may help keep momentum.
+    </p>
+    ${button(url, 'Review pipeline')}
+  `);
+  const text = `Hi ${input.name}, reminder: ${input.jobTitle} at ${input.companyName} has been in “${input.stageLabel}” for ~${input.daysIdle} days. ${url}`;
+  return { subject: `Reminder: ${input.jobTitle} — ${BRAND}`, html, text };
+}
