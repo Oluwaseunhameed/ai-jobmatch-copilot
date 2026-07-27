@@ -572,3 +572,81 @@ export interface CareerGrowthHubDto {
     skillsAnalyzed: number;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Interview preparation — Module 12
+// ---------------------------------------------------------------------------
+
+export type InterviewQuestionCategory =
+  | 'behavioral'
+  | 'technical'
+  | 'coding'
+  | 'system_design'
+  | 'database'
+  | 'frontend'
+  | 'backend'
+  | 'devops';
+
+export const INTERVIEW_QUESTION_CATEGORIES: InterviewQuestionCategory[] = [
+  'behavioral',
+  'technical',
+  'coding',
+  'system_design',
+  'database',
+  'frontend',
+  'backend',
+  'devops',
+];
+
+export const INTERVIEW_CATEGORY_LABELS: Record<InterviewQuestionCategory, string> = {
+  behavioral: 'Behavioral',
+  technical: 'Technical',
+  coding: 'Coding',
+  system_design: 'System design',
+  database: 'Database',
+  frontend: 'Frontend',
+  backend: 'Backend',
+  devops: 'DevOps',
+};
+
+export function isInterviewQuestionCategory(value: string): value is InterviewQuestionCategory {
+  return (INTERVIEW_QUESTION_CATEGORIES as string[]).includes(value);
+}
+
+export type InterviewPrepStatus = 'ready' | 'practicing' | 'completed';
+
+export interface InterviewQuestionDto {
+  id: string;
+  category: InterviewQuestionCategory;
+  prompt: string;
+  tip: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
+export interface InterviewPracticeEntryDto {
+  questionId: string;
+  /** 1–5 self-rating of answer confidence */
+  selfRating: number;
+  notes?: string | null;
+}
+
+export interface InterviewPrepDto {
+  id: string;
+  userId: string;
+  jobId: string;
+  status: InterviewPrepStatus | string;
+  categories: InterviewQuestionCategory[] | string[];
+  questions: InterviewQuestionDto[];
+  practice: InterviewPracticeEntryDto[];
+  confidenceScore: number | null;
+  summary: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+  job?: {
+    id: string;
+    title: string;
+    slug: string;
+    companyName: string;
+  };
+}

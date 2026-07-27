@@ -34,6 +34,7 @@ model User {
   applications        Application[]
   subscription        Subscription?
   savedSearches       SavedSearch[]
+  interviewPreps      InterviewPrep[]
 
   @@unique([email])
   @@map("user")
@@ -353,6 +354,7 @@ model Job {
   optimizations      ResumeOptimization[]
   applicationDrafts  ApplicationDraft[]
   applications       Application[]
+  interviewPreps     InterviewPrep[]
 
   @@unique([source, externalId])
   @@index([companyId])
@@ -435,4 +437,41 @@ model Subscription {
 
   @@index([provider, status])
   @@map("subscriptions")
+}
+
+// ---------------------------------------------------------------------------
+// Interview preparation — Module 12
+// ---------------------------------------------------------------------------
+model InterviewPrep {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId  String @map("job_id")
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  /// ready | practicing | completed
+  status String @default("ready")
+
+  /// InterviewQuestionCategory[] selected for this session
+  categories String[] @default([])
+
+  /// InterviewQuestionDto[]
+  questionsJson Json @map("questions_json")
+  /// InterviewPracticeEntryDto[] — self ratings / notes
+  practiceJson  Json? @map("practice_json")
+
+  /// 0–100 from practice self-ratings + coverage
+  confidenceScore Int? @map("confidence_score")
+
+  summary String? @db.Text
+  /// template | llm
+  source  String  @default("template")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@index([userId, jobId])
+  @@index([jobId])
+  @@map("interview_preps")
 }

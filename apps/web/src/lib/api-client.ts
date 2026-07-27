@@ -642,6 +642,78 @@ export function getCareerGrowthHub() {
   return apiFetch<CareerGrowthHub>('/api/users/me/growth');
 }
 
+export type InterviewQuestion = {
+  id: string;
+  category: string;
+  prompt: string;
+  tip: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+};
+
+export type InterviewPrep = {
+  id: string;
+  userId: string;
+  jobId: string;
+  status: string;
+  categories: string[];
+  questions: InterviewQuestion[];
+  practice: Array<{ questionId: string; selfRating: number; notes?: string | null }>;
+  confidenceScore: number | null;
+  summary: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+  job?: {
+    id: string;
+    title: string;
+    slug: string;
+    companyName: string;
+  };
+};
+
+export const INTERVIEW_CATEGORY_LABELS: Record<string, string> = {
+  behavioral: 'Behavioral',
+  technical: 'Technical',
+  coding: 'Coding',
+  system_design: 'System design',
+  database: 'Database',
+  frontend: 'Frontend',
+  backend: 'Backend',
+  devops: 'DevOps',
+};
+
+export function listInterviewPreps(jobId?: string) {
+  const qs = jobId ? `?jobId=${encodeURIComponent(jobId)}` : '';
+  return apiFetch<{ interviewPreps: InterviewPrep[] }>(`/api/users/me/interview-preps${qs}`);
+}
+
+export function createInterviewPrep(jobId: string, categories?: string[]) {
+  return apiFetch<InterviewPrep>('/api/users/me/interview-preps', {
+    method: 'POST',
+    body: JSON.stringify({ jobId, categories }),
+  });
+}
+
+export function getInterviewPrep(id: string) {
+  return apiFetch<InterviewPrep>(`/api/users/me/interview-preps/${encodeURIComponent(id)}`);
+}
+
+export function updateInterviewPractice(
+  id: string,
+  practice: Array<{ questionId: string; selfRating: number; notes?: string | null }>,
+) {
+  return apiFetch<InterviewPrep>(`/api/users/me/interview-preps/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ practice }),
+  });
+}
+
+export function deleteInterviewPrep(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/users/me/interview-preps/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

@@ -94,6 +94,7 @@ User ──┬── CareerProfile ──┬── Skills
 - Job search, job detail, rich match insights (fit signals, skill gaps, learning paths)
 - Company intelligence profiles (`/companies/[slug]`)
 - Career Growth Hub (`/growth`) — market skill gaps, roadmap, promotion readiness
+- Interview prep (`/interview`) — role-specific question packs + confidence practice
 - Application tracker (Kanban)
 - Dashboard and analytics
 - Settings (theme, language, notifications; account security via Clerk)

@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 3 — Module 15 (Career Growth Hub) ✅
+## Current Sprint: Phase 4 — Module 12 (Interview Prep) ✅
 
 ### Phase 0 — Complete ✅
 
@@ -8,23 +8,21 @@
 
 ### Phase 2 — Complete ✅ (Modules 4 full, 9, 11, 17, 19 Pro billing)
 
-### Phase 3 — Modules 5–7 ✅
+### Phase 3 — Modules 5–7, 15 ✅ (search upgrade deferred)
 
-### Phase 3 — Module 15: Career Growth Hub ✅
+### Phase 4 — Module 12: AI Interview Preparation ✅
 
-- [x] `CareerGrowthHubDto` types (gaps, roadmap, certs, paths, salary, promotion)
-- [x] Deterministic growth engine vs job-catalog demand in `@jobmatch/job-search`
-- [x] `GET /api/users/me/growth` + `/growth` page + nav link
-- [x] Shared learning catalog with Module 6 insights
-- [x] ADR-022 + unit tests
-
-### Phase 3 — Remaining
-
-- [ ] Search upgrade (Meilisearch/OpenSearch) — deferred until scale demands it
+- [x] `InterviewPrep` model + migration
+- [x] Deterministic question bank (behavioral → DevOps) by role signals
+- [x] Practice ratings + confidence score
+- [x] `GET/POST /api/users/me/interview-preps` + `[id]` GET/PATCH/DELETE
+- [x] Job detail panel + `/interview` hub + practice page
+- [x] ADR-023 + unit tests
+- [ ] Voice mock interviews — deferred (ARCHITECTURE out of scope for now)
+- [ ] Conversational LLM mock + AI scoring — deferred to later / Module 16
 
 ### Phase 4 — Next up
 
-- [ ] Module 12 — AI Interview Preparation
 - [ ] Module 13 — Coding Assessment Prep
 - [ ] Module 16 — AI Career Coach
 - [ ] Module 14 — Portfolio & Project Builder
@@ -66,3 +64,5 @@
 | Nest company profile parity                  | Module 7   | Low      | BFF is primary product path                           |
 | LLM personalized coaching                    | Module 15  | Medium   | Deterministic hub shipped; Module 16 owns AI coach    |
 | Nest growth hub parity                       | Module 15  | Low      | BFF is primary product path                           |
+| Voice + LLM conversational mock interview    | Module 12  | Medium   | Deterministic packs + confidence shipped              |
+| Nest interview prep parity                   | Module 12  | Low      | BFF is primary product path                           |

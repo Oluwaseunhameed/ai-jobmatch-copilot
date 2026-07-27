@@ -229,3 +229,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Explainable and offline-friendly; Module 16 can later layer conversational coaching without changing the DTO contract.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-023: Interview prep — deterministic question packs + self-rated confidence
+
+**Context:** Phase 4 Module 12 needs job/company-specific interview preparation across behavioral, technical, coding, system design, database, frontend, backend, and DevOps categories.
+**Options:** Full conversational LLM mock + voice day 1; third-party interview SaaS; curated question bank tailored by job title/skills/seniority with practice self-ratings.
+**Outcome:** **Accepted** — `InterviewPrep` sessions store generated packs from `buildInterviewQuestions()`. Categories inferred from role signals; difficulty gated by seniority. Users rate confidence 1–5 per question; `computeConfidenceScore()` blends average rating with coverage. Sync create (no queue). Voice mock interviews and LLM conversational scoring stay deferred (ARCHITECTURE already lists voice out of scope).
+**Rationale:** Ships usable prep without AI latency/cost; LLM enrichment can wrap the same DTO later.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

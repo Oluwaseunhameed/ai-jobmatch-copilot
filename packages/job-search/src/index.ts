@@ -38,6 +38,25 @@ export {
 export { getCareerGrowthHub } from './growth-service';
 
 export {
+  buildInterviewQuestions,
+  computeConfidenceScore,
+  inferInterviewCategories,
+  interviewPrepStatus,
+  toInterviewPrepDto,
+  type InterviewJobInput,
+  type InterviewProfileInput,
+} from './interview';
+
+export {
+  createInterviewPrep,
+  deleteInterviewPrep,
+  getInterviewPrep,
+  getLatestInterviewPrepForJob,
+  listInterviewPreps,
+  updateInterviewPractice,
+} from './interview-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,
