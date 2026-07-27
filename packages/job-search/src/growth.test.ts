@@ -61,4 +61,22 @@ describe('buildCareerGrowthHub', () => {
     assert.ok(hub.skillGaps.length > 0);
     assert.equal(hub.trendingTechnologies.every((t) => t.have === false), true);
   });
+
+  it('falls back to catalog currency when profile currency has no matches', () => {
+    const hub = buildCareerGrowthHub(
+      {
+        skills: [{ name: 'TypeScript' }],
+        salaryCurrency: 'NGN',
+        salaryExpectation: 1_200_000,
+      },
+      jobs,
+    );
+
+    assert.ok(hub.salaryGrowth);
+    assert.equal(hub.salaryGrowth!.currency, 'USD');
+    assert.equal(hub.salaryGrowth!.profileCurrency, 'NGN');
+    assert.equal(hub.salaryGrowth!.expectation, 1_200_000);
+    assert.match(hub.salaryGrowth!.detail, /NGN/);
+    assert.ok(hub.salaryGrowth!.marketMedian != null);
+  });
 });

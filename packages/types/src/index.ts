@@ -538,6 +538,8 @@ export interface SalaryGrowthInsightDto {
   currency: string;
   period: string;
   expectation: number | null;
+  /** Present when profile currency differs from catalog currency used for market figures. */
+  profileCurrency?: string | null;
   marketMedian: number | null;
   marketMin: number | null;
   marketMax: number | null;

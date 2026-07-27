@@ -434,8 +434,32 @@ function buildSalaryGrowth(
   profile: GrowthProfileInput,
   jobs: GrowthJobInput[],
 ): SalaryGrowthInsightDto | null {
-  const currency = (profile.salaryCurrency || 'USD').toUpperCase();
-  const relevant = jobs.filter((j) => (j.salaryCurrency || 'USD').toUpperCase() === currency);
+  const profileCurrency = (profile.salaryCurrency || 'USD').toUpperCase();
+
+  const jobsWithPay = jobs.filter((j) => j.salaryMin != null || j.salaryMax != null);
+  if (jobsWithPay.length === 0) return null;
+
+  let relevant = jobsWithPay.filter(
+    (j) => (j.salaryCurrency || 'USD').toUpperCase() === profileCurrency,
+  );
+  let currency = profileCurrency;
+  let currencyMismatch = false;
+
+  if (relevant.length === 0) {
+    // Profile currency (e.g. NGN) may not appear in a USD-seeded catalog — fall back
+    // to the most common listed currency so the panel still renders.
+    const counts = new Map<string, number>();
+    for (const job of jobsWithPay) {
+      const cur = (job.salaryCurrency || 'USD').toUpperCase();
+      counts.set(cur, (counts.get(cur) ?? 0) + 1);
+    }
+    currency = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'USD';
+    relevant = jobsWithPay.filter(
+      (j) => (j.salaryCurrency || 'USD').toUpperCase() === currency,
+    );
+    currencyMismatch = profileCurrency !== currency;
+  }
+
   const mids = relevant
     .map((j) => {
       if (j.salaryMin != null && j.salaryMax != null) {
@@ -454,7 +478,9 @@ function buildSalaryGrowth(
   let deltaPct: number | null = null;
   let detail = 'Compare your expectation to catalog midpoints for open roles.';
 
-  if (expectation != null && marketMedian != null && marketMedian > 0) {
+  if (currencyMismatch) {
+    detail = `Catalog salaries are listed in ${currency}; your profile uses ${profileCurrency}. Convert before comparing.`;
+  } else if (expectation != null && marketMedian != null && marketMedian > 0) {
     deltaPct = Math.round(((expectation - marketMedian) / marketMedian) * 100);
     if (deltaPct > 15) {
       detail = `Your expectation is ${deltaPct}% above catalog median — stretch roles or negotiate with strong proof.`;
@@ -463,12 +489,15 @@ function buildSalaryGrowth(
     } else {
       detail = 'Your expectation sits near the catalog median for active roles.';
     }
+  } else if (expectation == null) {
+    detail = 'Add a salary expectation on your profile to compare against the catalog.';
   }
 
   return {
     currency,
     period: 'year',
     expectation,
+    profileCurrency: currencyMismatch ? profileCurrency : null,
     marketMedian,
     marketMin,
     marketMax,

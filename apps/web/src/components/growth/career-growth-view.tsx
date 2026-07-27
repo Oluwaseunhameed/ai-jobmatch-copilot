@@ -208,15 +208,21 @@ export function CareerGrowthView({ hub }: { hub: CareerGrowthHub }) {
             <Panel title="Salary growth" icon={<TrendingUp className="h-4 w-4 text-primary/70" />}>
               <dl className="space-y-2 text-sm">
                 <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Your expectation</dt>
+                  <dt className="text-muted-foreground">
+                    Your expectation
+                    {salary.profileCurrency ? ` (${salary.profileCurrency})` : ''}
+                  </dt>
                   <dd className="font-medium">
                     {salary.expectation != null
-                      ? formatMoney(salary.expectation, salary.currency)
+                      ? formatMoney(
+                          salary.expectation,
+                          salary.profileCurrency || salary.currency,
+                        )
                       : '—'}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-muted-foreground">Catalog median</dt>
+                  <dt className="text-muted-foreground">Catalog median ({salary.currency})</dt>
                   <dd className="font-medium">
                     {salary.marketMedian != null
                       ? formatMoney(salary.marketMedian, salary.currency)

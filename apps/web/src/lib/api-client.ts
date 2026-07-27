@@ -615,6 +615,7 @@ export type CareerGrowthHub = {
     currency: string;
     period: string;
     expectation: number | null;
+    profileCurrency?: string | null;
     marketMedian: number | null;
     marketMin: number | null;
     marketMax: number | null;
