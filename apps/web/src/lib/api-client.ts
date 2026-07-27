@@ -979,6 +979,143 @@ export function deleteCoachSession(id: string) {
   });
 }
 
+export type PortfolioProjectStatus = 'draft' | 'in_progress' | 'shipped' | 'archived';
+
+export type PortfolioProject = {
+  id: string;
+  userId: string;
+  title: string;
+  summary: string | null;
+  role: string | null;
+  status: PortfolioProjectStatus | string;
+  techStack: string[];
+  highlights: string[];
+  problem: string | null;
+  solution: string | null;
+  impact: string | null;
+  repoUrl: string | null;
+  demoUrl: string | null;
+  startMonth: string | null;
+  endMonth: string | null;
+  isFeatured: boolean;
+  sortOrder: number;
+  source: string;
+  suggestedSkill: string | null;
+  resumeBullets: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PortfolioBrief = {
+  summary: string;
+  projectCount: number;
+  featuredCount: number;
+  shippedCount: number;
+  readinessScore: number;
+  missing: string[];
+  suggestions: Array<{
+    id: string;
+    title: string;
+    summary: string;
+    skill: string;
+    priority: string;
+    techStack: string[];
+    starterHighlights: string[];
+    detail: string;
+  }>;
+  projects: PortfolioProject[];
+  profileLinks: {
+    portfolioUrl: string | null;
+    githubUrl: string | null;
+    websiteUrl: string | null;
+  };
+};
+
+export const PORTFOLIO_PROJECT_STATUSES: PortfolioProjectStatus[] = [
+  'draft',
+  'in_progress',
+  'shipped',
+  'archived',
+];
+
+export const PORTFOLIO_STATUS_LABELS: Record<PortfolioProjectStatus, string> = {
+  draft: 'Draft',
+  in_progress: 'In progress',
+  shipped: 'Shipped',
+  archived: 'Archived',
+};
+
+export function getPortfolioBrief() {
+  return apiFetch<PortfolioBrief>('/api/users/me/portfolio');
+}
+
+export function createPortfolioProject(input: {
+  title: string;
+  summary?: string | null;
+  role?: string | null;
+  status?: string;
+  techStack?: string[];
+  highlights?: string[];
+  problem?: string | null;
+  solution?: string | null;
+  impact?: string | null;
+  repoUrl?: string | null;
+  demoUrl?: string | null;
+  startMonth?: string | null;
+  endMonth?: string | null;
+  isFeatured?: boolean;
+  sortOrder?: number;
+  source?: string;
+  suggestedSkill?: string | null;
+}) {
+  return apiFetch<PortfolioProject>('/api/users/me/portfolio', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function createPortfolioProjectFromSuggestion(input: {
+  suggestionId?: string;
+  skill?: string;
+}) {
+  return apiFetch<PortfolioProject>('/api/users/me/portfolio', {
+    method: 'POST',
+    body: JSON.stringify({ fromSuggestion: true, ...input }),
+  });
+}
+
+export function updatePortfolioProject(
+  id: string,
+  input: Partial<{
+    title: string;
+    summary: string | null;
+    role: string | null;
+    status: string;
+    techStack: string[];
+    highlights: string[];
+    problem: string | null;
+    solution: string | null;
+    impact: string | null;
+    repoUrl: string | null;
+    demoUrl: string | null;
+    startMonth: string | null;
+    endMonth: string | null;
+    isFeatured: boolean;
+    sortOrder: number;
+  }>,
+) {
+  return apiFetch<PortfolioProject>(`/api/users/me/portfolio/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deletePortfolioProject(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/users/me/portfolio/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

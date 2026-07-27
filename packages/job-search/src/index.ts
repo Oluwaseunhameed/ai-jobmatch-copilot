@@ -94,6 +94,26 @@ export {
 } from './coach-service';
 
 export {
+  buildPortfolioBrief,
+  buildProjectSuggestions,
+  buildResumeBullets,
+  computePortfolioReadiness,
+  normalizeProjectInput,
+  toPortfolioProjectDto,
+  type PortfolioProjectInput,
+} from './portfolio';
+
+export {
+  createPortfolioProject,
+  createProjectFromSuggestion,
+  deletePortfolioProject,
+  getPortfolioBrief,
+  getPortfolioProject,
+  listPortfolioProjects,
+  updatePortfolioProject,
+} from './portfolio-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,

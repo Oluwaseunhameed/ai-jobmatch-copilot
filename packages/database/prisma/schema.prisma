@@ -37,6 +37,7 @@ model User {
   interviewPreps      InterviewPrep[]
   codingSessions      CodingPracticeSession[]
   coachSessions       CareerCoachSession[]
+  portfolioProjects   PortfolioProject[]
 
   @@unique([email])
   @@map("user")
@@ -549,5 +550,48 @@ model CareerCoachSession {
 
   @@index([userId, createdAt])
   @@map("career_coach_sessions")
+}
+
+// ---------------------------------------------------------------------------
+// Portfolio & Project Builder — Module 14
+// ---------------------------------------------------------------------------
+model PortfolioProject {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title   String
+  summary String? @db.Text
+  role    String?
+
+  /// draft | in_progress | shipped | archived
+  status String @default("draft")
+
+  techStack  String[] @default([]) @map("tech_stack")
+  highlights String[] @default([])
+
+  problem  String? @db.Text
+  solution String? @db.Text
+  impact   String? @db.Text
+
+  repoUrl String? @map("repo_url")
+  demoUrl String? @map("demo_url")
+
+  startMonth String? @map("start_month")
+  endMonth   String? @map("end_month")
+
+  isFeatured Boolean @default(false) @map("is_featured")
+  sortOrder  Int     @default(0) @map("sort_order")
+
+  /// manual | suggested
+  source         String  @default("manual")
+  suggestedSkill String? @map("suggested_skill")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, sortOrder])
+  @@index([userId, createdAt])
+  @@map("portfolio_projects")
 }
 

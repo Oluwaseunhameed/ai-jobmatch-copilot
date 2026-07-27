@@ -821,3 +821,80 @@ export interface CareerCoachSessionDto {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Portfolio & Project Builder — Module 14
+// ---------------------------------------------------------------------------
+
+export type PortfolioProjectStatus = 'draft' | 'in_progress' | 'shipped' | 'archived';
+
+export const PORTFOLIO_PROJECT_STATUSES: PortfolioProjectStatus[] = [
+  'draft',
+  'in_progress',
+  'shipped',
+  'archived',
+];
+
+export const PORTFOLIO_STATUS_LABELS: Record<PortfolioProjectStatus, string> = {
+  draft: 'Draft',
+  in_progress: 'In progress',
+  shipped: 'Shipped',
+  archived: 'Archived',
+};
+
+export function isPortfolioProjectStatus(value: string): value is PortfolioProjectStatus {
+  return (PORTFOLIO_PROJECT_STATUSES as string[]).includes(value);
+}
+
+export interface PortfolioProjectDto {
+  id: string;
+  userId: string;
+  title: string;
+  summary: string | null;
+  role: string | null;
+  status: PortfolioProjectStatus | string;
+  techStack: string[];
+  highlights: string[];
+  problem: string | null;
+  solution: string | null;
+  impact: string | null;
+  repoUrl: string | null;
+  demoUrl: string | null;
+  startMonth: string | null;
+  endMonth: string | null;
+  isFeatured: boolean;
+  sortOrder: number;
+  source: string;
+  suggestedSkill: string | null;
+  /** Resume-ready bullets derived from highlights / STAR fields */
+  resumeBullets: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PortfolioProjectSuggestionDto {
+  id: string;
+  title: string;
+  summary: string;
+  skill: string;
+  priority: 'high' | 'medium' | 'low' | string;
+  techStack: string[];
+  starterHighlights: string[];
+  detail: string;
+}
+
+export interface PortfolioBriefDto {
+  summary: string;
+  projectCount: number;
+  featuredCount: number;
+  shippedCount: number;
+  readinessScore: number;
+  missing: string[];
+  suggestions: PortfolioProjectSuggestionDto[];
+  projects: PortfolioProjectDto[];
+  profileLinks: {
+    portfolioUrl: string | null;
+    githubUrl: string | null;
+    websiteUrl: string | null;
+  };
+}

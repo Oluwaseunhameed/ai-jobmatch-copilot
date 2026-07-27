@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 4 — Module 16 (AI Career Coach) complete; Module 14 next
+**Next:** Phase 4 complete; Phase 5 next (Networking / Automation / Admin)
 
 ---
 
@@ -86,7 +86,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 - Module 12 — AI Interview Preparation ✅
 - Module 13 — Coding Assessment Prep ✅
 - Module 16 — AI Career Coach ✅
-- Module 14 — Portfolio & Project Builder
+- Module 14 — Portfolio & Project Builder ✅
 
 ---
 

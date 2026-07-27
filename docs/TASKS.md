@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 4 — Module 16 (AI Career Coach)
+## Current Sprint: Phase 4 — Module 14 (Portfolio) ✅
 
 ### Phase 0 — Complete ✅
 
@@ -14,19 +14,22 @@
 
 ### Phase 4 — Module 13: Coding Assessment Prep ✅
 
-### Phase 4 — Module 16: AI Career Coach
+### Phase 4 — Module 16: AI Career Coach ✅
 
-- [x] `CareerCoachSession` model + migration
-- [x] Growth Hub context snapshot + template coaching replies
-- [x] AI service `POST /v1/coach/chat` (LiteLLM + template fallback)
-- [x] `GET/POST /api/users/me/coach-sessions` + `[id]` GET/PATCH/DELETE
-- [x] `/coach` hub + session chat UI + Growth Hub CTA + nav
-- [x] ADR-025 + unit tests
-- [ ] Long-term memory / tool-using agent — deferred
+### Phase 4 — Module 14: Portfolio & Project Builder
 
-### Phase 4 — Next up
+- [x] `PortfolioProject` model + migration
+- [x] Skill-gap project suggestions + resume bullet builder + readiness score
+- [x] `GET/POST /api/users/me/portfolio` + `[id]` GET/PATCH/DELETE
+- [x] `/portfolio` hub + project editor + Growth Hub CTA + nav
+- [x] ADR-026 + unit tests
+- [ ] Hosted public portfolio site / GitHub import — deferred
 
-- [ ] Module 14 — Portfolio & Project Builder
+### Phase 5 — Next up
+
+- [ ] Module 8 — Professional Networking
+- [ ] Module 10 — Smart Application Automation
+- [ ] Module 20 — Full Admin Portal
 
 ---
 
@@ -71,3 +74,5 @@
 | Nest coding session parity                   | Module 13  | Low      | BFF is primary product path                           |
 | Nest career coach parity                     | Module 16  | Low      | BFF is primary product path                           |
 | Coach long-term memory / tool agents         | Module 16  | Medium   | Session JSON only for MVP                             |
+| Nest portfolio parity                        | Module 14  | Low      | BFF is primary product path                           |
+| Hosted portfolio site / GitHub project sync  | Module 14  | Medium   | Project library + suggestions shipped                 |

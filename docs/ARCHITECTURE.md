@@ -95,6 +95,7 @@ User ──┬── CareerProfile ──┬── Skills
 - Company intelligence profiles (`/companies/[slug]`)
 - Career Growth Hub (`/growth`) — market skill gaps, roadmap, promotion readiness
 - AI Career Coach (`/coach`) — conversational coaching over Growth Hub context
+- Portfolio & Project Builder (`/portfolio`) — project library, skill-gap suggestions, resume bullets
 - Interview prep (`/interview`) — role-specific question packs + confidence practice
 - Coding assessment prep (`/practice`) — timed problem packs + performance analytics
 - Application tracker (Kanban)

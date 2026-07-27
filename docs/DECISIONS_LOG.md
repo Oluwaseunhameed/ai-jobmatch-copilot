@@ -262,3 +262,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Keeps `CareerGrowthHubDto` stable while adding a conversational layer; works offline when LLM is unavailable.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-026: Portfolio & Project Builder — manual projects + skill-gap suggestions
+
+**Context:** Phase 4 Module 14 needs a project library for applications/resumes without building a public hosted portfolio site or GitHub OAuth import on day one.
+**Options:** Hosted themeable portfolio site; GitHub API sync; LLM project writeups; structured `PortfolioProject` CRUD with deterministic suggestions from Growth Hub gaps.
+**Outcome:** **Accepted** — `PortfolioProject` stores title, stack, STAR fields, links, featured/status flags. `buildProjectSuggestions()` proposes builds from Module 15 skill gaps; `buildResumeBullets()` produces paste-ready bullets. Exposed via `/portfolio` and `GET/POST/PATCH/DELETE /api/users/me/portfolio`. Profile `portfolioUrl`/`githubUrl` remain external links. Hosted sites, GitHub import, and LLM writeups deferred.
+**Rationale:** Ships the architecture `Projects[]` need as an explainable content library that feeds resumes/applications without CDN or third-party sync.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28

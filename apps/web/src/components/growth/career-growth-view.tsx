@@ -61,6 +61,10 @@ export function CareerGrowthView({ hub }: { hub: CareerGrowthHub }) {
           <Link href="/coach" className="font-medium text-foreground underline-offset-4 hover:underline">
             Ask the career coach
           </Link>
+          {' · '}
+          <Link href="/portfolio" className="font-medium text-foreground underline-offset-4 hover:underline">
+            Build portfolio projects
+          </Link>
         </p>
       </div>
 
