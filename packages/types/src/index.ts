@@ -1019,3 +1019,73 @@ export interface NetworkingHubDto {
   targets: NetworkingTargetDto[];
   talkTracks: NetworkingTalkTrackDto[];
 }
+
+// ---------------------------------------------------------------------------
+// Smart Application Automation — Module 10
+// ---------------------------------------------------------------------------
+
+export type ApplyAssistStatus =
+  | 'ready'
+  | 'opened'
+  | 'fill_approved'
+  | 'submitted'
+  | 'cancelled';
+
+export type ApplyPlaywrightStatus =
+  | 'skipped'
+  | 'approved_pending'
+  | 'fixture_ran'
+  | 'blocked';
+
+export const APPLY_ASSIST_STATUSES: ApplyAssistStatus[] = [
+  'ready',
+  'opened',
+  'fill_approved',
+  'submitted',
+  'cancelled',
+];
+
+export function isApplyAssistStatus(value: string): value is ApplyAssistStatus {
+  return (APPLY_ASSIST_STATUSES as string[]).includes(value);
+}
+
+export interface ApplyChecklistItemDto {
+  id: string;
+  label: string;
+  done: boolean;
+  detail: string;
+  required: boolean;
+}
+
+export interface ApplyFillFieldDto {
+  id: string;
+  label: string;
+  value: string;
+  source: 'profile' | 'draft' | 'resume' | 'manual' | string;
+  sensitive: boolean;
+}
+
+export interface ApplyAssistSessionDto {
+  id: string;
+  userId: string;
+  applicationId: string;
+  status: ApplyAssistStatus | string;
+  checklist: ApplyChecklistItemDto[];
+  fillPlan: ApplyFillFieldDto[];
+  readinessPct: number;
+  applyUrl: string | null;
+  openedAt: string | null;
+  fillApprovedAt: string | null;
+  submittedAt: string | null;
+  submitNote: string | null;
+  playwrightStatus: ApplyPlaywrightStatus | string;
+  playwrightDetail: string | null;
+  createdAt: string;
+  updatedAt: string;
+  job?: {
+    id: string;
+    title: string;
+    slug: string;
+    companyName: string;
+  };
+}

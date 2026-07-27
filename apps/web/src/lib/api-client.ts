@@ -336,6 +336,82 @@ export function deleteApplication(id: string) {
   });
 }
 
+export type ApplyAssistSession = {
+  id: string;
+  userId: string;
+  applicationId: string;
+  status: string;
+  checklist: Array<{
+    id: string;
+    label: string;
+    done: boolean;
+    detail: string;
+    required: boolean;
+  }>;
+  fillPlan: Array<{
+    id: string;
+    label: string;
+    value: string;
+    source: string;
+    sensitive: boolean;
+  }>;
+  readinessPct: number;
+  applyUrl: string | null;
+  openedAt: string | null;
+  fillApprovedAt: string | null;
+  submittedAt: string | null;
+  submitNote: string | null;
+  playwrightStatus: string;
+  playwrightDetail: string | null;
+  createdAt: string;
+  updatedAt: string;
+  job?: {
+    id: string;
+    title: string;
+    slug: string;
+    companyName: string;
+  };
+};
+
+export function getApplyAssist(applicationId: string) {
+  return apiFetch<ApplyAssistSession>(
+    `/api/users/me/applications/${encodeURIComponent(applicationId)}/apply-assist`,
+  );
+}
+
+export function markApplyOpened(applicationId: string) {
+  return apiFetch<ApplyAssistSession>(
+    `/api/users/me/applications/${encodeURIComponent(applicationId)}/apply-assist`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ action: 'open' }),
+    },
+  );
+}
+
+export function approveApplyFill(applicationId: string) {
+  return apiFetch<ApplyAssistSession>(
+    `/api/users/me/applications/${encodeURIComponent(applicationId)}/apply-assist`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ action: 'approve_fill' }),
+    },
+  );
+}
+
+export function confirmApplySubmitted(
+  applicationId: string,
+  input?: { submitNote?: string | null },
+) {
+  return apiFetch<ApplyAssistSession>(
+    `/api/users/me/applications/${encodeURIComponent(applicationId)}/apply-assist`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ action: 'confirm_submitted', submitNote: input?.submitNote ?? null }),
+    },
+  );
+}
+
 export function applyResumeToProfile(
   id: string,
   options?: { applyHeadline?: boolean; applySummary?: boolean; applySkills?: boolean },

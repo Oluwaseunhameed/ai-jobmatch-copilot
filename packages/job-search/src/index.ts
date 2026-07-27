@@ -133,6 +133,21 @@ export {
 } from './networking-service';
 
 export {
+  buildApplyChecklist,
+  buildFillPlan,
+  computeReadinessPct,
+  evaluatePlaywrightGate,
+  toApplyAssistSessionDto,
+} from './apply-assist';
+
+export {
+  approveApplyFillPlan,
+  confirmApplySubmitted,
+  getOrCreateApplyAssist,
+  markApplyOpened,
+} from './apply-assist-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,

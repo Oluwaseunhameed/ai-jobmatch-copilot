@@ -284,3 +284,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Respects legal/ToS constraints while making outreach practical for companies the user already engages with in-product.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
+
+---
+
+## ADR-028: Assisted apply — checklist + user-approved fill plan (no unsupervised submit)
+
+**Context:** Phase 5 Module 10 needs Playwright-oriented application automation without violating the architecture rule that browser assist never submits without explicit user approval.
+**Options:** Unsupervised ATS auto-apply; browser extension; checklist + copyable fill plan + confirm-submitted, with Playwright limited to future fixture/approved fill only.
+**Outcome:** **Accepted** — `ApplyAssistSession` stores checklist, fill plan (profile/draft fields), open/approve/confirm timestamps, and a Playwright gate status. Users open `applyUrl`, approve the fill plan, paste values themselves, then confirm submission (moves pipeline to `applied`). Unsupervised Playwright submit and production ATS adapters remain deferred; fixture-only fill may be enabled later via `APPLY_AUTOMATION_FIXTURE`.
+**Rationale:** Ships useful assisted apply immediately while encoding the user-in-the-loop boundary in data + API.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28

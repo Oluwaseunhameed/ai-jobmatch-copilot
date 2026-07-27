@@ -39,6 +39,7 @@ model User {
   coachSessions       CareerCoachSession[]
   portfolioProjects   PortfolioProject[]
   networkingContacts  NetworkingContact[]
+  applyAssistSessions ApplyAssistSession[]
 
   @@unique([email])
   @@map("user")
@@ -265,6 +266,8 @@ model Application {
 
   draftId String?           @unique @map("draft_id")
   draft   ApplicationDraft? @relation(fields: [draftId], references: [id], onDelete: SetNull)
+
+  applyAssist ApplyAssistSession?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -637,5 +640,39 @@ model NetworkingContact {
   @@index([userId, createdAt])
   @@index([companyId])
   @@map("networking_contacts")
+}
+
+// ---------------------------------------------------------------------------
+// Smart Application Automation — Module 10 (user-approved assist)
+// ---------------------------------------------------------------------------
+model ApplyAssistSession {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String      @unique @map("application_id")
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  /// ready | opened | fill_approved | submitted | cancelled
+  status String @default("ready")
+
+  /// ApplyChecklistItemDto[]
+  checklistJson Json @map("checklist_json")
+  /// ApplyFillFieldDto[] — values the user approved Playwright (or manual paste) may use
+  fillPlanJson  Json @map("fill_plan_json")
+
+  openedAt       DateTime? @map("opened_at")
+  fillApprovedAt DateTime? @map("fill_approved_at")
+  submittedAt    DateTime? @map("submitted_at")
+  submitNote     String?   @map("submit_note") @db.Text
+
+  /// skipped | approved_pending | fixture_ran | blocked
+  playwrightStatus String  @default("skipped") @map("playwright_status")
+  playwrightDetail String? @map("playwright_detail") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("apply_assist_sessions")
 }
 

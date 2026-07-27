@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { ApplicationBoardSkeleton } from './application-board-skeleton';
+import { ApplyAssistPanel } from './apply-assist-panel';
 
 const DRAG_TYPE = 'application/x-jobmatch-application-id';
 
@@ -344,6 +345,13 @@ export function ApplicationBoard() {
             {busyId === selected.id ? <Spinner size="sm" /> : null}
             Save notes
           </Button>
+
+          <ApplyAssistPanel
+            application={selected}
+            onApplicationUpdated={() => {
+              void listApplications().then((data) => setApplications(data.applications));
+            }}
+          />
         </div>
       )}
     </div>

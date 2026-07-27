@@ -1,30 +1,23 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 5 — Module 8 (Networking) ✅
+## Current Sprint: Phase 5 — Module 10 (Assisted Apply) ✅
 
-### Phase 0 — Complete ✅
+### Phase 0–4 — Complete ✅
 
-### Phase 1 — Complete ✅ (Modules 1–6 basic, 18, 19 Free framing)
+### Phase 5 — Module 8: Professional Networking ✅
 
-### Phase 2 — Complete ✅ (Modules 4 full, 9, 11, 17, 19 Pro billing)
+### Phase 5 — Module 10: Smart Application Automation
 
-### Phase 3 — Modules 5–7, 15 ✅ (search upgrade deferred)
-
-### Phase 4 — Modules 12, 13, 16, 14 ✅
-
-### Phase 5 — Module 8: Professional Networking
-
-- [x] `NetworkingContact` model + migration
-- [x] Target companies from saved/applied/viewed jobs + public research links
-- [x] Copyable talk tracks (email / LinkedIn DM paste / careers note)
-- [x] `GET/POST /api/users/me/network` + `[id]` GET/PATCH/DELETE
-- [x] `/network` hub + company CTA + nav
-- [x] ADR-027 + unit tests
-- [ ] LinkedIn scrape / auto-send — deferred (public data only)
+- [x] `ApplyAssistSession` model + migration
+- [x] Checklist + fill plan from resume/draft/profile
+- [x] User actions: open apply URL, approve fill plan, confirm submitted
+- [x] Playwright gate (no unsupervised submit; fixture deferred)
+- [x] Applications board panel + BFF `.../apply-assist`
+- [x] ADR-028 + unit tests
+- [ ] Production Playwright ATS adapters — deferred
 
 ### Phase 5 — Next up
 
-- [ ] Module 10 — Smart Application Automation
 - [ ] Module 20 — Full Admin Portal
 
 ---
@@ -74,3 +67,5 @@
 | Hosted portfolio site / GitHub project sync  | Module 14  | Medium   | Project library + suggestions shipped                 |
 | Nest networking parity                       | Module 8   | Low      | BFF is primary product path                           |
 | LinkedIn scrape / auto-message               | Module 8   | —        | Explicitly out of scope (ADR-027)                     |
+| Nest apply-assist parity                     | Module 10  | Low      | BFF is primary product path                           |
+| Production Playwright ATS adapters           | Module 10  | Medium   | Checklist + approval gate shipped (ADR-028)           |

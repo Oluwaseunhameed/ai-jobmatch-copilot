@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 5 — Module 8 (Networking) complete; Module 10 next
+**Next:** Phase 5 — Module 10 (Assisted Apply) complete; Module 20 next
 
 ---
 
@@ -95,7 +95,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 **Modules:**
 
 - Module 8 — Professional Networking (public data only) ✅
-- Module 10 — Smart Application Automation (Playwright, user-approved)
+- Module 10 — Smart Application Automation (Playwright, user-approved) ✅
 - Module 20 — Full Admin Portal
 
 ---
