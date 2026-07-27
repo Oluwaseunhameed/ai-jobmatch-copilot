@@ -240,3 +240,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Ships usable prep without AI latency/cost; LLM enrichment can wrap the same DTO later.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-024: Coding assessment prep — curated timed packs + attempt analytics
+
+**Context:** Phase 4 Module 13 needs company/role coding prep across LeetCode-style, HackerRank-style, and take-home challenges with difficulty, timers, and performance analytics.
+**Options:** Sandboxed code runner + LLM review day 1; third-party LeetCode embeds; curated offline problem bank with attempt tracking and review checklists.
+**Outcome:** **Accepted** — `CodingPracticeSession` stores packs from `buildCodingPack()` (skill/seniority-aware). Users log solved/attempted/skipped with minutes and self-ratings; `computeCodingPerformance()` produces a 0–100 score. Per-problem review checklist stands in for AI code review. Exposed via `/practice` and job-detail panel. Full AI code review and sandboxed execution deferred.
+**Rationale:** Delivers assessment prep without judge infrastructure; DTO can later attach LLM review results.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

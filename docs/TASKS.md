@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 4 — Module 12 (Interview Prep) ✅
+## Current Sprint: Phase 4 — Module 13 (Coding Assessment) ✅
 
 ### Phase 0 — Complete ✅
 
@@ -12,18 +12,19 @@
 
 ### Phase 4 — Module 12: AI Interview Preparation ✅
 
-- [x] `InterviewPrep` model + migration
-- [x] Deterministic question bank (behavioral → DevOps) by role signals
-- [x] Practice ratings + confidence score
-- [x] `GET/POST /api/users/me/interview-preps` + `[id]` GET/PATCH/DELETE
-- [x] Job detail panel + `/interview` hub + practice page
-- [x] ADR-023 + unit tests
-- [ ] Voice mock interviews — deferred (ARCHITECTURE out of scope for now)
-- [ ] Conversational LLM mock + AI scoring — deferred to later / Module 16
+### Phase 4 — Module 13: Coding Assessment Prep ✅
+
+- [x] `CodingPracticeSession` model + migration
+- [x] Curated problem bank (LeetCode / HackerRank / take-home) with difficulties + timers
+- [x] Role-aware pack builder + attempt tracking + performance score
+- [x] Review checklist (lightweight code review stand-in)
+- [x] `GET/POST /api/users/me/coding-sessions` + `[id]` GET/PATCH/DELETE
+- [x] Job detail panel + `/practice` hub + session page + nav
+- [x] ADR-024 + unit tests
+- [ ] Full AI code review — deferred (checklist shipped for MVP)
 
 ### Phase 4 — Next up
 
-- [ ] Module 13 — Coding Assessment Prep
 - [ ] Module 16 — AI Career Coach
 - [ ] Module 14 — Portfolio & Project Builder
 
@@ -66,3 +67,5 @@
 | Nest growth hub parity                       | Module 15  | Low      | BFF is primary product path                           |
 | Voice + LLM conversational mock interview    | Module 12  | Medium   | Deterministic packs + confidence shipped              |
 | Nest interview prep parity                   | Module 12  | Low      | BFF is primary product path                           |
+| Full AI code review / sandboxed runner       | Module 13  | Medium   | Checklist + self scoring shipped                      |
+| Nest coding session parity                   | Module 13  | Low      | BFF is primary product path                           |

@@ -714,6 +714,110 @@ export function deleteInterviewPrep(id: string) {
   });
 }
 
+export type CodingProblem = {
+  id: string;
+  title: string;
+  style: 'leetcode' | 'hackerrank' | 'takehome' | string;
+  difficulty: 'easy' | 'medium' | 'hard' | string;
+  topics: string[];
+  prompt: string;
+  constraints: string[];
+  examples: string[];
+  hints: string[];
+  approach: string;
+  reviewChecklist: string[];
+  timeLimitMinutes: number;
+};
+
+export type CodingAttempt = {
+  problemId: string;
+  status: 'todo' | 'attempted' | 'solved' | 'skipped';
+  minutesSpent: number | null;
+  selfRating: number | null;
+  notes?: string | null;
+};
+
+export type CodingPracticeSession = {
+  id: string;
+  userId: string;
+  jobId: string | null;
+  status: string;
+  styles: string[];
+  difficulties: string[];
+  problems: CodingProblem[];
+  attempts: CodingAttempt[];
+  performanceScore: number | null;
+  timeBudgetMinutes: number | null;
+  performance: {
+    solved: number;
+    attempted: number;
+    skipped: number;
+    total: number;
+    avgSelfRating: number | null;
+    timeUsedMinutes: number;
+    timeBudgetMinutes: number;
+    score: number;
+    detail: string;
+  } | null;
+  summary: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+  job?: {
+    id: string;
+    title: string;
+    slug: string;
+    companyName: string;
+  } | null;
+};
+
+export const CODING_STYLE_LABELS: Record<string, string> = {
+  leetcode: 'LeetCode-style',
+  hackerrank: 'HackerRank-style',
+  takehome: 'Take-home',
+};
+
+export function listCodingSessions(jobId?: string) {
+  const qs = jobId ? `?jobId=${encodeURIComponent(jobId)}` : '';
+  return apiFetch<{ codingSessions: CodingPracticeSession[] }>(
+    `/api/users/me/coding-sessions${qs}`,
+  );
+}
+
+export function createCodingSession(input?: {
+  jobId?: string | null;
+  styles?: string[];
+  difficulties?: string[];
+  limit?: number;
+}) {
+  return apiFetch<CodingPracticeSession>('/api/users/me/coding-sessions', {
+    method: 'POST',
+    body: JSON.stringify(input ?? {}),
+  });
+}
+
+export function getCodingSession(id: string) {
+  return apiFetch<CodingPracticeSession>(
+    `/api/users/me/coding-sessions/${encodeURIComponent(id)}`,
+  );
+}
+
+export function updateCodingAttempts(id: string, attempts: CodingAttempt[]) {
+  return apiFetch<CodingPracticeSession>(
+    `/api/users/me/coding-sessions/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ attempts }),
+    },
+  );
+}
+
+export function deleteCodingSession(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/users/me/coding-sessions/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

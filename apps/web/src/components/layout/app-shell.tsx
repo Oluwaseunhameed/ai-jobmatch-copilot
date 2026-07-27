@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Briefcase,
+  Code2,
   FileText,
   KanbanSquare,
   LayoutDashboard,
@@ -46,6 +47,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Career',
     items: [
       { href: '/interview', label: 'Interview', icon: MessageSquareQuote },
+      { href: '/practice', label: 'Practice', icon: Code2 },
       { href: '/growth', label: 'Growth', icon: Route },
       { href: '/resumes', label: 'Resumes', icon: FileText },
       { href: '/profile', label: 'Profile', icon: UserRound },

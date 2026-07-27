@@ -35,6 +35,7 @@ model User {
   subscription        Subscription?
   savedSearches       SavedSearch[]
   interviewPreps      InterviewPrep[]
+  codingSessions      CodingPracticeSession[]
 
   @@unique([email])
   @@map("user")
@@ -355,6 +356,7 @@ model Job {
   applicationDrafts  ApplicationDraft[]
   applications       Application[]
   interviewPreps     InterviewPrep[]
+  codingSessions     CodingPracticeSession[]
 
   @@unique([source, externalId])
   @@index([companyId])
@@ -475,3 +477,46 @@ model InterviewPrep {
   @@index([jobId])
   @@map("interview_preps")
 }
+
+// ---------------------------------------------------------------------------
+// Coding assessment prep — Module 13
+// ---------------------------------------------------------------------------
+model CodingPracticeSession {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Optional — company/role-specific packs when started from a job
+  jobId  String? @map("job_id")
+  job    Job?    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  /// ready | practicing | completed
+  status String @default("ready")
+
+  /// CodingProblemStyle[] included in this pack
+  styles String[] @default([])
+  /// easy | medium | hard filters used
+  difficulties String[] @default([])
+
+  /// CodingProblemDto[]
+  problemsJson Json @map("problems_json")
+  /// CodingAttemptDto[]
+  attemptsJson Json? @map("attempts_json")
+
+  /// 0–100 aggregate from attempts
+  performanceScore Int? @map("performance_score")
+  /// Total timed minutes budget across problems
+  timeBudgetMinutes Int? @map("time_budget_minutes")
+
+  summary String? @db.Text
+  /// template | llm
+  source  String  @default("template")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@index([userId, jobId])
+  @@index([jobId])
+  @@map("coding_practice_sessions")
+}
+

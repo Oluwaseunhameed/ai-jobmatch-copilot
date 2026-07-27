@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { ApplicationAssistantPanel } from '@/components/jobs/application-assistant-panel';
+import { CodingPrepPanel } from '@/components/jobs/coding-prep-panel';
 import { InterviewPrepPanel } from '@/components/jobs/interview-prep-panel';
 import { JobInsightsPanel } from '@/components/jobs/job-insights-panel';
 import { TrackApplicationPanel } from '@/components/jobs/track-application-panel';
@@ -135,6 +136,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
           <ResumeOptimizePanel jobId={job.id} />
           <ApplicationAssistantPanel jobId={job.id} />
           <InterviewPrepPanel jobId={job.id} />
+          <CodingPrepPanel jobId={job.id} />
 
           <JobInsightsPanel slug={job.slug} />
 

@@ -57,6 +57,24 @@ export {
 } from './interview-service';
 
 export {
+  buildCodingPack,
+  codingSessionStatus,
+  computeCodingPerformance,
+  inferCodingStyles,
+  toCodingSessionDto,
+  type CodingJobInput,
+} from './coding';
+
+export {
+  createCodingSession,
+  deleteCodingSession,
+  getCodingSession,
+  getLatestCodingSessionForJob,
+  listCodingSessions,
+  updateCodingAttempts,
+} from './coding-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,

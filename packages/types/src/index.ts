@@ -650,3 +650,97 @@ export interface InterviewPrepDto {
     companyName: string;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Coding assessment prep — Module 13
+// ---------------------------------------------------------------------------
+
+export type CodingProblemStyle = 'leetcode' | 'hackerrank' | 'takehome';
+export type CodingDifficulty = 'easy' | 'medium' | 'hard';
+export type CodingAttemptStatus = 'todo' | 'attempted' | 'solved' | 'skipped';
+export type CodingSessionStatus = 'ready' | 'practicing' | 'completed';
+
+export const CODING_PROBLEM_STYLES: CodingProblemStyle[] = [
+  'leetcode',
+  'hackerrank',
+  'takehome',
+];
+
+export const CODING_DIFFICULTIES: CodingDifficulty[] = ['easy', 'medium', 'hard'];
+
+export const CODING_STYLE_LABELS: Record<CodingProblemStyle, string> = {
+  leetcode: 'LeetCode-style',
+  hackerrank: 'HackerRank-style',
+  takehome: 'Take-home',
+};
+
+export function isCodingProblemStyle(value: string): value is CodingProblemStyle {
+  return (CODING_PROBLEM_STYLES as string[]).includes(value);
+}
+
+export function isCodingDifficulty(value: string): value is CodingDifficulty {
+  return (CODING_DIFFICULTIES as string[]).includes(value);
+}
+
+export interface CodingProblemDto {
+  id: string;
+  title: string;
+  style: CodingProblemStyle;
+  difficulty: CodingDifficulty;
+  topics: string[];
+  prompt: string;
+  constraints: string[];
+  examples: string[];
+  hints: string[];
+  /** Suggested approach / outline — revealed as study aid, not a full solution dump */
+  approach: string;
+  /** Optional self-review checklist instead of full AI code review for MVP */
+  reviewChecklist: string[];
+  timeLimitMinutes: number;
+}
+
+export interface CodingAttemptDto {
+  problemId: string;
+  status: CodingAttemptStatus;
+  /** Minutes the user spent (self-reported or timer) */
+  minutesSpent: number | null;
+  /** 1–5 confidence after attempting */
+  selfRating: number | null;
+  notes?: string | null;
+}
+
+export interface CodingPerformanceDto {
+  solved: number;
+  attempted: number;
+  skipped: number;
+  total: number;
+  avgSelfRating: number | null;
+  timeUsedMinutes: number;
+  timeBudgetMinutes: number;
+  score: number;
+  detail: string;
+}
+
+export interface CodingPracticeSessionDto {
+  id: string;
+  userId: string;
+  jobId: string | null;
+  status: CodingSessionStatus | string;
+  styles: CodingProblemStyle[] | string[];
+  difficulties: CodingDifficulty[] | string[];
+  problems: CodingProblemDto[];
+  attempts: CodingAttemptDto[];
+  performanceScore: number | null;
+  timeBudgetMinutes: number | null;
+  performance: CodingPerformanceDto | null;
+  summary: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+  job?: {
+    id: string;
+    title: string;
+    slug: string;
+    companyName: string;
+  } | null;
+}
