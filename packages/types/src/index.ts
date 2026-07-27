@@ -80,6 +80,43 @@ export interface JobSkillMatch {
   missingSkills: string[];
 }
 
+/** Rich job insights (Module 6) — built on deterministic skill coverage + profile fit signals. */
+export type FitLevel = 'strong' | 'partial' | 'gap' | 'unknown';
+
+export interface FitSignal {
+  key: string;
+  label: string;
+  level: FitLevel;
+  detail: string;
+}
+
+export interface SkillGapItem {
+  skill: string;
+  priority: 'high' | 'medium' | 'low';
+  reason: string;
+}
+
+export interface LearningRecommendation {
+  skill: string;
+  title: string;
+  provider: string;
+  url: string;
+  type: 'course' | 'docs' | 'practice';
+  estimatedHours?: number;
+}
+
+export interface JobInsightsDto {
+  jobId: string;
+  jobSlug: string;
+  matchScore: number | null;
+  matchedSkills: string[];
+  missingSkills: string[];
+  skillGaps: SkillGapItem[];
+  fitSignals: FitSignal[];
+  learningRecommendations: LearningRecommendation[];
+  summary: string;
+}
+
 export interface CompanyDto {
   id: string;
   name: string;

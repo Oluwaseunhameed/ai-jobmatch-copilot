@@ -502,6 +502,14 @@ function JobCard({
                 </span>
               </>
             )}
+            {typeof job.matchScore === 'number' && (job.missingSkills?.length ?? 0) > 0 && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="tabular-nums text-muted-foreground">
+                  {job.missingSkills!.length} gap{job.missingSkills!.length === 1 ? '' : 's'}
+                </span>
+              </>
+            )}
           </div>
           <Link
             href={`/jobs/${job.slug}`}

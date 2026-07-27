@@ -91,7 +91,7 @@ User ──┬── CareerProfile ──┬── Skills
 - Authentication UI via Clerk (`/login`, `/register`)
 - Onboarding and career profile forms
 - Resume upload/builder UI
-- Job search, job detail, match insights
+- Job search, job detail, rich match insights (fit signals, skill gaps, learning paths)
 - Application tracker (Kanban)
 - Dashboard and analytics
 - Settings (theme, language, notifications; account security via Clerk)

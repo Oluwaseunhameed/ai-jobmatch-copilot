@@ -196,3 +196,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Reuses existing search + email + reminder worker patterns; no Meilisearch/ingestion dependency for this slice.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-020: Job insights — deterministic fit + curated learning paths
+
+**Context:** Phase 3 Module 6 needs richer job intelligence beyond basic skill overlap, without blocking on LLM JD analysis.
+**Options:** LLM JD analysis day 1; embedding similarity; extend ADR-012 deterministic layer with fit signals + learning catalog.
+**Outcome:** **Accepted** — `buildJobInsights()` layers seniority, work-mode, role, and salary fit signals on top of `matchJobSkills`. Prioritised skill gaps (high/medium/low) from requirements ordering. Curated offline learning catalog for common missing skills; generic search fallback otherwise. Exposed via `GET /api/jobs/[slug]/insights` and job detail sidebar panel.
+**Rationale:** Explainable, fast, no AI dependency for MVP rich insights; LLM narratives can extend later without changing the DTO contract.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

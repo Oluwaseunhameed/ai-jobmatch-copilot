@@ -489,6 +489,29 @@ export function getJob(slug: string) {
   return apiFetch<Job>(`/api/jobs/${encodeURIComponent(slug)}`);
 }
 
+export type JobInsights = {
+  jobId: string;
+  jobSlug: string;
+  matchScore: number | null;
+  matchedSkills: string[];
+  missingSkills: string[];
+  skillGaps: Array<{ skill: string; priority: 'high' | 'medium' | 'low'; reason: string }>;
+  fitSignals: Array<{ key: string; label: string; level: 'strong' | 'partial' | 'gap' | 'unknown'; detail: string }>;
+  learningRecommendations: Array<{
+    skill: string;
+    title: string;
+    provider: string;
+    url: string;
+    type: 'course' | 'docs' | 'practice';
+    estimatedHours?: number;
+  }>;
+  summary: string;
+};
+
+export function getJobInsights(slug: string) {
+  return apiFetch<JobInsights>(`/api/jobs/${encodeURIComponent(slug)}/insights`);
+}
+
 export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }

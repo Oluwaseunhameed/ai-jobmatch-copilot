@@ -16,6 +16,14 @@ export { DEFAULT_LIMIT, MAX_LIMIT, getJobBySlug, searchJobs, type SearchJobsInpu
 export { getTrendingJobs } from './trending';
 
 export {
+  buildJobInsights,
+  fitLevelTone,
+  type ProfileForInsights,
+} from './insights';
+
+export { getJobInsights } from './insights-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,
