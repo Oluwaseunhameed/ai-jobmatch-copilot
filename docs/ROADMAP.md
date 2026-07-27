@@ -25,7 +25,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 2 — Module 9 (AI Application Assistant) complete; Module 11 next
+**Next:** Phase 2 — Module 11 (Application Tracker) complete; Module 17 next
 
 ---
 

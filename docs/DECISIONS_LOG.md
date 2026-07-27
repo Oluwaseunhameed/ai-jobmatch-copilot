@@ -152,3 +152,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Users always get usable copy; Module 11 can later attach drafts to pipeline rows without blocking this slice.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-016: Application tracker — pipeline row distinct from JobInteraction
+
+**Context:** Phase 2 Module 11 needs a Kanban pipeline. Users already “save” jobs via `JobInteraction`, and Module 9 stores cover-letter drafts separately.
+**Options:** Overload `JobInteraction.notes/type`, fold everything into `ApplicationDraft`, or introduce `Application` as the pipeline entity.
+**Outcome:** **Accepted** — New `Application` with unique `(userId, jobId)`, `ApplicationStage` vocabulary, notes, and optional `resumeId` / `draftId`. `JobInteraction.saved` remains the shortlist bookmark; tracker is the intentional pipeline. Creating an application auto-links the latest ready draft when present.
+**Rationale:** Clear product semantics (bookmark vs pipeline), attaches Module 9 drafts without blocking Module 17 notifications later.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

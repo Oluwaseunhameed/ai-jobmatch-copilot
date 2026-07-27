@@ -31,6 +31,7 @@ model User {
   jobInteractions     JobInteraction[]
   resumeOptimizations ResumeOptimization[]
   applicationDrafts   ApplicationDraft[]
+  applications        Application[]
 
   @@unique([email])
   @@map("user")
@@ -149,6 +150,7 @@ model Resume {
   versions           ResumeVersion[]
   optimizations      ResumeOptimization[]
   applicationDrafts  ApplicationDraft[]
+  applications       Application[]
 
   @@index([userId])
   @@index([userId, isPrimary])
@@ -228,10 +230,39 @@ model ApplicationDraft {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  application Application?
+
   @@index([userId, createdAt])
   @@index([resumeId, jobId])
   @@index([status])
   @@map("application_drafts")
+}
+
+/// Phase 2 Module 11 — pipeline tracker for a user↔job application.
+model Application {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId  String @map("job_id")
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  /// ApplicationStage vocabulary from @jobmatch/types
+  stage String @default("preparing")
+  notes String? @db.Text
+
+  resumeId String? @map("resume_id")
+  resume   Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+
+  draftId String?           @unique @map("draft_id")
+  draft   ApplicationDraft? @relation(fields: [draftId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, jobId])
+  @@index([userId, stage])
+  @@index([jobId])
+  @@map("applications")
 }
 
 // ---------------------------------------------------------------------------
@@ -316,6 +347,7 @@ model Job {
   interactions       JobInteraction[]
   optimizations      ResumeOptimization[]
   applicationDrafts  ApplicationDraft[]
+  applications       Application[]
 
   @@unique([source, externalId])
   @@index([companyId])

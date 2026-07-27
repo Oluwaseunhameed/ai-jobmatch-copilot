@@ -306,3 +306,33 @@ export type ApplicationStage =
   | 'offer'
   | 'accepted'
   | 'rejected';
+
+export const APPLICATION_STAGES: ApplicationStage[] = [
+  'saved',
+  'preparing',
+  'applied',
+  'assessment',
+  'hr_interview',
+  'technical_interview',
+  'final_interview',
+  'offer',
+  'accepted',
+  'rejected',
+];
+
+export const APPLICATION_STAGE_LABELS: Record<ApplicationStage, string> = {
+  saved: 'Saved',
+  preparing: 'Preparing',
+  applied: 'Applied',
+  assessment: 'Assessment',
+  hr_interview: 'HR interview',
+  technical_interview: 'Technical',
+  final_interview: 'Final',
+  offer: 'Offer',
+  accepted: 'Accepted',
+  rejected: 'Rejected',
+};
+
+export function isApplicationStage(value: string): value is ApplicationStage {
+  return (APPLICATION_STAGES as string[]).includes(value);
+}

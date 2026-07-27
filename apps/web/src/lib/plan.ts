@@ -40,13 +40,13 @@ export function freePlanFeatures(): PlanFeature[] {
       key: 'cover',
       label: `${limits.aiCoverLettersPerMonth} cover letters / short answers / month`,
     },
+    { key: 'tracker', label: 'Application tracker pipeline' },
   ];
 }
 
 export function proPlanTeasers(): PlanFeature[] {
   return [
     { key: 'ats', label: 'Higher ATS optimisation and assistant limits' },
-    { key: 'tracker', label: 'Application tracker pipeline' },
     { key: 'billing', label: 'Higher limits with Stripe billing' },
   ];
 }

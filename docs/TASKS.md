@@ -1,6 +1,6 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 2 — Module 9 (AI Application Assistant)
+## Current Sprint: Phase 2 — Module 11 (Application Tracker)
 
 ### Phase 0 — Complete ✅
 
@@ -8,25 +8,19 @@
 
 ### Phase 2 — Module 4: Full resume optimisation ✅
 
-- [x] `ResumeOptimization` schema + migration
-- [x] AI `POST /v1/resumes/optimize` (keyword-fit + LiteLLM rewrite, degradable)
-- [x] Queue/worker + inline fallback (`resume-optimize`)
-- [x] BFF start + poll endpoints
-- [x] Job detail “Optimize resume” panel with before/after scores
-- [x] Persist `ResumeVersion(source=optimized)`
-
 ### Phase 2 — Module 9: AI Application Assistant ✅
 
-- [x] `ApplicationDraft` schema + migration
-- [x] AI `POST /v1/applications/generate` (cover letter + short answers, template fallback)
-- [x] Queue/worker + inline fallback (`application-generate`)
-- [x] BFF start + poll endpoints
-- [x] Job detail “Application assistant” panel with copyable drafts
-- [x] Free plan framing includes cover-letter allowance
+### Phase 2 — Module 11: Application Tracker ✅
+
+- [x] `Application` schema + migration (stage, notes, optional resume/draft links)
+- [x] BFF list / create / get / patch / delete
+- [x] Auto-attach latest ready `ApplicationDraft` on create
+- [x] `/applications` Kanban board with stage moves + notes
+- [x] Job detail “Track application” panel
+- [x] Nav entry + Free plan framing
 
 ### Phase 2 — Next up
 
-- [ ] Module 11 — Application Tracker
 - [ ] Module 17 — Notifications (email)
 - [ ] Module 19 — Pro tier + Stripe billing
 
@@ -52,6 +46,8 @@
 | Charts / advanced analytics                  | Module 18  | Low      | Phase 6; Free tier stays a quiet readout              |
 | Enforce Free plan limit ceilings             | Module 19  | Medium   | Framing only; gate uploads/saves/optimise when needed |
 | Subscription table + Stripe webhooks         | Module 19  | Medium   | Phase 2 Pro billing                                   |
-| Application Kanban / pipeline stages         | Module 11  | Medium   | Drafts exist; no Application model yet                |
+| Nest applications CRUD parity                | Module 11  | Low      | BFF is primary product path                           |
+| Drag-and-drop Kanban                         | Module 11  | Low      | Stage select on cards for MVP                         |
+| Application documents / attachments          | Module 11  | Low      | Architecture lists Documents; link drafts only today  |
 | Nest application-draft endpoints parity      | Module 9   | Low      | Worker registered; BFF is primary product path        |
 | Cover letter PDF / DOCX export               | Module 9   | Low      | Copyable text only today                              |

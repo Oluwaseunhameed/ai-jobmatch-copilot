@@ -257,6 +257,73 @@ export function getApplicationDraft(draftId: string) {
   return apiFetch<ApplicationDraft>(`/api/users/me/application-drafts/${draftId}`);
 }
 
+export type Application = {
+  id: string;
+  userId: string;
+  jobId: string;
+  stage: string;
+  stageLabel: string;
+  notes: string | null;
+  resumeId: string | null;
+  draftId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  job?: {
+    id: string;
+    title: string;
+    slug: string;
+    location: string | null;
+    workMode: string;
+    applyUrl: string | null;
+    companyName: string;
+    companyLogoUrl: string | null;
+  };
+  resume?: { id: string; title: string } | null;
+  draft?: { id: string; status: string } | null;
+};
+
+export function listApplications() {
+  return apiFetch<{ applications: Application[] }>('/api/users/me/applications');
+}
+
+export function createApplication(input: {
+  jobId: string;
+  resumeId?: string | null;
+  draftId?: string | null;
+  stage?: string;
+  notes?: string | null;
+}) {
+  return apiFetch<Application>('/api/users/me/applications', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function getApplication(id: string) {
+  return apiFetch<Application>(`/api/users/me/applications/${id}`);
+}
+
+export function updateApplication(
+  id: string,
+  input: {
+    stage?: string;
+    notes?: string | null;
+    resumeId?: string | null;
+    draftId?: string | null;
+  },
+) {
+  return apiFetch<Application>(`/api/users/me/applications/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteApplication(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/users/me/applications/${id}`, {
+    method: 'DELETE',
+  });
+}
+
 export function applyResumeToProfile(
   id: string,
   options?: { applyHeadline?: boolean; applySummary?: boolean; applySkills?: boolean },
