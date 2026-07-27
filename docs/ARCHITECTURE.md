@@ -119,6 +119,7 @@ User ──┬── CareerProfile ──┬── Skills
 - Job ingestion and enrichment
 - Notification dispatch
 - Scheduled alerts and digests
+- Job alert sweep (saved searches)
 - Playwright-assisted form fill (Phase 2+)
 
 ## 6. Data Storage Strategy

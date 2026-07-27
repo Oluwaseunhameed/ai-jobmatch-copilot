@@ -94,7 +94,7 @@ export function NotificationsSettingsForm() {
       <Toggle
         id="job-alerts"
         label="Job alerts"
-        description="Email when new jobs match your profile (coming soon)"
+        description="Email when new jobs match your saved searches (manage searches on Jobs)"
         checked={prefs.emailJobAlerts}
         onChange={(v) => setPrefs({ ...prefs, emailJobAlerts: v })}
       />

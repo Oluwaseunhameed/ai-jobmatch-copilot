@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@jobmatch/database": "workspace:*",
+    "@jobmatch/email": "workspace:*",
     "@jobmatch/types": "workspace:*"
   },
   "devDependencies": {

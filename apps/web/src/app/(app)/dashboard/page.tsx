@@ -12,6 +12,7 @@ import {
 } from '@jobmatch/types';
 
 import { Button } from '@/components/ui/button';
+import { TrendingJobsPanel } from '@/components/jobs/trending-jobs-panel';
 import { requireAppUser } from '@/lib/auth';
 import { formatPostedAt } from '@/lib/api-client';
 import { getCurrentPlanId, PLAN_LABELS } from '@/lib/plan';
@@ -320,6 +321,26 @@ export default async function DashboardPage() {
           </p>
         </section>
       </div>
+
+      <section className="animate-enter-delayed">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display text-2xl font-semibold tracking-tight">Trending jobs</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Roles gaining traction from saves and views.
+            </p>
+          </div>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/jobs">
+              Explore jobs
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="mt-4">
+          <TrendingJobsPanel limit={3} />
+        </div>
+      </section>
 
       <section className="animate-enter-late">
         <div className="flex flex-wrap items-end justify-between gap-3">

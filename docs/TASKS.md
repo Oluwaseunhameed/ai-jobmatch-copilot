@@ -1,27 +1,27 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 2 — Module 19 (Billing) ✅
+## Current Sprint: Phase 3 — Module 5 (Job Discovery scale) ✅
 
 ### Phase 0 — Complete ✅
 
-### Phase 1 — Complete ✅ (Modules 1–6, 18, 19 Free framing)
+### Phase 1 — Complete ✅ (Modules 1–6 basic, 18, 19 Free framing)
 
-### Phase 2 — Module 4 / 9 / 11 / 17 ✅
+### Phase 2 — Complete ✅ (Modules 4 full, 9, 11, 17, 19 Pro billing)
 
-### Phase 2 — Module 19: Pro billing (Lemon Squeezy + Paystack) ✅
+### Phase 3 — Module 5: Job alerts, saved searches, trending ✅
 
-- [x] `Subscription` model + migration
-- [x] Lemon Squeezy checkout + signed webhooks (global)
-- [x] Paystack checkout + signed webhooks (Nigeria / NGN)
-- [x] Region routing from career profile country
-- [x] Settings Plan UI with provider choice
-- [x] Enforce Free/Pro ceilings (resumes, saves, optimise, cover letters)
-- [x] ADR-018 + env docs
+- [x] `SavedSearch` model + migration
+- [x] CRUD APIs for saved searches with alert toggle
+- [x] Jobs UI: save/apply/delete searches + alert bell
+- [x] Trending jobs API (saves + views) + Jobs/Dashboard panels
+- [x] Job alert email template + Nest sweep worker (`emailJobAlerts`)
+- [x] `postedAfter` filter on search for alert deltas
+- [x] ADR-019 + env docs
 
 ### Phase 3 — Next up
 
-- [ ] Module 5 — Job alerts, saved searches
-- [ ] Module 6 — Rich job insights
+- [ ] Module 6 — Rich job insights, skill gap, learning recs
+- [ ] Module 7 — Company intelligence profiles
 
 ---
 
@@ -49,6 +49,8 @@
 | Application documents / attachments          | Module 11  | Low      | Architecture lists Documents; link drafts only today  |
 | Nest application-draft endpoints parity      | Module 9   | Low      | Worker registered; BFF is primary product path        |
 | Cover letter PDF / DOCX export               | Module 9   | Low      | Copyable text only today                              |
-| Weekly digest + job-alert emails             | Module 17  | Medium   | Prefs exist; senders deferred to Phase 3 alerts       |
+| Weekly digest + job-alert emails             | Module 17  | —        | Job alerts ✅ Module 5; weekly digest still deferred  |
 | NotificationLog / delivery audit             | Module 17  | Low      | Console + Resend dashboard for now                    |
 | In-app notification center                   | Module 17  | Low      | Email-only for this slice                             |
+| Nest saved-search / trending parity          | Module 5   | Low      | BFF is primary product path                           |
+| employmentType / country / salaryMin in UI   | Module 5   | Low      | API-ready; Jobs UI uses q/workMode/seniority for now  |

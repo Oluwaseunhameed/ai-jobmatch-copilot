@@ -33,6 +33,7 @@ model User {
   applicationDrafts   ApplicationDraft[]
   applications        Application[]
   subscription        Subscription?
+  savedSearches       SavedSearch[]
 
   @@unique([email])
   @@map("user")
@@ -378,6 +379,32 @@ model JobInteraction {
   @@index([userId, type])
   @@index([jobId])
   @@map("job_interactions")
+}
+
+// ---------------------------------------------------------------------------
+// Saved searches & job alerts — Module 5 (Phase 3)
+// ---------------------------------------------------------------------------
+model SavedSearch {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Display name, e.g. "Remote senior React"
+  name String
+  /// JobSearchParams JSON (q, workMode, employmentType, seniority, country, salaryMin, sort)
+  query Json
+
+  /// When true, the alert worker emails new matching jobs (also gated by emailJobAlerts).
+  alertEnabled Boolean @default(true) @map("alert_enabled")
+  /// Last successful alert send for this saved search.
+  lastAlertAt DateTime? @map("last_alert_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, alertEnabled])
+  @@index([alertEnabled, lastAlertAt])
+  @@map("saved_searches")
 }
 
 // ---------------------------------------------------------------------------

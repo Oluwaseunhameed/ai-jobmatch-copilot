@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bookmark, BookmarkCheck, Briefcase, MapPin } from 'lucide-react';
+import { Bell, BellOff, Bookmark, BookmarkCheck, Briefcase, MapPin, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -9,14 +9,19 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import {
+  createSavedSearch,
+  deleteSavedSearch,
   formatPostedAt,
   formatSalary,
+  listSavedSearches,
   saveJob,
   searchJobs,
   unsaveJob,
+  updateSavedSearch,
   type Job,
   type JobSearchFacet,
   type JobSearchResult,
+  type SavedSearch,
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +55,20 @@ function facetCount(facets: JobSearchFacet[], value: string) {
   return facets.find((facet) => facet.value === value)?.count;
 }
 
+function currentQueryKey(input: {
+  q: string;
+  workMode: string[];
+  seniority: string[];
+  sort: SortOption;
+}) {
+  return JSON.stringify({
+    q: input.q || undefined,
+    workMode: input.workMode.length ? [...input.workMode].sort() : undefined,
+    seniority: input.seniority.length ? [...input.seniority].sort() : undefined,
+    sort: input.sort === 'relevance' ? undefined : input.sort,
+  });
+}
+
 export function JobBrowser() {
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState('');
@@ -61,6 +80,9 @@ export function JobBrowser() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,10 +108,30 @@ export function JobBrowser() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    void listSavedSearches()
+      .then((res) => setSavedSearches(res.searches))
+      .catch(() => {
+        /* non-blocking */
+      });
+  }, []);
+
   const totalPages = useMemo(() => {
     if (!result) return 1;
     return Math.max(1, Math.ceil(result.total / result.limit));
   }, [result]);
+
+  const hasActiveFilters = Boolean(query || workMode.length || seniority.length);
+  const activeKey = currentQueryKey({ q: query, workMode, seniority, sort });
+  const matchingSaved = savedSearches.find(
+    (search) =>
+      currentQueryKey({
+        q: search.query.q ?? '',
+        workMode: search.query.workMode ?? [],
+        seniority: search.query.seniority ?? [],
+        sort: (search.query.sort as SortOption) ?? 'relevance',
+      }) === activeKey,
+  );
 
   async function toggleSave(job: Job) {
     setPendingSlug(job.slug);
@@ -119,7 +161,64 @@ export function JobBrowser() {
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
     setPage(1);
+    setActiveSearchId(null);
     setQuery(draft.trim());
+  }
+
+  function applySavedSearch(search: SavedSearch) {
+    setActiveSearchId(search.id);
+    setDraft(search.query.q ?? '');
+    setQuery(search.query.q ?? '');
+    setWorkMode(search.query.workMode ?? []);
+    setSeniority(search.query.seniority ?? []);
+    setSort((search.query.sort as SortOption) ?? 'relevance');
+    setPage(1);
+  }
+
+  async function handleSaveSearch() {
+    if (!hasActiveFilters) return;
+    setSavingSearch(true);
+    setError(null);
+    try {
+      const created = await createSavedSearch({
+        query: {
+          q: query || undefined,
+          workMode: workMode.length ? workMode : undefined,
+          seniority: seniority.length ? seniority : undefined,
+          sort: sort === 'relevance' ? undefined : sort,
+        },
+        alertEnabled: true,
+      });
+      setSavedSearches((current) => [created, ...current.filter((item) => item.id !== created.id)]);
+      setActiveSearchId(created.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save search');
+    } finally {
+      setSavingSearch(false);
+    }
+  }
+
+  async function toggleAlert(search: SavedSearch) {
+    try {
+      const updated = await updateSavedSearch(search.id, {
+        alertEnabled: !search.alertEnabled,
+      });
+      setSavedSearches((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update alert');
+    }
+  }
+
+  async function removeSavedSearch(id: string) {
+    try {
+      await deleteSavedSearch(id);
+      setSavedSearches((current) => current.filter((item) => item.id !== id));
+      if (activeSearchId === id) setActiveSearchId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete search');
+    }
   }
 
   return (
@@ -137,6 +236,63 @@ export function JobBrowser() {
         </Button>
       </form>
 
+      {savedSearches.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Saved searches
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {savedSearches.map((search) => {
+              const active = activeSearchId === search.id || matchingSaved?.id === search.id;
+              return (
+                <div
+                  key={search.id}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full border py-1 pl-3 pr-1.5 text-sm',
+                    active
+                      ? 'border-primary/40 bg-primary/10 text-foreground'
+                      : 'border-border bg-background text-muted-foreground',
+                  )}
+                >
+                  <button
+                    type="button"
+                    className="max-w-[160px] truncate hover:text-foreground"
+                    onClick={() => applySavedSearch(search)}
+                  >
+                    {search.name}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full p-1 hover:bg-muted hover:text-foreground"
+                    aria-label={search.alertEnabled ? 'Disable job alert' : 'Enable job alert'}
+                    title={
+                      search.alertEnabled
+                        ? 'Alerts on — email when new jobs match'
+                        : 'Alerts off'
+                    }
+                    onClick={() => void toggleAlert(search)}
+                  >
+                    {search.alertEnabled ? (
+                      <Bell className="h-3.5 w-3.5" />
+                    ) : (
+                      <BellOff className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-full p-1 hover:bg-muted hover:text-foreground"
+                    aria-label="Delete saved search"
+                    onClick={() => void removeSavedSearch(search.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         {WORK_MODES.map((mode) => {
           const active = workMode.includes(mode.value);
@@ -149,6 +305,7 @@ export function JobBrowser() {
               active={active}
               onClick={() => {
                 setPage(1);
+                setActiveSearchId(null);
                 setWorkMode((current) => toggleValue(current, mode.value));
               }}
             />
@@ -166,6 +323,7 @@ export function JobBrowser() {
               active={active}
               onClick={() => {
                 setPage(1);
+                setActiveSearchId(null);
                 setSeniority((current) => toggleValue(current, level.value));
               }}
             />
@@ -183,7 +341,19 @@ export function JobBrowser() {
                 } · ${result.mode === 'hybrid' ? 'keyword + semantic' : result.mode}`
               : null}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {hasActiveFilters && !matchingSaved && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={savingSearch}
+              onClick={() => void handleSaveSearch()}
+            >
+              {savingSearch ? <Spinner size="sm" /> : null}
+              Save search
+            </Button>
+          )}
           <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Sort
           </label>
@@ -191,6 +361,7 @@ export function JobBrowser() {
             value={sort}
             onChange={(event) => {
               setPage(1);
+              setActiveSearchId(null);
               setSort(event.target.value as SortOption);
             }}
             className="h-9 rounded-lg border border-border bg-background px-3 text-sm"

@@ -493,6 +493,71 @@ export function listSavedJobs() {
   return apiFetch<{ jobs: Job[] }>('/api/jobs/saved');
 }
 
+export type SavedSearch = {
+  id: string;
+  name: string;
+  query: JobSearchQuery;
+  alertEnabled: boolean;
+  lastAlertAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type TrendingJob = {
+  id: string;
+  slug: string;
+  title: string;
+  companyName: string;
+  workMode: string;
+  location: string | null;
+  postedAt: string;
+  saveCount: number;
+  viewCount: number;
+  trendScore: number;
+  matchScore?: number;
+};
+
+export function listSavedSearches() {
+  return apiFetch<{ searches: SavedSearch[] }>('/api/users/me/saved-searches');
+}
+
+export function createSavedSearch(input: {
+  name?: string;
+  query: JobSearchQuery;
+  alertEnabled?: boolean;
+}) {
+  return apiFetch<SavedSearch>('/api/users/me/saved-searches', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateSavedSearch(
+  id: string,
+  input: { name?: string; query?: JobSearchQuery; alertEnabled?: boolean },
+) {
+  return apiFetch<SavedSearch>(`/api/users/me/saved-searches/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteSavedSearch(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/users/me/saved-searches/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+export function listTrendingJobs(query: { days?: number; limit?: number } = {}) {
+  const params = new URLSearchParams();
+  if (query.days) params.set('days', String(query.days));
+  if (query.limit) params.set('limit', String(query.limit));
+  const qs = params.toString();
+  return apiFetch<{ jobs: TrendingJob[]; days: number }>(
+    `/api/jobs/trending${qs ? `?${qs}` : ''}`,
+  );
+}
+
 export function saveJob(slug: string) {
   return apiFetch<{ saved: boolean }>(`/api/jobs/${encodeURIComponent(slug)}/save`, {
     method: 'POST',

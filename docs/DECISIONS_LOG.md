@@ -185,3 +185,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Matches product geography (global + Nigeria), avoids Stripe Nigeria friction, keeps billing in the BFF next to Clerk webhooks without a Nest dependency for this slice.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-27
+
+---
+
+## ADR-019: Job alerts — saved searches + scheduled email sweep
+
+**Context:** Phase 3 Module 5 needs alerts, saved searches, and trending without a full search platform upgrade.
+**Options:** Profile-only alerts; third-party alert SaaS; persist `JobSearchParams` as saved searches and sweep with Nest `setInterval` (same pattern as application reminders).
+**Outcome:** **Accepted** — `SavedSearch` stores filter JSON matching `JobSearchParams`. Users toggle `alertEnabled` per search; global gate remains `UserPreference.emailJobAlerts`. Nest `JobAlertWorker` runs `runJobAlerts()` which reuses `searchJobs({ …, postedAfter })` and sends `jobAlertEmail`. Trending ranks jobs by recent save/view interaction volume (saves weighted higher).
+**Rationale:** Reuses existing search + email + reminder worker patterns; no Meilisearch/ingestion dependency for this slice.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-27

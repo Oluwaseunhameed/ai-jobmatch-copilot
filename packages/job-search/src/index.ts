@@ -13,6 +13,17 @@ export {
 
 export { DEFAULT_LIMIT, MAX_LIMIT, getJobBySlug, searchJobs, type SearchJobsInput } from './search';
 
+export { getTrendingJobs } from './trending';
+
+export {
+  labelSavedSearchQuery,
+  normalizeSavedSearchQuery,
+  parseSavedSearchQuery,
+  runJobAlerts,
+  savedSearchHasFilters,
+  toSavedSearchDto,
+} from './alerts';
+
 export {
   applySkillMatch,
   enrichJobsWithMatch,

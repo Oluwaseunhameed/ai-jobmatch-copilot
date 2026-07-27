@@ -84,6 +84,8 @@ export type SearchJobsInput = {
   sort?: JobSortOption;
   page?: number;
   limit?: number;
+  /** Only include jobs posted at or after this timestamp (job alerts). */
+  postedAfter?: Date;
   /** Marks results the user has already saved and loads profile skills for match. */
   userId?: string;
   /**
@@ -195,6 +197,9 @@ function buildWhere(input: SearchJobsInput, params: Params): string {
     // Compare against the top of the band: a range of 90k-130k should match a
     // 120k floor even though its minimum is lower.
     clauses.push(`COALESCE(j."salary_max", j."salary_min") >= ${params.add(input.salaryMin)}`);
+  }
+  if (input.postedAfter) {
+    clauses.push(`j."posted_at" > ${params.add(input.postedAfter)}`);
   }
 
   return clauses.join(' AND ');

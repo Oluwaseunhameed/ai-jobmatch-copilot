@@ -163,6 +163,37 @@ export interface JobSearchResponse {
   };
 }
 
+/** Persistable search filters for saved searches / job alerts (Module 5). */
+export type SavedSearchQuery = Pick<
+  JobSearchParams,
+  'q' | 'workMode' | 'employmentType' | 'seniority' | 'country' | 'salaryMin' | 'sort'
+>;
+
+export interface SavedSearchDto {
+  id: string;
+  name: string;
+  query: SavedSearchQuery;
+  alertEnabled: boolean;
+  lastAlertAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Trending roles ranked by recent saves + views (Module 5). */
+export interface TrendingJobDto {
+  id: string;
+  slug: string;
+  title: string;
+  companyName: string;
+  workMode: string;
+  location: string | null;
+  postedAt: string;
+  saveCount: number;
+  viewCount: number;
+  trendScore: number;
+  matchScore?: number;
+}
+
 export interface SkillInput {
   name: string;
   category: SkillCategory | string;

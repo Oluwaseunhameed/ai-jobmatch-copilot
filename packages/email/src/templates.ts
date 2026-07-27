@@ -162,3 +162,43 @@ export function applicationReminderEmail(input: {
   const text = `Hi ${input.name}, reminder: ${input.jobTitle} at ${input.companyName} has been in “${input.stageLabel}” for ~${input.daysIdle} days. ${url}`;
   return { subject: `Reminder: ${input.jobTitle} — ${BRAND}`, html, text };
 }
+
+export function jobAlertEmail(input: {
+  name: string;
+  searchName: string;
+  total: number;
+  jobs: Array<{ title: string; companyName: string; slug: string; location?: string | null }>;
+}) {
+  const url = appUrl('/jobs');
+  const name = escapeHtml(input.name);
+  const search = escapeHtml(input.searchName);
+  const more =
+    input.total > input.jobs.length
+      ? `<p style="margin:16px 0 0;color:#52525b;line-height:1.6;">And ${input.total - input.jobs.length} more matching role${input.total - input.jobs.length === 1 ? '' : 's'}.</p>`
+      : '';
+  const list = input.jobs
+    .map((job) => {
+      const role = escapeHtml(`${job.title} at ${job.companyName}`);
+      const loc = job.location ? ` · ${escapeHtml(job.location)}` : '';
+      const href = appUrl(`/jobs/${job.slug}`);
+      return `<li style="margin:0 0 10px;"><a href="${href}" style="color:${PRIMARY};text-decoration:none;font-weight:600;">${role}</a><span style="color:#71717a;">${loc}</span></li>`;
+    })
+    .join('');
+
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:18px;color:#18181b;">New jobs for ${search}</h2>
+    <p style="margin:0;color:#52525b;line-height:1.6;">
+      Hi ${name}, we found <strong>${input.total}</strong> new role${input.total === 1 ? '' : 's'} matching your saved search.
+    </p>
+    <ul style="margin:20px 0 0;padding-left:18px;color:#18181b;line-height:1.5;">
+      ${list}
+    </ul>
+    ${more}
+    ${button(url, 'Browse matching jobs')}
+  `);
+  const textJobs = input.jobs
+    .map((job) => `- ${job.title} at ${job.companyName}: ${appUrl(`/jobs/${job.slug}`)}`)
+    .join('\n');
+  const text = `Hi ${input.name}, ${input.total} new job(s) for “${input.searchName}”:\n${textJobs}\n\n${url}`;
+  return { subject: `${input.total} new job${input.total === 1 ? '' : 's'} for ${input.searchName} — ${BRAND}`, html, text };
+}
