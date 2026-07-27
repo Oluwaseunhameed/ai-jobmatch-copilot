@@ -7,11 +7,14 @@ export function BrandMark({
   className,
   size = 'md',
   showWordmark = true,
+  compact = false,
 }: {
   href?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   showWordmark?: boolean;
+  /** Shorter wordmark for narrow sidebars */
+  compact?: boolean;
 }) {
   const mark =
     size === 'lg' ? 'h-9 w-9' : size === 'sm' ? 'h-7 w-7' : 'h-8 w-8';
@@ -19,10 +22,10 @@ export function BrandMark({
     size === 'lg' ? 'text-xl' : size === 'sm' ? 'text-base' : 'text-lg';
 
   return (
-    <Link href={href} className={cn('group inline-flex items-center gap-2.5', className)}>
+    <Link href={href} className={cn('group inline-flex min-w-0 items-center gap-2.5', className)}>
       <span
         className={cn(
-          'relative inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-transform duration-300 group-hover:-translate-y-0.5',
+          'relative inline-flex shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-transform duration-300 group-hover:-translate-y-0.5',
           mark,
         )}
         aria-hidden
@@ -44,8 +47,16 @@ export function BrandMark({
         </svg>
       </span>
       {showWordmark && (
-        <span className={cn('font-display font-medium tracking-tight text-foreground', word)}>
-          AI JobMatch <span className="text-primary">Copilot</span>
+        <span className={cn('min-w-0 truncate font-display font-medium tracking-tight text-foreground', word)}>
+          {compact ? (
+            <>
+              JobMatch <span className="text-primary">Copilot</span>
+            </>
+          ) : (
+            <>
+              AI JobMatch <span className="text-primary">Copilot</span>
+            </>
+          )}
         </span>
       )}
     </Link>
