@@ -24,7 +24,7 @@ export function ApplyAssistPanel({
 }) {
   const [session, setSession] = useState<ApplyAssistSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pending, setPending] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'open' | 'approve' | 'confirm' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -50,8 +50,11 @@ export function ApplyAssistPanel({
     };
   }, [application.id]);
 
-  async function run(action: () => Promise<ApplyAssistSession>) {
-    setPending(true);
+  async function run(
+    actionKey: 'open' | 'approve' | 'confirm',
+    action: () => Promise<ApplyAssistSession>,
+  ) {
+    setPendingAction(actionKey);
     setError(null);
     try {
       const next = await action();
@@ -60,14 +63,14 @@ export function ApplyAssistPanel({
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Action failed');
     } finally {
-      setPending(false);
+      setPendingAction(null);
     }
   }
 
   async function openApply() {
     const url = session?.applyUrl ?? application.job?.applyUrl;
     if (url) window.open(url, '_blank', 'noopener,noreferrer');
-    await run(() => markApplyOpened(application.id));
+    await run('open', () => markApplyOpened(application.id));
   }
 
   async function copyField(id: string, value: string) {
@@ -89,6 +92,7 @@ export function ApplyAssistPanel({
   }
 
   const submitted = session.status === 'submitted';
+  const pending = pendingAction != null;
 
   return (
     <div className="mt-5 space-y-4 rounded-xl border border-border/80 bg-muted/20 p-4">
@@ -179,8 +183,12 @@ export function ApplyAssistPanel({
       {!submitted ? (
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" disabled={pending || !session.applyUrl} onClick={() => void openApply()}>
-              {pending ? <Spinner size="sm" /> : null}
+            <Button
+              size="sm"
+              disabled={pending || !session.applyUrl}
+              onClick={() => void openApply()}
+            >
+              {pendingAction === 'open' ? <Spinner size="sm" /> : null}
               Open apply page
               <ExternalLink className="h-3.5 w-3.5" />
             </Button>
@@ -188,8 +196,9 @@ export function ApplyAssistPanel({
               size="sm"
               variant="outline"
               disabled={pending || session.status === 'fill_approved'}
-              onClick={() => void run(() => approveApplyFill(application.id))}
+              onClick={() => void run('approve', () => approveApplyFill(application.id))}
             >
+              {pendingAction === 'approve' ? <Spinner size="sm" /> : null}
               Approve fill plan
             </Button>
           </div>
@@ -209,11 +218,12 @@ export function ApplyAssistPanel({
               size="sm"
               disabled={pending}
               onClick={() =>
-                void run(() =>
+                void run('confirm', () =>
                   confirmApplySubmitted(application.id, { submitNote: note || null }),
                 )
               }
             >
+              {pendingAction === 'confirm' ? <Spinner size="sm" /> : null}
               I submitted this application
             </Button>
           </div>
