@@ -14,6 +14,12 @@
 - [x] Meilisearch keyword search + `pnpm jobs:reindex` (Postgres FTS fallback)
 - [x] Advanced analytics dashboard (user `/dashboard` + admin trends)
 
+### Wave 2 follow-up — Production ingest schedule ✅
+
+- [x] GitHub Actions scheduled ingest (twice daily + `workflow_dispatch`) — `.github/workflows/job-ingest.yml`
+- [x] Optional Nest `JobIngestWorker` (`JOB_INGEST_ENABLED=true`) — prefer Actions or worker, not both
+- [x] Runbook secrets — `docs/JOB_INGEST_KEYS.md` § Production auto-ingest
+
 ### Wave 3 — Automation depth ✅
 
 - [x] Production Playwright ATS adapters (Greenhouse / Lever / Ashby / Workable + `/apply-fixture`) — **fill-only**, never unsupervised submit (ADR-028 / ADR-033)

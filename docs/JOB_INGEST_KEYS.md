@@ -63,3 +63,44 @@ pnpm jobs:ingest -- --include-keyed
 # Explicit list
 pnpm jobs:ingest -- --providers adzuna,usajobs,greenhouse,lever,ashby,workable
 ```
+
+## 5. Production auto-ingest
+
+Primary schedule: **GitHub Actions** (`.github/workflows/job-ingest.yml`).
+
+- **Cron:** 06:00 and 18:00 UTC daily
+- **Manual:** Actions → **Job ingest** → Run workflow (`public` / `include-keyed` / `keyed`)
+- **Does not** run `jobs:purge-seed`
+
+### Required secret
+
+| Secret | Purpose |
+|--------|---------|
+| `DATABASE_URL` | Production Postgres (same DB the app uses) |
+
+Repo → **Settings → Secrets and variables → Actions**.
+
+### Optional secrets
+
+| Secret | Purpose |
+|--------|---------|
+| `ADZUNA_APP_ID` / `ADZUNA_APP_KEY` / `ADZUNA_COUNTRIES` / `ADZUNA_WHAT` | Adzuna |
+| `USAJOBS_API_KEY` / `USAJOBS_USER_AGENT` / `USAJOBS_KEYWORD` | USAJobs |
+| `GREENHOUSE_BOARDS` / `LEVER_BOARDS` / `ASHBY_BOARDS` / `WORKABLE_BOARDS` | Override ATS boards |
+| `INGEST_ATS_DEFAULTS` | Set `false` to disable curated boards |
+| `INGEST_INCLUDE_KEYED` | Used by Nest worker / local env; schedule default mode is `include-keyed` |
+| `MEILI_HOST` / `MEILI_API_KEY` / `MEILI_INDEX_JOBS` | Index on upsert |
+
+Scheduled runs use **`include-keyed`**: public providers + any keyed/ATS that are ready from secrets (no keys → public + curated ATS only).
+
+### Optional Nest API worker
+
+If the API process is long-lived (Railway/Fly) and you prefer in-process cron instead of Actions:
+
+```bash
+JOB_INGEST_ENABLED="true"
+JOB_INGEST_INTERVAL_MS="43200000"   # 12h
+# JOB_INGEST_INCLUDE_KEYED="false"  # public only
+```
+
+Prefer **either** Actions **or** the Nest worker — not both — to avoid overlapping runs.

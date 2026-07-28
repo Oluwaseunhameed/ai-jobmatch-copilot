@@ -350,3 +350,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Delivers Wave 3 automation depth without weakening the user-in-the-loop submit boundary.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
+
+---
+
+## ADR-034: Production job ingest schedule — GitHub Actions primary
+
+**Context:** Catalog refresh was manual (`pnpm jobs:ingest`). Production needs recurring ingest without a scrape-all crawler; deploy hosts (Railway/Fly) are not yet fully wired in-repo.
+**Options:** Vercel cron; Docker cron; Nest `setInterval` only; GitHub Actions `schedule` + optional Nest worker.
+**Outcome:** **Accepted** — Primary cron is `.github/workflows/job-ingest.yml` (twice daily UTC + `workflow_dispatch`). Default mode `include-keyed` (public + ready keyed/ATS). Secrets supply `DATABASE_URL` and optional provider keys. Never auto-runs `jobs:purge-seed`. Optional Nest `JobIngestWorker` behind `JOB_INGEST_ENABLED=true` for long-lived API hosts; operators should enable only one scheduler.
+**Rationale:** Reuses the existing CLI, works before API hosting is finalized, and matches alert/digest worker patterns without coupling heavy provider IO to request latency.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-29
