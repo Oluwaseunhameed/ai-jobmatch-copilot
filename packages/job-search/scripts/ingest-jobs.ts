@@ -3,7 +3,10 @@
  *
  * Usage:
  *   pnpm jobs:ingest
- *   pnpm jobs:ingest -- --providers remotive,himalayas
+ *   pnpm jobs:ingest -- --keyed
+ *   pnpm jobs:ingest -- --include-keyed
+ *   pnpm jobs:ingest -- --status
+ *   pnpm jobs:ingest -- --providers adzuna,usajobs,greenhouse
  *   pnpm jobs:ingest -- --list
  *   pnpm jobs:ingest -- --max 50
  */
@@ -29,12 +32,21 @@ function arg(name: string): string | undefined {
 }
 
 async function main() {
-  const { createLogger, listProviderCatalogSummary, runJobIngest } = await import('../src/index');
+  const {
+    createLogger,
+    listKeyedProviderStatus,
+    listProviderCatalogSummary,
+    runJobIngest,
+  } = await import('../src/index');
   const logger = createLogger('jobs:ingest');
 
   if (process.argv.includes('--list')) {
-    const catalog = listProviderCatalogSummary();
-    console.log(JSON.stringify(catalog, null, 2));
+    console.log(JSON.stringify(listProviderCatalogSummary(), null, 2));
+    return;
+  }
+
+  if (process.argv.includes('--status')) {
+    console.log(JSON.stringify(listKeyedProviderStatus(), null, 2));
     return;
   }
 
@@ -43,8 +55,17 @@ async function main() {
     .map((s) => s.trim())
     .filter(Boolean);
   const maxPerProvider = Number(arg('max')) || undefined;
+  const keyedOnly = process.argv.includes('--keyed');
+  const includeKeyed =
+    process.argv.includes('--include-keyed') || process.env.INGEST_INCLUDE_KEYED === 'true';
 
-  const result = await runJobIngest({ providers, maxPerProvider, logger });
+  const result = await runJobIngest({
+    providers,
+    maxPerProvider,
+    keyedOnly,
+    includeKeyed,
+    logger,
+  });
   console.log(
     JSON.stringify(
       {

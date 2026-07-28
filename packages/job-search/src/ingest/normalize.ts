@@ -114,7 +114,9 @@ export async function fetchJson<T>(
       },
     });
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} for ${url}`);
+      // Strip query secrets (API keys) from error messages
+      const safeUrl = url.replace(/([?&](?:app_id|app_key|api_key|apikey)=)[^&]*/gi, '$1***');
+      throw new Error(`HTTP ${res.status} for ${safeUrl}`);
     }
     return (await res.json()) as T;
   } finally {

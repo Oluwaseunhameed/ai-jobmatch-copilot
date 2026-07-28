@@ -8,6 +8,7 @@
 
 - [x] Multi-provider job ingest (`pnpm jobs:ingest`) — Remotive, Himalayas, Jobicy, Arbeitnow, Remote OK
 - [x] Optional keyed providers — Adzuna, USAJobs, Greenhouse/Lever/Ashby/Workable boards
+- [x] Keyed unlock docs + `--status` / `--keyed` / ATS defaults — `docs/JOB_INGEST_KEYS.md`
 - [x] Provider catalog for deferred platforms (partner/ToS) — ADR-031
 - [x] Purge seeded jobs (`pnpm jobs:purge-seed`)
 - [ ] Meilisearch / OpenSearch

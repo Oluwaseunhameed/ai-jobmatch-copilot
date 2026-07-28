@@ -185,6 +185,7 @@ export { runWeeklyDigests } from './digest';
 
 export {
   INGEST_PROVIDER_CATALOG,
+  listKeyedProviderStatus,
   listProviderCatalogSummary,
   listRunnableProviders,
   purgeSeedJobs,

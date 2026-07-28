@@ -120,6 +120,7 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 | Item | Status |
 |------|--------|
 | Multi-provider job ingestion (public/licensed APIs) | ✅ |
+| Keyed unlock: Adzuna / USAJobs / ATS defaults (`docs/JOB_INGEST_KEYS.md`) | ✅ |
 | Purge seeded jobs after live ingest | ✅ |
 | Meilisearch / OpenSearch | 🔲 |
 | Advanced analytics dashboard | 🔲 |

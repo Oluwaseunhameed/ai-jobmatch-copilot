@@ -8,13 +8,18 @@ export async function runJobIngest(input?: {
   providers?: string[];
   logger?: StructuredLogger;
   maxPerProvider?: number;
+  keyedOnly?: boolean;
+  includeKeyed?: boolean;
 }): Promise<{
   results: IngestProviderResult[];
   totalUpserted: number;
   catalog: ReturnType<typeof listProviderCatalogSummary>;
 }> {
   const logger = input?.logger ?? createLogger('job-ingest');
-  const providers = listRunnableProviders(input?.providers);
+  const providers = listRunnableProviders(input?.providers, {
+    keyedOnly: input?.keyedOnly,
+    includeKeyed: input?.includeKeyed,
+  });
   const results: IngestProviderResult[] = [];
   let totalUpserted = 0;
 
@@ -65,6 +70,11 @@ export async function runJobIngest(input?: {
   };
 }
 
-export { listProviderCatalogSummary, listRunnableProviders, INGEST_PROVIDER_CATALOG } from './catalog';
+export {
+  INGEST_PROVIDER_CATALOG,
+  listKeyedProviderStatus,
+  listProviderCatalogSummary,
+  listRunnableProviders,
+} from './catalog';
 export { purgeSeedJobs } from './purge-seed';
 export type { IngestProvider, IngestProviderResult, NormalizedIngestJob } from './types';
