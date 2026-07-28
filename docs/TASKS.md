@@ -1,18 +1,18 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Full Program — Wave 2 (Data & discovery) _(in progress)_
+## Current Sprint: Full Program — Wave 3 (Automation depth)
 
-### Phases 0–5 — Complete ✅ · Wave 1 — Complete ✅
+### Phases 0–5 — Complete ✅ · Wave 1 — Complete ✅ · Wave 2 — Complete ✅
 
-### Wave 2 — Data & discovery
+### Wave 2 — Data & discovery ✅
 
 - [x] Multi-provider job ingest (`pnpm jobs:ingest`) — Remotive, Himalayas, Jobicy, Arbeitnow, Remote OK
 - [x] Optional keyed providers — Adzuna, USAJobs, Greenhouse/Lever/Ashby/Workable boards
 - [x] Keyed unlock docs + `--status` / `--keyed` / ATS defaults — `docs/JOB_INGEST_KEYS.md`
 - [x] Provider catalog for deferred platforms (partner/ToS) — ADR-031
 - [x] Purge seeded jobs (`pnpm jobs:purge-seed`)
-- [ ] Meilisearch / OpenSearch
-- [ ] Advanced analytics dashboard
+- [x] Meilisearch keyword search + `pnpm jobs:reindex` (Postgres FTS fallback)
+- [x] Advanced analytics dashboard (user `/dashboard` + admin trends)
 
 ### Wave 3 — Automation depth
 
@@ -65,11 +65,11 @@
 | Optimized resume PDF export                  | Module 4   | Medium   | ✅ Wave 1                                             |
 | Nest optimize endpoints parity               | Module 4   | Low      | Deprioritized                                         |
 | Licensed job API ingestion                   | Module 5   | Medium   | ✅ Wave 2 — multi-provider ingest (ADR-031)           |
-| Meilisearch / OpenSearch                     | Module 5   | Low      | Wave 2                                                |
+| Meilisearch / OpenSearch                     | Module 5   | Low      | ✅ Wave 2 — Meilisearch + FTS fallback (ADR-032)      |
 | LLM JD narrative insights                    | Module 6   | Medium   | Wave 4                                                |
 | Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` for now                         |
 | Dedicated saved-jobs route                   | Module 18  | Low      | ✅ Wave 1 — `/jobs/saved`                             |
-| Charts / advanced analytics                  | Module 18  | Low      | Wave 2                                                |
+| Charts / advanced analytics                  | Module 18  | Low      | ✅ Wave 2 — dashboard + admin trends                  |
 | Enforce Free plan limit ceilings             | Module 19  | —        | ✅ Done                                               |
 | Subscription + Lemon/Paystack webhooks       | Module 19  | —        | ✅ Done — ADR-018                                     |
 | Nest applications CRUD parity                | Module 11  | Low      | Deprioritized                                         |

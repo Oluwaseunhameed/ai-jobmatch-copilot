@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { prisma } from '@jobmatch/database';
 
+import { indexJobsBySourceExternal } from '../meili';
 import { slugify } from './normalize';
 import type { NormalizedIngestJob } from './types';
 
@@ -78,15 +79,21 @@ export async function upsertIngestJob(job: NormalizedIngestJob): Promise<'upsert
       where: { id: existing.id },
       data,
     });
-    return 'upserted';
+  } else {
+    await prisma.job.create({
+      data: {
+        ...data,
+        slug,
+      },
+    });
   }
 
-  await prisma.job.create({
-    data: {
-      ...data,
-      slug,
-    },
-  });
+  // Best-effort Meilisearch sync — never fail ingest if Meili is down.
+  try {
+    await indexJobsBySourceExternal(job.source, job.externalId);
+  } catch {
+    // ignore
+  }
   return 'upserted';
 }
 

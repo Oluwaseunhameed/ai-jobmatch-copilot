@@ -172,6 +172,18 @@ export {
   updateAdminUserRole,
 } from './admin-service';
 
+export { getAdminAnalytics, getUserAnalytics } from './analytics';
+
+export {
+  ensureMeiliJobsIndex,
+  indexJobById,
+  indexJobsBySourceExternal,
+  meiliConfigured,
+  meiliReady,
+  reindexAllJobs,
+  searchMeiliJobIds,
+} from './meili';
+
 export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,

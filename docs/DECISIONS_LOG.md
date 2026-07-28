@@ -328,3 +328,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Ships a real catalog immediately while staying legally defensible; remaining platforms can unlock as keys/boards become available without redesign.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
+
+---
+
+## ADR-032: Meilisearch for keyword search; keep Postgres hybrid + analytics charts
+
+**Context:** Wave 2 called for Meilisearch/OpenSearch and an advanced analytics dashboard. Catalog size after multi-provider ingest makes Postgres FTS alone less ideal for keyword ranking/facets, while pgvector hybrid already works in-repo.
+**Options:** OpenSearch cluster; Meilisearch only; stay on Postgres FTS forever.
+**Outcome:** **Accepted** — Optional Meilisearch behind `MEILI_HOST` for keyword search + facets; automatic fallback to Postgres FTS. Hybrid semantic search stays on Postgres/pgvector (ADR-011). Ingest best-effort indexes documents; `pnpm jobs:reindex` backfills. Advanced analytics = weekly time-series + pipeline charts on user dashboard and admin overview (Recharts), not a separate BI product. OpenSearch remains deferred.
+**Rationale:** Meilisearch is the lighter ops fit for this monorepo; preserves existing hybrid path; charts reuse Prisma aggregates already used for Module 18/20.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28

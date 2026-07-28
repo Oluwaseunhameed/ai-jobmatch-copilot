@@ -115,15 +115,15 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 | Dedicated `/jobs/saved` page | ✅ |
 | E2E smoke tests (profile → resume → jobs) | ✅ foundation (public smoke) |
 
-### Wave 2 — Data & discovery _(in progress)_
+### Wave 2 — Data & discovery _(complete)_
 
 | Item | Status |
 |------|--------|
 | Multi-provider job ingestion (public/licensed APIs) | ✅ |
 | Keyed unlock: Adzuna / USAJobs / ATS defaults (`docs/JOB_INGEST_KEYS.md`) | ✅ |
 | Purge seeded jobs after live ingest | ✅ |
-| Meilisearch / OpenSearch | 🔲 |
-| Advanced analytics dashboard | 🔲 |
+| Meilisearch keyword search (Postgres FTS fallback) | ✅ |
+| Advanced analytics dashboard (user + admin charts) | ✅ |
 
 ### Wave 3 — Automation depth
 

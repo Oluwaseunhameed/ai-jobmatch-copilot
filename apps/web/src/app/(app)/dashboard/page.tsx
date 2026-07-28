@@ -5,12 +5,17 @@ import {
   prisma,
   type CompletenessProfile,
 } from '@jobmatch/database';
-import { enrichJobsWithMatch, loadProfileSkillNames } from '@jobmatch/job-search';
+import {
+  enrichJobsWithMatch,
+  getUserAnalytics,
+  loadProfileSkillNames,
+} from '@jobmatch/job-search';
 import {
   APPLICATION_STAGE_LABELS,
   type ApplicationStage,
 } from '@jobmatch/types';
 
+import { PipelineBarChart, TrendLineChart } from '@/components/analytics/analytics-charts';
 import { Button } from '@/components/ui/button';
 import { TrendingJobsPanel } from '@/components/jobs/trending-jobs-panel';
 import { requireAppUser } from '@/lib/auth';
@@ -75,6 +80,7 @@ export default async function DashboardPage() {
     openJobs,
     profileSkills,
     planId,
+    analytics,
   ] = await Promise.all([
     userId
       ? prisma.careerProfile.findUnique({
@@ -126,6 +132,7 @@ export default async function DashboardPage() {
     prisma.job.count({ where: { isActive: true } }),
     userId ? loadProfileSkillNames(userId) : Promise.resolve([]),
     userId ? getCurrentPlanId(userId) : Promise.resolve('free' as const),
+    userId ? getUserAnalytics(userId, 8) : Promise.resolve(null),
   ]);
 
   const preparingCount = countStages(applicationsByStage, ['saved', 'preparing']);
@@ -327,6 +334,23 @@ export default async function DashboardPage() {
           </p>
         </section>
       </div>
+
+      {analytics ? (
+        <section className="space-y-4 animate-enter-delayed">
+          <div>
+            <h2 className="font-display text-2xl font-semibold tracking-tight">Analytics</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Last {analytics.weeks} weeks of applications, saves, views, and pipeline mix.
+            </p>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TrendLineChart title="Applications" series={analytics.applicationsOverTime} />
+            <TrendLineChart title="Saves" series={analytics.savesOverTime} />
+            <TrendLineChart title="Views" series={analytics.viewsOverTime} />
+            <PipelineBarChart title="Pipeline funnel" pipeline={analytics.pipeline} />
+          </div>
+        </section>
+      ) : null}
 
       <section className="animate-enter-delayed">
         <div className="flex flex-wrap items-end justify-between gap-3">

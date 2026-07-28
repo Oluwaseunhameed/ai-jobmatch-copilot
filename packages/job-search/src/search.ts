@@ -13,6 +13,7 @@ import {
   loadProfileSkillNames,
   sortJobsByMatchScore,
 } from './match';
+import { meiliConfigured, searchMeiliJobIds } from './meili';
 
 export const DEFAULT_LIMIT = 20;
 export const MAX_LIMIT = 50;
@@ -306,6 +307,46 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
       ORDER BY ${order}
       ${paging}`;
   } else if (!vector) {
+    // Prefer Meilisearch for keyword search when configured and healthy.
+    if (meiliConfigured() && !rankByMatch) {
+      try {
+        const meiliSort =
+          sort === 'recent' || sort === 'salary' ? sort : 'relevance';
+        const meili = await searchMeiliJobIds({
+          q: query,
+          workMode: input.workMode,
+          employmentType: input.employmentType,
+          seniority: input.seniority,
+          country: input.country,
+          salaryMin: input.salaryMin,
+          postedAfter: input.postedAfter,
+          sort: meiliSort,
+          limit,
+          offset,
+        });
+        if (meili) {
+          const jobs = enrichJobsWithMatch(
+            await hydrateJobsByIds(meili.ids, input.userId),
+            profileSkills,
+          );
+          return {
+            jobs,
+            total: meili.total,
+            page,
+            limit,
+            mode: 'keyword',
+            degradedReason,
+            profileSkillCount,
+            facets: meili.facets,
+          };
+        }
+      } catch {
+        degradedReason =
+          degradedReason ??
+          'Meilisearch unavailable; falling back to Postgres full-text search.';
+      }
+    }
+
     const where = buildWhere(input, params);
     const q = params.add(query);
     sql = `
@@ -440,6 +481,68 @@ async function loadFacets(
     employmentType: group('employmentType'),
     seniority: group('seniority'),
   };
+}
+
+/** Load jobs by id list, preserving Meilisearch hit order. */
+async function hydrateJobsByIds(ids: string[], userId?: string): Promise<JobDto[]> {
+  if (!ids.length) return [];
+
+  const rows = await prisma.job.findMany({
+    where: { id: { in: ids }, isActive: true },
+    include: { company: true },
+  });
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  let savedIds = new Set<string>();
+  if (userId) {
+    const saved = await prisma.jobInteraction.findMany({
+      where: { userId, type: 'saved', jobId: { in: ids } },
+      select: { jobId: true },
+    });
+    savedIds = new Set(saved.map((row) => row.jobId));
+  }
+
+  return ids
+    .map((id) => byId.get(id))
+    .filter((job): job is NonNullable<typeof job> => Boolean(job))
+    .map((job) => ({
+      id: job.id,
+      slug: job.slug,
+      title: job.title,
+      description: job.description,
+      responsibilities: job.responsibilities,
+      requirements: job.requirements,
+      benefits: job.benefits,
+      skills: job.skills,
+      employmentType: job.employmentType,
+      workMode: job.workMode,
+      seniority: job.seniority,
+      location: job.location,
+      city: job.city,
+      country: job.country,
+      salaryMin: job.salaryMin,
+      salaryMax: job.salaryMax,
+      salaryCurrency: job.salaryCurrency,
+      salaryPeriod: job.salaryPeriod,
+      source: job.source,
+      sourceUrl: job.sourceUrl,
+      applyUrl: job.applyUrl,
+      postedAt: job.postedAt.toISOString(),
+      expiresAt: job.expiresAt ? job.expiresAt.toISOString() : null,
+      isActive: job.isActive,
+      company: {
+        id: job.company.id,
+        name: job.company.name,
+        slug: job.company.slug,
+        websiteUrl: job.company.websiteUrl,
+        logoUrl: job.company.logoUrl,
+        industry: job.company.industry,
+        size: job.company.size,
+        location: job.company.location,
+        about: job.company.about,
+      },
+      isSaved: savedIds.has(job.id),
+    }));
 }
 
 /** A single posting by slug, with the viewer's saved state and skill match. */

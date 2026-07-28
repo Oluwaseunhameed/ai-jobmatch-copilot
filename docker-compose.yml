@@ -32,6 +32,25 @@ services:
       timeout: 5s
       retries: 5
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    container_name: jobmatch-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: 'true'
+      # Dev-only master key — override in production.
+      MEILI_MASTER_KEY: jobmatch_meili_dev_key
+    ports:
+      - '7700:7700'
+    volumes:
+      - meili_data:/meili_data
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '-', 'http://127.0.0.1:7700/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   ollama:
     image: ollama/ollama:latest
     container_name: jobmatch-ollama
@@ -46,4 +65,5 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  meili_data:
   ollama_data:

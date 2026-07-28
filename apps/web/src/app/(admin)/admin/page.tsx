@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { getAdminOverview } from '@jobmatch/job-search';
+import { getAdminAnalytics, getAdminOverview } from '@jobmatch/job-search';
 import { redirect } from 'next/navigation';
 
+import { TrendLineChart } from '@/components/analytics/analytics-charts';
 import { requireAdmin } from '@/lib/auth';
 
 function Stat({
@@ -26,7 +27,7 @@ export default async function AdminOverviewPage() {
   const gate = await requireAdmin();
   if (gate.status !== 'ok') redirect('/login');
 
-  const overview = await getAdminOverview();
+  const [overview, analytics] = await Promise.all([getAdminOverview(), getAdminAnalytics(8)]);
 
   return (
     <div className="space-y-8">
@@ -73,6 +74,23 @@ export default async function AdminOverviewPage() {
           <Stat label="Resumes" value={overview.engagement.resumes} />
           <Stat label="Coach sessions" value={overview.engagement.coachSessions} />
           <Stat label="Portfolio projects" value={overview.engagement.portfolioProjects} />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Trends ({analytics.weeks} weeks)
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Signups, applications, catalog growth, and Pro conversions over time.
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <TrendLineChart title="Signups" series={analytics.signupsOverTime} />
+          <TrendLineChart title="Applications" series={analytics.applicationsOverTime} />
+          <TrendLineChart title="Jobs added" series={analytics.jobsAddedOverTime} />
+          <TrendLineChart title="Pro conversions" series={analytics.proConversionsOverTime} />
         </div>
       </section>
 

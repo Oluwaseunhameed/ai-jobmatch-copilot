@@ -18,6 +18,7 @@
     "jobs:embed": "pnpm --filter @jobmatch/job-search jobs:embed",
     "jobs:ingest": "pnpm --filter @jobmatch/job-search jobs:ingest",
     "jobs:purge-seed": "pnpm --filter @jobmatch/job-search jobs:purge-seed",
+    "jobs:reindex": "pnpm --filter @jobmatch/job-search jobs:reindex",
     "db:studio": "pnpm --filter @jobmatch/database db:studio",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },

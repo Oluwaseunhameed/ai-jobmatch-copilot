@@ -1063,6 +1063,34 @@ export interface AdminOverviewDto {
   flags: AdminFeatureFlagDto[];
 }
 
+/** Weekly time-series point for analytics charts (Wave 2). */
+export interface AnalyticsSeriesPoint {
+  week: string;
+  count: number;
+}
+
+export interface AnalyticsPipelineBucket {
+  stage: string;
+  label: string;
+  count: number;
+}
+
+export interface UserAnalyticsDto {
+  weeks: number;
+  applicationsOverTime: AnalyticsSeriesPoint[];
+  savesOverTime: AnalyticsSeriesPoint[];
+  viewsOverTime: AnalyticsSeriesPoint[];
+  pipeline: AnalyticsPipelineBucket[];
+}
+
+export interface AdminAnalyticsDto {
+  weeks: number;
+  signupsOverTime: AnalyticsSeriesPoint[];
+  applicationsOverTime: AnalyticsSeriesPoint[];
+  jobsAddedOverTime: AnalyticsSeriesPoint[];
+  proConversionsOverTime: AnalyticsSeriesPoint[];
+}
+
 export interface AdminUserRowDto {
   id: string;
   name: string;
