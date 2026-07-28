@@ -317,3 +317,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Makes “get it all done” actionable without pretending enterprise + ATS adapters + LLM depth fit in one PR.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
+
+---
+
+## ADR-031: Wave 2 job ingestion — public/licensed APIs only (no scrape-all)
+
+**Context:** Wave 2 needs a live job catalog. The product wishlist includes dozens of boards (Himalayas, Remotive, USAJobs, Greenhouse, Upwork, Google Careers, ZipRecruiter, etc.). Many have no redistributable public API; freelance marketplaces and big-tech career sites prohibit scraping or require partnerships.
+**Options:** Scrape everything; only Adzuna/Remotive; multi-provider ingest with an explicit catalog of active / keyed / deferred sources.
+**Outcome:** **Accepted** — `runJobIngest()` + provider catalog. **Default active (no key):** Remotive, Himalayas, Jobicy, Arbeitnow, Remote OK. **Optional with credentials/boards:** Adzuna, USAJobs, Greenhouse/Lever/Ashby/Workable board lists. **Deferred (partner/ToS):** aggregators, freelance marketplaces, government portals beyond USAJobs, and corporate career sites without a published board token. Scraping remains rejected (extends ADR-006). Seed jobs are purged after first successful ingest via `purgeSeedJobs()`.
+**Rationale:** Ships a real catalog immediately while staying legally defensible; remaining platforms can unlock as keys/boards become available without redesign.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28

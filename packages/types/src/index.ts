@@ -60,7 +60,21 @@ export interface ParsedResumeData {
 /** Job discovery (Module 5) */
 export type JobSeniority = 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'principal';
 
-export type JobSource = 'seed' | 'adzuna' | 'remotive' | 'manual';
+export type JobSource =
+  | 'seed'
+  | 'manual'
+  | 'remotive'
+  | 'himalayas'
+  | 'jobicy'
+  | 'arbeitnow'
+  | 'remoteok'
+  | 'adzuna'
+  | 'usajobs'
+  | 'greenhouse'
+  | 'lever'
+  | 'ashby'
+  | 'workable'
+  | 'weworkremotely';
 
 export type JobEmbeddingStatus = 'idle' | 'queued' | 'processing' | 'ready' | 'failed';
 

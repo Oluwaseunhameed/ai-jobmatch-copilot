@@ -339,7 +339,7 @@ model Job {
   /// year | month | day | hour
   salaryPeriod   String @default("year") @map("salary_period")
 
-  /// seed | adzuna | remotive | manual
+  /// seed | remotive | himalayas | jobicy | arbeitnow | remoteok | adzuna | usajobs | greenhouse | lever | ashby | workable | manual
   source     String  @default("seed")
   sourceUrl  String? @map("source_url")
   externalId String? @map("external_id")

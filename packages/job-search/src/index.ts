@@ -184,6 +184,14 @@ export {
 export { runWeeklyDigests } from './digest';
 
 export {
+  INGEST_PROVIDER_CATALOG,
+  listProviderCatalogSummary,
+  listRunnableProviders,
+  purgeSeedJobs,
+  runJobIngest,
+} from './ingest';
+
+export {
   applySkillMatch,
   enrichJobsWithMatch,
   loadProfileSkillNames,

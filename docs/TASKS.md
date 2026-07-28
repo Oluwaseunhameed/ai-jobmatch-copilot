@@ -1,23 +1,15 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Full Program — Wave 1 ✅ → Wave 2 next
+## Current Sprint: Full Program — Wave 2 (Data & discovery) _(in progress)_
 
-### Phases 0–5 — Complete ✅
+### Phases 0–5 — Complete ✅ · Wave 1 — Complete ✅
 
-All 20 modules shipped at MVP depth. Active work follows the Full Program (Waves 1–6) in `ROADMAP.md`.
+### Wave 2 — Data & discovery
 
-### Wave 1 — Polish & retention ✅
-
-- [x] Weekly digest email (`emailWeeklyDigest` + worker)
-- [x] Optimized resume PDF export
-- [x] Cover letter PDF export
-- [x] Jobs UI filters: `employmentType`, `country`, `salaryMin`
-- [x] Dedicated `/jobs/saved` page
-- [x] E2E smoke tests foundation (Playwright)
-
-### Wave 2 — Data & discovery _(next)_
-
-- [ ] Licensed job ingestion (Adzuna / Remotive)
+- [x] Multi-provider job ingest (`pnpm jobs:ingest`) — Remotive, Himalayas, Jobicy, Arbeitnow, Remote OK
+- [x] Optional keyed providers — Adzuna, USAJobs, Greenhouse/Lever/Ashby/Workable boards
+- [x] Provider catalog for deferred platforms (partner/ToS) — ADR-031
+- [x] Purge seeded jobs (`pnpm jobs:purge-seed`)
 - [ ] Meilisearch / OpenSearch
 - [ ] Advanced analytics dashboard
 
@@ -71,7 +63,7 @@ All 20 modules shipped at MVP depth. Active work follows the Full Program (Waves
 | Legacy `.doc` support                        | Module 4   | Low      | PDF/DOCX only; clear error for `.doc`                 |
 | Optimized resume PDF export                  | Module 4   | Medium   | ✅ Wave 1                                             |
 | Nest optimize endpoints parity               | Module 4   | Low      | Deprioritized                                         |
-| Licensed job API ingestion                   | Module 5   | Medium   | Wave 2                                                |
+| Licensed job API ingestion                   | Module 5   | Medium   | ✅ Wave 2 — multi-provider ingest (ADR-031)           |
 | Meilisearch / OpenSearch                     | Module 5   | Low      | Wave 2                                                |
 | LLM JD narrative insights                    | Module 6   | Medium   | Wave 4                                                |
 | Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` for now                         |
