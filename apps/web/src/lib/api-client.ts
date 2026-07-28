@@ -1305,6 +1305,48 @@ export function getNetworkingHub() {
   return apiFetch<NetworkingHub>('/api/users/me/network');
 }
 
+// ---------------------------------------------------------------------------
+// Admin Portal — Module 20
+// ---------------------------------------------------------------------------
+
+export type AppRole = 'user' | 'admin' | 'support' | 'coach';
+
+export const APP_ROLES: AppRole[] = ['user', 'admin', 'support', 'coach'];
+
+export type AdminUserRow = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  emailVerified: boolean;
+  onboardingCompleted: boolean;
+  planId: string;
+  subscriptionStatus: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminFeatureFlag = {
+  key: string;
+  enabled: boolean;
+  description: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+};
+
+export type AdminOverview = {
+  users: { total: number; admins: number; onboarded: number };
+  catalog: { companies: number; jobs: number; activeJobs: number };
+  billing: { proActive: number; free: number; pastDue: number };
+  engagement: {
+    applications: number;
+    resumes: number;
+    coachSessions: number;
+    portfolioProjects: number;
+  };
+  flags: AdminFeatureFlag[];
+};
+
 export function createNetworkingContact(input: {
   fullName: string;
   companyId?: string | null;

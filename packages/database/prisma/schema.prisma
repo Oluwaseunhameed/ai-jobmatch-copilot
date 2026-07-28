@@ -40,6 +40,7 @@ model User {
   portfolioProjects   PortfolioProject[]
   networkingContacts  NetworkingContact[]
   applyAssistSessions ApplyAssistSession[]
+  adminActionLogs     AdminActionLog[]
 
   @@unique([email])
   @@map("user")
@@ -674,5 +675,39 @@ model ApplyAssistSession {
 
   @@index([userId, createdAt])
   @@map("apply_assist_sessions")
+}
+
+// ---------------------------------------------------------------------------
+// Admin Portal — Module 20
+// ---------------------------------------------------------------------------
+model AppFeatureFlag {
+  id          String  @id @default(cuid())
+  key         String  @unique
+  enabled     Boolean @default(false)
+  description String? @db.Text
+  updatedBy   String? @map("updated_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_feature_flags")
+}
+
+model AdminActionLog {
+  id          String  @id @default(cuid())
+  actorUserId String  @map("actor_user_id")
+  actor       User    @relation(fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  /// e.g. user.role_update | flag.set
+  action     String
+  targetType String  @map("target_type")
+  targetId   String? @map("target_id")
+  detail     Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+  @@map("admin_action_logs")
 }
 

@@ -15,6 +15,7 @@ import {
   Network,
   Route,
   Settings,
+  Shield,
   UserRound,
   X,
 } from 'lucide-react';
@@ -116,13 +117,29 @@ function NavLink({
 function SidebarNav({
   pathname,
   onNavigate,
+  showAdmin,
 }: {
   pathname: string;
   onNavigate?: () => void;
+  showAdmin?: boolean;
 }) {
+  const sections = showAdmin
+    ? NAV_SECTIONS.map((section) =>
+        section.label === 'Account'
+          ? {
+              ...section,
+              items: [
+                ...section.items,
+                { href: '/admin', label: 'Admin', icon: Shield },
+              ],
+            }
+          : section,
+      )
+    : NAV_SECTIONS;
+
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
-      {NAV_SECTIONS.map((section) => (
+      {sections.map((section) => (
         <div key={section.label}>
           <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
             {section.label}
@@ -147,10 +164,12 @@ function SidebarChrome({
   pathname,
   onNavigate,
   className,
+  showAdmin,
 }: {
   pathname: string;
   onNavigate?: () => void;
   className?: string;
+  showAdmin?: boolean;
 }) {
   return (
     <aside
@@ -163,7 +182,7 @@ function SidebarChrome({
         <BrandMark href="/dashboard" size="sm" compact className="min-w-0" />
       </div>
 
-      <SidebarNav pathname={pathname} onNavigate={onNavigate} />
+      <SidebarNav pathname={pathname} onNavigate={onNavigate} showAdmin={showAdmin} />
 
       <div className="mt-auto shrink-0 space-y-2 border-t border-border/80 p-3">
         <div className="flex items-center justify-between gap-2 rounded-md px-1">
@@ -178,7 +197,15 @@ function SidebarChrome({
   );
 }
 
-export function AppShell({ children, title }: { children: React.ReactNode; title?: string }) {
+export function AppShell({
+  children,
+  title,
+  showAdmin,
+}: {
+  children: React.ReactNode;
+  title?: string;
+  showAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -199,7 +226,7 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
     <div className="relative min-h-screen md:flex">
       {/* Desktop sidebar */}
       <div className="sticky top-0 hidden h-screen w-60 shrink-0 md:block lg:w-64">
-        <SidebarChrome pathname={pathname} />
+        <SidebarChrome pathname={pathname} showAdmin={showAdmin} />
       </div>
 
       {/* Mobile drawer */}
@@ -212,7 +239,11 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
             onClick={() => setOpen(false)}
           />
           <div className="absolute inset-y-0 left-0 w-[min(18rem,88vw)] animate-enter shadow-lift">
-            <SidebarChrome pathname={pathname} onNavigate={() => setOpen(false)} />
+            <SidebarChrome
+              pathname={pathname}
+              onNavigate={() => setOpen(false)}
+              showAdmin={showAdmin}
+            />
           </div>
         </div>
       )}

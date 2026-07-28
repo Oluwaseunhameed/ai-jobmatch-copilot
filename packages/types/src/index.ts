@@ -1021,6 +1021,95 @@ export interface NetworkingHubDto {
 }
 
 // ---------------------------------------------------------------------------
+// Admin Portal — Module 20
+// ---------------------------------------------------------------------------
+
+export type AppRole = 'user' | 'admin' | 'support' | 'coach';
+
+export const APP_ROLES: AppRole[] = ['user', 'admin', 'support', 'coach'];
+
+export function isAppRole(value: string): value is AppRole {
+  return (APP_ROLES as string[]).includes(value);
+}
+
+export function isAdminRole(role: string): boolean {
+  return role === 'admin';
+}
+
+export interface AdminOverviewDto {
+  users: { total: number; admins: number; onboarded: number };
+  catalog: { companies: number; jobs: number; activeJobs: number };
+  billing: { proActive: number; free: number; pastDue: number };
+  engagement: {
+    applications: number;
+    resumes: number;
+    coachSessions: number;
+    portfolioProjects: number;
+  };
+  flags: AdminFeatureFlagDto[];
+}
+
+export interface AdminUserRowDto {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  emailVerified: boolean;
+  onboardingCompleted: boolean;
+  planId: string;
+  subscriptionStatus: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminJobRowDto {
+  id: string;
+  title: string;
+  slug: string;
+  companyName: string;
+  companySlug: string;
+  isActive: boolean;
+  source: string | null;
+  workMode: string;
+  seniority: string | null;
+  postedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminCompanyRowDto {
+  id: string;
+  name: string;
+  slug: string;
+  industry: string | null;
+  location: string | null;
+  websiteUrl: string | null;
+  activeJobs: number;
+  totalJobs: number;
+  createdAt: string;
+}
+
+export interface AdminSubscriptionRowDto {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  planId: string;
+  status: string;
+  provider: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  updatedAt: string;
+}
+
+export interface AdminFeatureFlagDto {
+  key: string;
+  enabled: boolean;
+  description: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Smart Application Automation — Module 10
 // ---------------------------------------------------------------------------
 

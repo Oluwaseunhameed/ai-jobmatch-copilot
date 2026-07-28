@@ -295,3 +295,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Ships useful assisted apply immediately while encoding the user-in-the-loop boundary in data + API.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
+
+---
+
+## ADR-029: Admin portal — Next `(admin)` + BFF, role/`ADMIN_EMAILS` gate
+
+**Context:** Phase 5 Module 20 needs an ops surface for users, catalog, billing, and lightweight flags. Phase 1’s “basic admin users panel” was never shipped; Nest admin parity and LaunchDarkly-scale flags are out of scope for this slice.
+**Options:** Separate admin SPA; Nest-only admin API; Next route group + `/api/admin/*` BFF gated by `User.role` / bootstrap emails.
+**Outcome:** **Accepted** — Admin lives at `/admin/*` in a dedicated `(admin)` layout (no onboarding gate). Access via `requireAdmin()`: `User.role === 'admin'` or email in `ADMIN_EMAILS` (allowlisted users are promoted to `admin` on first admin hit). BFF routes return 401/403. `AppFeatureFlag` + thin `AdminActionLog` cover flags-lite and role/flag mutations. Coach/support workflows, Nest parity, and full audit platforms deferred.
+**Rationale:** Reuses the existing Next+Prisma product path, matches architecture roles, and unblocks ops without a second frontend.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28

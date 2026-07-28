@@ -9,7 +9,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"No lint configured yet\"",
-    "test": "tsx --test src/match.test.ts src/insights.test.ts src/company-profile.test.ts src/growth.test.ts src/interview.test.ts src/coding.test.ts src/coach.test.ts src/portfolio.test.ts src/networking.test.ts src/apply-assist.test.ts",
+    "test": "tsx --test src/match.test.ts src/insights.test.ts src/company-profile.test.ts src/growth.test.ts src/interview.test.ts src/coding.test.ts src/coach.test.ts src/portfolio.test.ts src/networking.test.ts src/apply-assist.test.ts src/admin.test.ts",
     "jobs:embed": "tsx scripts/embed-jobs.ts"
   },
   "dependencies": {

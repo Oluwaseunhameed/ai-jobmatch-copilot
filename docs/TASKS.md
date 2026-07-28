@@ -1,12 +1,12 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 5 — Module 10 (Assisted Apply) ✅
+## Current Sprint: Phase 5 — Module 20 (Admin Portal) ✅
 
 ### Phase 0–4 — Complete ✅
 
 ### Phase 5 — Module 8: Professional Networking ✅
 
-### Phase 5 — Module 10: Smart Application Automation
+### Phase 5 — Module 10: Smart Application Automation ✅
 
 - [x] `ApplyAssistSession` model + migration
 - [x] Checklist + fill plan from resume/draft/profile
@@ -16,9 +16,18 @@
 - [x] ADR-028 + unit tests
 - [ ] Production Playwright ATS adapters — deferred
 
-### Phase 5 — Next up
+### Phase 5 — Module 20: Full Admin Portal
 
-- [ ] Module 20 — Full Admin Portal
+- [x] `requireAdmin` + `ADMIN_EMAILS` bootstrap / role gate
+- [x] `/admin` portal (overview, users, jobs, companies, subscriptions, flags)
+- [x] BFF `/api/admin/*` (401/403)
+- [x] `AppFeatureFlag` + `AdminActionLog`
+- [x] ADR-029 + unit tests
+- [ ] Nest admin parity / coach–support workflows / LaunchDarkly — deferred
+
+### Phase 6 — Next up (when prioritized)
+
+- Team tier, referral, advanced analytics, multi-region, flags at scale
 
 ---
 
@@ -68,4 +77,7 @@
 | Nest networking parity                       | Module 8   | Low      | BFF is primary product path                           |
 | LinkedIn scrape / auto-message               | Module 8   | —        | Explicitly out of scope (ADR-027)                     |
 | Nest apply-assist parity                     | Module 10  | Low      | BFF is primary product path                           |
+| Nest admin portal parity                     | Module 20  | Low      | Next `/admin` + BFF shipped (ADR-029)                 |
+| LaunchDarkly / A/B at scale                  | Module 20  | Low      | Postgres flags-lite shipped; Phase 6 for scale        |
+| Coach / support admin workflows              | Module 20  | Medium   | Roles exist; workflows deferred                       |
 | Production Playwright ATS adapters           | Module 10  | Medium   | Checklist + approval gate shipped (ADR-028)           |

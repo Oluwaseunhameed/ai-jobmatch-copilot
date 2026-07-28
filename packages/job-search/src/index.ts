@@ -148,6 +148,31 @@ export {
 } from './apply-assist-service';
 
 export {
+  DEFAULT_FEATURE_FLAGS,
+  emptyAdminOverview,
+  normalizeAppRole,
+  parseAdminEmails,
+  toAdminCompanyRow,
+  toAdminFeatureFlag,
+  toAdminJobRow,
+  toAdminSubscriptionRow,
+  toAdminUserRow,
+  userHasAdminAccess,
+} from './admin';
+
+export {
+  getAdminOverview,
+  listAdminCompanies,
+  listAdminFeatureFlags,
+  listAdminJobs,
+  listAdminSubscriptions,
+  listAdminUsers,
+  logAdminAction,
+  setAdminFeatureFlag,
+  updateAdminUserRole,
+} from './admin-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,
