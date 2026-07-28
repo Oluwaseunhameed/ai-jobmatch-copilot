@@ -64,6 +64,9 @@ model UserPreference {
   emailMarketing          Boolean @default(false) @map("email_marketing")
   pushEnabled             Boolean @default(false) @map("push_enabled")
 
+  /// Last successful weekly digest send (Wave 1).
+  lastWeeklyDigestAt DateTime? @map("last_weekly_digest_at")
+
   onboardingCompleted Boolean @default(false) @map("onboarding_completed")
 
   createdAt DateTime @default(now()) @map("created_at")

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Check, Copy, PenLine } from 'lucide-react';
+import { ArrowRight, Check, Copy, Download, PenLine } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -213,14 +213,25 @@ export function ApplicationAssistantPanel({ jobId }: { jobId: string }) {
                 Cover letter
                 {result.source === 'template' ? ' · template' : result.source === 'llm' ? ' · AI' : ''}
               </p>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => void copyText(result.coverLetter!, 'letter')}
-              >
-                {copied === 'letter' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied === 'letter' ? 'Copied' : 'Copy'}
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button asChild size="sm" variant="ghost">
+                  <a
+                    href={`/api/users/me/application-drafts/${result.id}/export`}
+                    download
+                  >
+                    <Download className="h-4 w-4" />
+                    PDF
+                  </a>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => void copyText(result.coverLetter!, 'letter')}
+                >
+                  {copied === 'letter' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copied === 'letter' ? 'Copied' : 'Copy'}
+                </Button>
+              </div>
             </div>
             <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg border border-border bg-muted/40 p-3 font-sans text-sm leading-relaxed text-foreground">
               {result.coverLetter}

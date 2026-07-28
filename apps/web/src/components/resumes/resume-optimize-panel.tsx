@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Download, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -211,12 +211,23 @@ export function ResumeOptimizePanel({ jobId }: { jobId: string }) {
             <Snapshot title="After" snapshot={result.after} highlight />
           </div>
 
-          <Button asChild size="sm" variant="outline">
-            <Link href="/resumes">
-              View saved version in resumes
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm" variant="outline">
+              <a
+                href={`/api/users/me/resumes/${result.resumeId}/optimizations/${result.id}/export`}
+                download
+              >
+                <Download className="h-4 w-4" />
+                Download PDF
+              </a>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/resumes">
+                View saved version in resumes
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </div>
       )}
     </div>

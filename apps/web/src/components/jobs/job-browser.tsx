@@ -31,6 +31,14 @@ const WORK_MODES = [
   { value: 'on-site', label: 'On-site' },
 ];
 
+const EMPLOYMENT_TYPES = [
+  { value: 'full-time', label: 'Full-time' },
+  { value: 'part-time', label: 'Part-time' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'freelance', label: 'Freelance' },
+  { value: 'internship', label: 'Internship' },
+];
+
 const SENIORITIES = [
   { value: 'junior', label: 'Junior' },
   { value: 'mid', label: 'Mid' },
@@ -58,13 +66,20 @@ function facetCount(facets: JobSearchFacet[], value: string) {
 function currentQueryKey(input: {
   q: string;
   workMode: string[];
+  employmentType: string[];
   seniority: string[];
+  country: string;
+  salaryMin: string;
   sort: SortOption;
 }) {
+  const salary = Number(input.salaryMin);
   return JSON.stringify({
     q: input.q || undefined,
     workMode: input.workMode.length ? [...input.workMode].sort() : undefined,
+    employmentType: input.employmentType.length ? [...input.employmentType].sort() : undefined,
     seniority: input.seniority.length ? [...input.seniority].sort() : undefined,
+    country: input.country.trim() || undefined,
+    salaryMin: Number.isFinite(salary) && salary > 0 ? Math.trunc(salary) : undefined,
     sort: input.sort === 'relevance' ? undefined : input.sort,
   });
 }
@@ -73,7 +88,10 @@ export function JobBrowser() {
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState('');
   const [workMode, setWorkMode] = useState<string[]>([]);
+  const [employmentType, setEmploymentType] = useState<string[]>([]);
   const [seniority, setSeniority] = useState<string[]>([]);
+  const [country, setCountry] = useState('');
+  const [salaryMin, setSalaryMin] = useState('');
   const [sort, setSort] = useState<SortOption>('relevance');
   const [page, setPage] = useState(1);
   const [result, setResult] = useState<JobSearchResult | null>(null);
@@ -84,6 +102,11 @@ export function JobBrowser() {
   const [savingSearch, setSavingSearch] = useState(false);
   const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
 
+  const salaryMinNumber = (() => {
+    const value = Number(salaryMin);
+    return Number.isFinite(value) && value > 0 ? Math.trunc(value) : undefined;
+  })();
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -91,7 +114,10 @@ export function JobBrowser() {
       const next = await searchJobs({
         q: query || undefined,
         workMode: workMode.length ? workMode : undefined,
+        employmentType: employmentType.length ? employmentType : undefined,
         seniority: seniority.length ? seniority : undefined,
+        country: country.trim() || undefined,
+        salaryMin: salaryMinNumber,
         sort,
         page,
         limit: 12,
@@ -102,7 +128,7 @@ export function JobBrowser() {
     } finally {
       setLoading(false);
     }
-  }, [query, workMode, seniority, sort, page]);
+  }, [query, workMode, employmentType, seniority, country, salaryMinNumber, sort, page]);
 
   useEffect(() => {
     void load();
@@ -121,14 +147,32 @@ export function JobBrowser() {
     return Math.max(1, Math.ceil(result.total / result.limit));
   }, [result]);
 
-  const hasActiveFilters = Boolean(query || workMode.length || seniority.length);
-  const activeKey = currentQueryKey({ q: query, workMode, seniority, sort });
+  const hasActiveFilters = Boolean(
+    query ||
+      workMode.length ||
+      employmentType.length ||
+      seniority.length ||
+      country.trim() ||
+      salaryMinNumber,
+  );
+  const activeKey = currentQueryKey({
+    q: query,
+    workMode,
+    employmentType,
+    seniority,
+    country,
+    salaryMin,
+    sort,
+  });
   const matchingSaved = savedSearches.find(
     (search) =>
       currentQueryKey({
         q: search.query.q ?? '',
         workMode: search.query.workMode ?? [],
+        employmentType: search.query.employmentType ?? [],
         seniority: search.query.seniority ?? [],
+        country: search.query.country ?? '',
+        salaryMin: search.query.salaryMin ? String(search.query.salaryMin) : '',
         sort: (search.query.sort as SortOption) ?? 'relevance',
       }) === activeKey,
   );
@@ -170,7 +214,10 @@ export function JobBrowser() {
     setDraft(search.query.q ?? '');
     setQuery(search.query.q ?? '');
     setWorkMode(search.query.workMode ?? []);
+    setEmploymentType(search.query.employmentType ?? []);
     setSeniority(search.query.seniority ?? []);
+    setCountry(search.query.country ?? '');
+    setSalaryMin(search.query.salaryMin ? String(search.query.salaryMin) : '');
     setSort((search.query.sort as SortOption) ?? 'relevance');
     setPage(1);
   }
@@ -184,7 +231,10 @@ export function JobBrowser() {
         query: {
           q: query || undefined,
           workMode: workMode.length ? workMode : undefined,
+          employmentType: employmentType.length ? employmentType : undefined,
           seniority: seniority.length ? seniority : undefined,
+          country: country.trim() || undefined,
+          salaryMin: salaryMinNumber,
           sort: sort === 'relevance' ? undefined : sort,
         },
         alertEnabled: true,
@@ -329,6 +379,79 @@ export function JobBrowser() {
             />
           );
         })}
+        <span className="mx-1 hidden h-4 w-px bg-border sm:inline-block" />
+        {EMPLOYMENT_TYPES.map((type) => {
+          const active = employmentType.includes(type.value);
+          const count = result ? facetCount(result.facets.employmentType, type.value) : undefined;
+          return (
+            <FilterChip
+              key={type.value}
+              label={type.label}
+              count={count}
+              active={active}
+              onClick={() => {
+                setPage(1);
+                setActiveSearchId(null);
+                setEmploymentType((current) => toggleValue(current, type.value));
+              }}
+            />
+          );
+        })}
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="space-y-1.5">
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Country
+          </span>
+          <Input
+            value={country}
+            onChange={(event) => {
+              setPage(1);
+              setActiveSearchId(null);
+              setCountry(event.target.value);
+            }}
+            placeholder="e.g. US, NG, Remote"
+            className="h-9 w-44"
+            aria-label="Filter by country"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Min salary
+          </span>
+          <Input
+            type="number"
+            min={0}
+            value={salaryMin}
+            onChange={(event) => {
+              setPage(1);
+              setActiveSearchId(null);
+              setSalaryMin(event.target.value);
+            }}
+            placeholder="e.g. 80000"
+            className="h-9 w-36"
+            aria-label="Minimum salary"
+          />
+        </label>
+        {(country.trim() || salaryMin) && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setPage(1);
+              setActiveSearchId(null);
+              setCountry('');
+              setSalaryMin('');
+            }}
+          >
+            Clear location / salary
+          </Button>
+        )}
+        <Button asChild size="sm" variant="outline" className="ml-auto">
+          <Link href="/jobs/saved">Saved jobs</Link>
+        </Button>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">

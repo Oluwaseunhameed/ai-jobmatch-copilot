@@ -4,9 +4,11 @@
 
 We ship in **vertical slices** — each phase delivers a usable end-to-end flow, not 20 half-built modules.
 
+**Status:** Phases 0–5 complete (all 20 modules have an MVP). Active delivery is the **Full Program** below (Waves 1–6), which closes deferred depth, Phase 6 enterprise items, and high-value tech debt. LinkedIn scrape / auto-message remains **explicitly out of scope** (ADR-027). Nest API parity is optional and deprioritized while the Next BFF is the product path.
+
 ---
 
-## Phase 0 — Foundation (Current)
+## Phase 0 — Foundation ✅
 
 **Goal:** Align on architecture, scaffold monorepo, local dev environment, CI baseline.
 
@@ -25,11 +27,9 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | GitHub Actions (lint, test, build)       | ✅ Done |
 | Environment variable templates           | ✅ Done |
 
-**Next:** Phase 5 complete (Modules 8, 10, 20). Phase 6 next when prioritized.
-
 ---
 
-## Phase 1 — MVP: "Profile → Resume → First Match"
+## Phase 1 — MVP: "Profile → Resume → First Match" ✅
 
 **Goal:** A user can sign up, build a profile, upload a resume, see AI-parsed data, and view a basic job match.
 
@@ -53,7 +53,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 
 ---
 
-## Phase 2 — Application Workflow
+## Phase 2 — Application Workflow ✅
 
 **Goal:** User can optimize resume for a job, generate a cover letter, and track an application.
 
@@ -67,7 +67,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 
 ---
 
-## Phase 3 — Job Intelligence & Discovery Scale
+## Phase 3 — Job Intelligence & Discovery Scale ✅
 
 **Modules:**
 
@@ -75,11 +75,11 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 - Module 6 — Rich job insights, skill gap, learning recs ✅
 - Module 7 — Company intelligence profiles ✅
 - Module 15 — Career Growth Hub (skill gaps, roadmaps) ✅
-- Search upgrade (Meilisearch/OpenSearch)
+- Search upgrade (Meilisearch/OpenSearch) — deferred to Wave 2
 
 ---
 
-## Phase 4 — Interview & Career Coaching
+## Phase 4 — Interview & Career Coaching ✅
 
 **Modules:**
 
@@ -90,7 +90,7 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 
 ---
 
-## Phase 5 — Automation & Networking
+## Phase 5 — Automation & Networking ✅
 
 **Modules:**
 
@@ -100,13 +100,61 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 
 ---
 
-## Phase 6 — Enterprise & Scale
+## Full Program — Waves 1–6 (Active)
 
-- Team tier (career coaches)
+Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before starting the next.
+
+### Wave 1 — Polish & retention ✅
+
+| Item | Status |
+|------|--------|
+| Weekly digest email | ✅ |
+| Optimized resume PDF export | ✅ |
+| Cover letter PDF export | ✅ |
+| Jobs UI filters (`employmentType`, `country`, `salaryMin`) | ✅ |
+| Dedicated `/jobs/saved` page | ✅ |
+| E2E smoke tests (profile → resume → jobs) | ✅ foundation (public smoke) |
+
+### Wave 2 — Data & discovery _(next)_
+
+- Licensed job ingestion (Adzuna / Remotive)
+- Meilisearch / OpenSearch upgrade
+- Advanced analytics dashboard (charts, funnels)
+
+### Wave 3 — Automation depth
+
+- Production Playwright ATS adapters (Greenhouse, Lever, etc.)
+- Apply-assist hardening (fixtures, observability)
+
+### Wave 4 — AI depth
+
+- LLM job-description narrative insights
+- Voice + conversational mock interview
+- Coding sandbox / AI code review
+- Coach long-term memory / tool agents
+- Hosted portfolio / GitHub project sync
+
+### Wave 5 — Platform & enterprise (Phase 6 core)
+
+- Team tier (career coaches) + support/coach admin workflows
 - Referral program
-- Advanced analytics
+- In-app notification center + NotificationLog
+- Education / Experience profile models
+
+### Wave 6 — Scale & infra
+
 - Multi-region deployment
-- Feature flags and A/B testing at scale
+- Feature flags / A/B at scale (beyond Postgres flags-lite)
+- Upload CDN (UploadThing / Cloudinary) when needed
+- External company enrichment (funding / interview data)
+
+### Explicitly out of scope
+
+- LinkedIn scrape / auto-message (ADR-027)
+
+### Optional / deprioritized
+
+- Nest API parity for modules already on the Next BFF
 
 ---
 
@@ -125,12 +173,12 @@ We ship in **vertical slices** — each phase delivers a usable end-to-end flow,
 | 9      | Application Assistant  | 2                    |
 | 10     | Application Automation | 5                    |
 | 11     | Application Tracker    | 2                    |
-| 12     | Interview Prep         | 4                    |
+| 12     | Interview Prep          | 4                    |
 | 13     | Coding Prep            | 4                    |
 | 14     | Portfolio Builder      | 4                    |
 | 15     | Career Growth Hub      | 3                    |
 | 16     | AI Career Coach        | 4                    |
-| 17     | Notifications          | 2 → ongoing          |
-| 18     | Analytics Dashboard    | 1 (minimal) → 3      |
+| 17     | Notifications          | 2 → Wave 1 / 5       |
+| 18     | Analytics Dashboard    | 1 (minimal) → Wave 2 |
 | 19     | Subscription & Billing | 2                    |
 | 20     | Admin Portal           | 1 (basic) → 5 (full) |

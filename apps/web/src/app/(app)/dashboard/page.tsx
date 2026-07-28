@@ -428,8 +428,8 @@ export default async function DashboardPage() {
           </div>
           {savedCount > 0 && (
             <Button asChild size="sm" variant="outline">
-              <Link href="/jobs">
-                Find more
+              <Link href="/jobs/saved">
+                View all
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

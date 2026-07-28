@@ -1,33 +1,61 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Phase 5 — Module 20 (Admin Portal) ✅
+## Current Sprint: Full Program — Wave 1 ✅ → Wave 2 next
 
-### Phase 0–4 — Complete ✅
+### Phases 0–5 — Complete ✅
 
-### Phase 5 — Module 8: Professional Networking ✅
+All 20 modules shipped at MVP depth. Active work follows the Full Program (Waves 1–6) in `ROADMAP.md`.
 
-### Phase 5 — Module 10: Smart Application Automation ✅
+### Wave 1 — Polish & retention ✅
 
-- [x] `ApplyAssistSession` model + migration
-- [x] Checklist + fill plan from resume/draft/profile
-- [x] User actions: open apply URL, approve fill plan, confirm submitted
-- [x] Playwright gate (no unsupervised submit; fixture deferred)
-- [x] Applications board panel + BFF `.../apply-assist`
-- [x] ADR-028 + unit tests
-- [ ] Production Playwright ATS adapters — deferred
+- [x] Weekly digest email (`emailWeeklyDigest` + worker)
+- [x] Optimized resume PDF export
+- [x] Cover letter PDF export
+- [x] Jobs UI filters: `employmentType`, `country`, `salaryMin`
+- [x] Dedicated `/jobs/saved` page
+- [x] E2E smoke tests foundation (Playwright)
 
-### Phase 5 — Module 20: Full Admin Portal
+### Wave 2 — Data & discovery _(next)_
 
-- [x] `requireAdmin` + `ADMIN_EMAILS` bootstrap / role gate
-- [x] `/admin` portal (overview, users, jobs, companies, subscriptions, flags)
-- [x] BFF `/api/admin/*` (401/403)
-- [x] `AppFeatureFlag` + `AdminActionLog`
-- [x] ADR-029 + unit tests
-- [ ] Nest admin parity / coach–support workflows / LaunchDarkly — deferred
+- [ ] Licensed job ingestion (Adzuna / Remotive)
+- [ ] Meilisearch / OpenSearch
+- [ ] Advanced analytics dashboard
 
-### Phase 6 — Next up (when prioritized)
+### Wave 3 — Automation depth
 
-- Team tier, referral, advanced analytics, multi-region, flags at scale
+- [ ] Production Playwright ATS adapters
+- [ ] Apply-assist hardening
+
+### Wave 4 — AI depth
+
+- [ ] LLM JD narrative insights
+- [ ] Voice + conversational mock interview
+- [ ] Coding sandbox / AI code review
+- [ ] Coach long-term memory / tool agents
+- [ ] Hosted portfolio / GitHub sync
+
+### Wave 5 — Platform & enterprise
+
+- [ ] Team tier (career coaches)
+- [ ] Coach / support admin workflows
+- [ ] Referral program
+- [ ] In-app notification center + NotificationLog
+- [ ] Education / Experience models
+
+### Wave 6 — Scale & infra
+
+- [ ] Multi-region deployment
+- [ ] Flags / A/B at scale
+- [ ] Upload CDN when needed
+- [ ] External company enrichment
+
+### Explicitly out of scope
+
+- [x] LinkedIn scrape / auto-message — never (ADR-027)
+
+### Optional / deprioritized
+
+- Nest API parity for BFF-first modules
 
 ---
 
@@ -35,49 +63,50 @@
 
 | Item                                         | Introduced | Priority | Notes                                                 |
 | -------------------------------------------- | ---------- | -------- | ----------------------------------------------------- |
-| Education / Experience models                | Module 2   | Medium   | Deferred; Architecture diagram lists them for later   |
-| Nest vs Next dual path (profile/resume/jobs) | Module 2–5 | Low      | BFF uses Prisma; Nest API available for clients       |
-| E2E profile/resume/jobs tests                | Module 2–5 | Medium   | Unit tests only so far                                |
-| UploadThing / Cloudinary                     | Module 3   | Low      | Deferred by ADR-010 until CDN/upload UX needed        |
+| Education / Experience models                | Module 2   | Medium   | Wave 5                                                |
+| Nest vs Next dual path (profile/resume/jobs) | Module 2–5 | Low      | BFF uses Prisma; Nest optional                        |
+| E2E profile/resume/jobs tests                | Module 2–5 | Medium   | ✅ Wave 1 public smoke; auth flows later              |
+| UploadThing / Cloudinary                     | Module 3   | Low      | Wave 6 / ADR-010                                      |
 | Full LLM ATS optimization                    | Module 4   | Medium   | Keyword-fit + rewrite shipped; vendor ATS later       |
 | Legacy `.doc` support                        | Module 4   | Low      | PDF/DOCX only; clear error for `.doc`                 |
-| Optimized resume PDF export                  | Module 4   | Medium   | Version text/JSON only today                          |
-| Nest optimize endpoints parity               | Module 4   | Low      | Worker registered; BFF is primary product path        |
-| Licensed job API ingestion                   | Module 5   | Medium   | ADR-006: seed for now; Adzuna/Remotive later          |
-| Meilisearch / OpenSearch                     | Module 5   | Low      | Deferred by ADR-003 until scale demands it            |
-| LLM JD narrative insights                    | Module 6   | Medium   | Deterministic insights shipped; LLM layer optional  |
-| Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` treated as requirements for now |
-| Dedicated saved-jobs route                   | Module 18  | Low      | Dashboard lists recent saves; full list via Jobs UI   |
-| Charts / advanced analytics                  | Module 18  | Low      | Phase 6; Free tier stays a quiet readout              |
-| Enforce Free plan limit ceilings             | Module 19  | —        | ✅ Done — resume/save/optimise/cover letter gates     |
+| Optimized resume PDF export                  | Module 4   | Medium   | ✅ Wave 1                                             |
+| Nest optimize endpoints parity               | Module 4   | Low      | Deprioritized                                         |
+| Licensed job API ingestion                   | Module 5   | Medium   | Wave 2                                                |
+| Meilisearch / OpenSearch                     | Module 5   | Low      | Wave 2                                                |
+| LLM JD narrative insights                    | Module 6   | Medium   | Wave 4                                                |
+| Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` for now                         |
+| Dedicated saved-jobs route                   | Module 18  | Low      | ✅ Wave 1 — `/jobs/saved`                             |
+| Charts / advanced analytics                  | Module 18  | Low      | Wave 2                                                |
+| Enforce Free plan limit ceilings             | Module 19  | —        | ✅ Done                                               |
 | Subscription + Lemon/Paystack webhooks       | Module 19  | —        | ✅ Done — ADR-018                                     |
-| Nest applications CRUD parity                | Module 11  | Low      | BFF is primary product path                           |
-| Application documents / attachments          | Module 11  | Low      | Architecture lists Documents; link drafts only today  |
-| Nest application-draft endpoints parity      | Module 9   | Low      | Worker registered; BFF is primary product path        |
-| Cover letter PDF / DOCX export               | Module 9   | Low      | Copyable text only today                              |
-| Weekly digest email                          | Module 17  | Medium   | Job alerts ✅ Module 5; weekly digest still deferred  |
-| NotificationLog / delivery audit             | Module 17  | Low      | Console + Resend dashboard for now                    |
-| In-app notification center                   | Module 17  | Low      | Email-only for this slice                             |
-| Nest saved-search / trending parity          | Module 5   | Low      | BFF is primary product path                           |
-| employmentType / country / salaryMin in UI   | Module 5   | Low      | API-ready; Jobs UI uses q/workMode/seniority for now  |
-| Skill.level / years in match scoring         | Module 6   | Low      | Profile proficiency not weighted yet                |
-| Nest job insights parity                     | Module 6   | Low      | BFF is primary product path                           |
-| External funding / interview data            | Module 7   | Medium   | Deterministic job-derived intelligence shipped        |
-| Nest company profile parity                  | Module 7   | Low      | BFF is primary product path                           |
-| LLM personalized coaching                    | Module 15  | —        | ✅ Done — Module 16 coach over Growth Hub (ADR-025)   |
-| Nest growth hub parity                       | Module 15  | Low      | BFF is primary product path                           |
-| Voice + LLM conversational mock interview    | Module 12  | Medium   | Deterministic packs + confidence shipped              |
-| Nest interview prep parity                   | Module 12  | Low      | BFF is primary product path                           |
-| Full AI code review / sandboxed runner       | Module 13  | Medium   | Checklist + self scoring shipped                      |
-| Nest coding session parity                   | Module 13  | Low      | BFF is primary product path                           |
-| Nest career coach parity                     | Module 16  | Low      | BFF is primary product path                           |
-| Coach long-term memory / tool agents         | Module 16  | Medium   | Session JSON only for MVP                             |
-| Nest portfolio parity                        | Module 14  | Low      | BFF is primary product path                           |
-| Hosted portfolio site / GitHub project sync  | Module 14  | Medium   | Project library + suggestions shipped                 |
-| Nest networking parity                       | Module 8   | Low      | BFF is primary product path                           |
+| Nest applications CRUD parity                | Module 11  | Low      | Deprioritized                                         |
+| Application documents / attachments          | Module 11  | Low      | Link drafts only today                                |
+| Nest application-draft endpoints parity      | Module 9   | Low      | Deprioritized                                         |
+| Cover letter PDF / DOCX export               | Module 9   | Low      | ✅ Wave 1 — PDF                                       |
+| Weekly digest email                          | Module 17  | Medium   | ✅ Wave 1                                             |
+| NotificationLog / delivery audit             | Module 17  | Low      | Wave 5                                                |
+| In-app notification center                   | Module 17  | Low      | Wave 5                                                |
+| Nest saved-search / trending parity          | Module 5   | Low      | Deprioritized                                         |
+| employmentType / country / salaryMin in UI   | Module 5   | Low      | ✅ Wave 1                                             |
+| Skill.level / years in match scoring         | Module 6   | Low      | Profile proficiency not weighted yet                  |
+| Nest job insights parity                     | Module 6   | Low      | Deprioritized                                         |
+| External funding / interview data            | Module 7   | Medium   | Wave 6                                                |
+| Nest company profile parity                  | Module 7   | Low      | Deprioritized                                         |
+| LLM personalized coaching                    | Module 15  | —        | ✅ Done — Module 16 (ADR-025)                         |
+| Nest growth hub parity                       | Module 15  | Low      | Deprioritized                                         |
+| Voice + LLM conversational mock interview    | Module 12  | Medium   | Wave 4                                                |
+| Nest interview prep parity                   | Module 12  | Low      | Deprioritized                                         |
+| Full AI code review / sandboxed runner       | Module 13  | Medium   | Wave 4                                                |
+| Nest coding session parity                   | Module 13  | Low      | Deprioritized                                         |
+| Nest career coach parity                     | Module 16  | Low      | Deprioritized                                         |
+| Coach long-term memory / tool agents         | Module 16  | Medium   | Wave 4                                                |
+| Nest portfolio parity                        | Module 14  | Low      | Deprioritized                                         |
+| Hosted portfolio site / GitHub project sync  | Module 14  | Medium   | Wave 4                                                |
+| Nest networking parity                       | Module 8   | Low      | Deprioritized                                         |
 | LinkedIn scrape / auto-message               | Module 8   | —        | Explicitly out of scope (ADR-027)                     |
-| Nest apply-assist parity                     | Module 10  | Low      | BFF is primary product path                           |
-| Nest admin portal parity                     | Module 20  | Low      | Next `/admin` + BFF shipped (ADR-029)                 |
-| LaunchDarkly / A/B at scale                  | Module 20  | Low      | Postgres flags-lite shipped; Phase 6 for scale        |
-| Coach / support admin workflows              | Module 20  | Medium   | Roles exist; workflows deferred                       |
-| Production Playwright ATS adapters           | Module 10  | Medium   | Checklist + approval gate shipped (ADR-028)           |
+| Nest apply-assist parity                     | Module 10  | Low      | Deprioritized                                         |
+| Nest admin portal parity                     | Module 20  | Low      | Deprioritized                                         |
+| LaunchDarkly / A/B at scale                  | Module 20  | Low      | Wave 6                                                |
+| Coach / support admin workflows              | Module 20  | Medium   | Wave 5                                                |
+| Production Playwright ATS adapters           | Module 10  | Medium   | Wave 3                                                |
+| Team tier / referral / multi-region          | Phase 6    | Medium   | Waves 5–6                                             |

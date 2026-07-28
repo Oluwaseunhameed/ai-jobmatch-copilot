@@ -202,3 +202,96 @@ export function jobAlertEmail(input: {
   const text = `Hi ${input.name}, ${input.total} new job(s) for “${input.searchName}”:\n${textJobs}\n\n${url}`;
   return { subject: `${input.total} new job${input.total === 1 ? '' : 's'} for ${input.searchName} — ${BRAND}`, html, text };
 }
+
+export function weeklyDigestEmail(input: {
+  name: string;
+  weekOf: string;
+  savedJobs: number;
+  applications: number;
+  newMatches: Array<{ title: string; companyName: string; slug: string }>;
+  pipelineHighlights: Array<{ jobTitle: string; companyName: string; stageLabel: string }>;
+}) {
+  const dashboardUrl = appUrl('/dashboard');
+  const jobsUrl = appUrl('/jobs/saved');
+  const appsUrl = appUrl('/applications');
+  const name = escapeHtml(input.name);
+  const week = escapeHtml(input.weekOf);
+
+  const matchesList =
+    input.newMatches.length === 0
+      ? `<p style="margin:12px 0 0;color:#71717a;">No new catalog matches this week — try refining a saved search.</p>`
+      : `<ul style="margin:12px 0 0;padding-left:18px;line-height:1.5;">${input.newMatches
+          .map((job) => {
+            const href = appUrl(`/jobs/${job.slug}`);
+            return `<li style="margin:0 0 8px;"><a href="${href}" style="color:${PRIMARY};text-decoration:none;font-weight:600;">${escapeHtml(job.title)}</a> <span style="color:#71717a;">at ${escapeHtml(job.companyName)}</span></li>`;
+          })
+          .join('')}</ul>`;
+
+  const pipelineList =
+    input.pipelineHighlights.length === 0
+      ? `<p style="margin:12px 0 0;color:#71717a;">No active applications yet.</p>`
+      : `<ul style="margin:12px 0 0;padding-left:18px;line-height:1.5;">${input.pipelineHighlights
+          .map(
+            (row) =>
+              `<li style="margin:0 0 8px;"><strong>${escapeHtml(row.jobTitle)}</strong> at ${escapeHtml(row.companyName)} — <span style="color:#52525b;">${escapeHtml(row.stageLabel)}</span></li>`,
+          )
+          .join('')}</ul>`;
+
+  const html = layout(`
+    <h2 style="margin:0 0 8px;font-size:18px;color:#18181b;">Your week in review</h2>
+    <p style="margin:0;color:#52525b;line-height:1.6;">
+      Hi ${name}, here’s your ${BRAND} digest for the week of <strong>${week}</strong>.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border-collapse:collapse;">
+      <tr>
+        <td style="padding:12px;border:1px solid #e4e4e7;border-radius:8px;width:50%;">
+          <p style="margin:0;font-size:12px;color:#71717a;text-transform:uppercase;">Saved jobs</p>
+          <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#18181b;">${input.savedJobs}</p>
+        </td>
+        <td style="width:12px;"></td>
+        <td style="padding:12px;border:1px solid #e4e4e7;border-radius:8px;width:50%;">
+          <p style="margin:0;font-size:12px;color:#71717a;text-transform:uppercase;">Applications</p>
+          <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#18181b;">${input.applications}</p>
+        </td>
+      </tr>
+    </table>
+    <h3 style="margin:24px 0 0;font-size:15px;color:#18181b;">Fresh matches</h3>
+    ${matchesList}
+    <h3 style="margin:24px 0 0;font-size:15px;color:#18181b;">Pipeline</h3>
+    ${pipelineList}
+    ${button(dashboardUrl, 'Open dashboard')}
+    <p style="margin:16px 0 0;font-size:12px;color:#a1a1aa;">
+      <a href="${jobsUrl}" style="color:#71717a;">Saved jobs</a> ·
+      <a href="${appsUrl}" style="color:#71717a;">Applications</a>
+    </p>
+  `);
+
+  const textMatches =
+    input.newMatches.length === 0
+      ? 'No new matches this week.'
+      : input.newMatches
+          .map((job) => `- ${job.title} at ${job.companyName}: ${appUrl(`/jobs/${job.slug}`)}`)
+          .join('\n');
+  const textPipeline =
+    input.pipelineHighlights.length === 0
+      ? 'No active applications.'
+      : input.pipelineHighlights
+          .map((row) => `- ${row.jobTitle} at ${row.companyName} (${row.stageLabel})`)
+          .join('\n');
+
+  const text = [
+    `Hi ${input.name}, your weekly digest (${input.weekOf}):`,
+    `Saved jobs: ${input.savedJobs}`,
+    `Applications: ${input.applications}`,
+    '',
+    'Fresh matches:',
+    textMatches,
+    '',
+    'Pipeline:',
+    textPipeline,
+    '',
+    dashboardUrl,
+  ].join('\n');
+
+  return { subject: `Your weekly job search digest — ${BRAND}`, html, text };
+}

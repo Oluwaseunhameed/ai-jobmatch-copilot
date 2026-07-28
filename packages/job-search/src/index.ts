@@ -181,6 +181,8 @@ export {
   toSavedSearchDto,
 } from './alerts';
 
+export { runWeeklyDigests } from './digest';
+
 export {
   applySkillMatch,
   enrichJobsWithMatch,

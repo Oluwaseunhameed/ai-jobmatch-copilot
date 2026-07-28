@@ -306,3 +306,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Reuses the existing Next+Prisma product path, matches architecture roles, and unblocks ops without a second frontend.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
+
+---
+
+## ADR-030: Full Program — Waves 1–6 after Phase 5
+
+**Context:** Phases 0–5 delivered MVP depth for all 20 modules. Remaining work is deferred depth, Phase 6 enterprise, and tech debt — too large for a single sprint and uneven in dependency/risk.
+**Options:** Pick ad-hoc polish forever; jump straight to Phase 6 enterprise; sequence a **Full Program** of six waves.
+**Outcome:** **Accepted** — Deliver Waves 1→6 as documented in `ROADMAP.md` / `TASKS.md`. Wave 1 = polish & retention (digest, PDF exports, jobs filters, saved jobs, E2E). Nest parity stays optional/deprioritized. LinkedIn scrape remains out of scope (ADR-027). Each wave ships and verifies before the next starts.
+**Rationale:** Makes “get it all done” actionable without pretending enterprise + ATS adapters + LLM depth fit in one PR.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28

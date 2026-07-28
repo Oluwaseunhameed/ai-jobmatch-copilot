@@ -6,6 +6,7 @@ import { JobAlertWorker } from './job-alert.worker';
 import { JobEmbedWorker } from './job-embed.worker';
 import { ResumeOptimizeWorker } from './resume-optimize.worker';
 import { ResumeParseWorker } from './resume-parse.worker';
+import { WeeklyDigestWorker } from './weekly-digest.worker';
 
 @Module({
   providers: [
@@ -15,6 +16,7 @@ import { ResumeParseWorker } from './resume-parse.worker';
     ApplicationReminderWorker,
     JobAlertWorker,
     JobEmbedWorker,
+    WeeklyDigestWorker,
   ],
 })
 export class QueueModule {}
