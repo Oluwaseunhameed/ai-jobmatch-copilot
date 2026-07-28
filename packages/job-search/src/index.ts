@@ -207,10 +207,15 @@ export {
 export {
   applySkillMatch,
   enrichJobsWithMatch,
+  extractSkillsFromText,
   loadProfileSkillNames,
+  matchJobAgainstProfile,
   matchJobSkills,
   normalizeSkill,
+  resolveJobSkillsForMatch,
+  skillMentionedInText,
   sortJobsByMatchScore,
+  SKILL_LEXICON,
 } from './match';
 
 export {

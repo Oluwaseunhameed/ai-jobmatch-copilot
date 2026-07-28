@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { ApplicationAssistantPanel } from '@/components/jobs/application-assistant-panel';
 import { CodingPrepPanel } from '@/components/jobs/coding-prep-panel';
 import { InterviewPrepPanel } from '@/components/jobs/interview-prep-panel';
+import { JobDescription } from '@/components/jobs/job-description';
 import { JobInsightsPanel } from '@/components/jobs/job-insights-panel';
 import { TrackApplicationPanel } from '@/components/jobs/track-application-panel';
 import { ResumeOptimizePanel } from '@/components/resumes/resume-optimize-panel';
@@ -107,9 +108,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
           <Section title="About the role">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-              {job.description}
-            </p>
+            <JobDescription content={job.description} />
           </Section>
 
           {job.responsibilities.length > 0 && (

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { prisma } from '@jobmatch/database';
 
+import { extractSkillsFromText, SKILL_LEXICON } from '../match';
 import { indexJobsBySourceExternal } from '../meili';
 import { slugify } from './normalize';
 import type { NormalizedIngestJob } from './types';
@@ -13,6 +14,23 @@ function jobSlug(job: NormalizedIngestJob): string {
     .slice(0, 10);
   const base = slugify(`${job.companyName}-${job.title}`, 90);
   return `${job.source}-${base}-${hash}`.slice(0, 120);
+}
+
+function resolveIngestSkills(job: NormalizedIngestJob): string[] {
+  const tagged = (job.skills ?? []).map((s) => s.trim()).filter(Boolean);
+  const fromProse = extractSkillsFromText(
+    `${job.title}\n${job.description}`,
+    SKILL_LEXICON,
+  );
+  const merged: string[] = [];
+  const seen = new Set<string>();
+  for (const skill of [...tagged, ...fromProse]) {
+    const key = skill.toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(skill);
+  }
+  return merged.slice(0, 40);
 }
 
 export async function upsertIngestJob(job: NormalizedIngestJob): Promise<'upserted' | 'skipped'> {
@@ -53,7 +71,7 @@ export async function upsertIngestJob(job: NormalizedIngestJob): Promise<'upsert
     responsibilities: [] as string[],
     requirements: [] as string[],
     benefits: [] as string[],
-    skills: (job.skills ?? []).slice(0, 40),
+    skills: resolveIngestSkills(job),
     employmentType: job.employmentType ?? 'full-time',
     workMode: job.workMode ?? 'remote',
     seniority: job.seniority ?? 'mid',

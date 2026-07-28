@@ -7,7 +7,7 @@ import type {
 } from '@jobmatch/types';
 
 import { learningForSkill } from './growth';
-import { matchJobSkills, normalizeSkill } from './match';
+import { matchJobAgainstProfile, normalizeSkill } from './match';
 
 export type ProfileForInsights = {
   yearsOfExperience?: number | null;
@@ -254,7 +254,7 @@ export function buildJobInsights(
   profile: ProfileForInsights | null,
 ): JobInsightsDto {
   const profileSkillNames = profile?.skills.map((s) => s.name) ?? [];
-  const match = matchJobSkills(profileSkillNames, job.skills);
+  const match = matchJobAgainstProfile(job, profileSkillNames);
 
   const matchedSkills = match?.matchedSkills ?? [];
   const missingSkills = match?.missingSkills ?? [];

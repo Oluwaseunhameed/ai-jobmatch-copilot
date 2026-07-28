@@ -24,6 +24,7 @@ import {
   type SavedSearch,
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
+import { jobDescriptionExcerpt } from '@/components/jobs/job-description';
 
 const WORK_MODES = [
   { value: 'remote', label: 'Remote' },
@@ -652,7 +653,7 @@ function JobCard({
             {salary && <span>{salary}</span>}
           </div>
           <p className="line-clamp-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            {job.description}
+            {jobDescriptionExcerpt(job.description)}
           </p>
           {job.skills.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
