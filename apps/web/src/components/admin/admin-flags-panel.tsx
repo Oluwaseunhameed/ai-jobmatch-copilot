@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import type { AdminFeatureFlag } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
@@ -45,37 +47,46 @@ export function AdminFlagsPanel({ flags: initial }: { flags: AdminFeatureFlag[] 
           {error}
         </p>
       )}
-      <ul className="divide-y divide-border/70 rounded-lg border border-border/80">
-        {flags.map((flag) => (
-          <li key={flag.key} className="flex items-start justify-between gap-4 px-4 py-4">
-            <div className="min-w-0">
-              <p className="font-medium">{flag.key}</p>
-              {flag.description && (
-                <p className="mt-1 text-sm text-muted-foreground">{flag.description}</p>
-              )}
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={flag.enabled}
-              disabled={pendingKey === flag.key || isPending}
-              onClick={() => void toggle(flag.key, !flag.enabled)}
-              className={cn(
-                'relative h-7 w-12 shrink-0 rounded-full transition-colors',
-                flag.enabled ? 'bg-primary' : 'bg-muted',
-                (pendingKey === flag.key || isPending) && 'opacity-60',
-              )}
+      <div className="space-y-3">
+        {flags.map((flag) => {
+          const switchId = `admin-flag-${flag.key}`;
+          const busy = pendingKey === flag.key || isPending;
+
+          return (
+            <div
+              key={flag.key}
+              className="flex items-start justify-between gap-4 rounded-lg border border-border/80 bg-card/60 p-4"
             >
-              <span
-                className={cn(
-                  'absolute top-0.5 h-6 w-6 rounded-full bg-background shadow transition-transform',
-                  flag.enabled ? 'translate-x-5' : 'translate-x-0.5',
-                )}
-              />
-            </button>
-          </li>
-        ))}
-      </ul>
+              <div className="min-w-0 flex-1">
+                <Label htmlFor={switchId} className="cursor-pointer font-medium">
+                  {flag.key}
+                </Label>
+                {flag.description ? (
+                  <p className="mt-1 text-sm text-muted-foreground">{flag.description}</p>
+                ) : null}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-3 pt-0.5">
+                <span
+                  className={cn(
+                    'min-w-[2rem] text-right text-xs font-medium tabular-nums',
+                    flag.enabled ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground',
+                  )}
+                >
+                  {flag.enabled ? 'On' : 'Off'}
+                </span>
+                <Switch
+                  id={switchId}
+                  checked={flag.enabled}
+                  disabled={busy}
+                  aria-label={`Toggle ${flag.key}`}
+                  onCheckedChange={(enabled) => void toggle(flag.key, enabled)}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
