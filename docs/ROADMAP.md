@@ -125,10 +125,12 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 | Meilisearch keyword search (Postgres FTS fallback) | ✅ |
 | Advanced analytics dashboard (user + admin charts) | ✅ |
 
-### Wave 3 — Automation depth
+### Wave 3 — Automation depth ✅
 
-- Production Playwright ATS adapters (Greenhouse, Lever, etc.)
-- Apply-assist hardening (fixtures, observability)
+| Item | Status |
+|------|--------|
+| Playwright fill-only ATS adapters (Greenhouse, Lever, Ashby, Workable + fixture) | ✅ |
+| Apply-assist hardening (`run_fill`, observability, `/apply-fixture`, env/flag gates) | ✅ |
 
 ### Wave 4 — AI depth
 

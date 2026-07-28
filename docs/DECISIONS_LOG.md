@@ -291,7 +291,7 @@ Format: **Decision · Context · Options · Outcome · Date**
 
 **Context:** Phase 5 Module 10 needs Playwright-oriented application automation without violating the architecture rule that browser assist never submits without explicit user approval.
 **Options:** Unsupervised ATS auto-apply; browser extension; checklist + copyable fill plan + confirm-submitted, with Playwright limited to future fixture/approved fill only.
-**Outcome:** **Accepted** — `ApplyAssistSession` stores checklist, fill plan (profile/draft fields), open/approve/confirm timestamps, and a Playwright gate status. Users open `applyUrl`, approve the fill plan, paste values themselves, then confirm submission (moves pipeline to `applied`). Unsupervised Playwright submit and production ATS adapters remain deferred; fixture-only fill may be enabled later via `APPLY_AUTOMATION_FIXTURE`.
+**Outcome:** **Accepted** — `ApplyAssistSession` stores checklist, fill plan (profile/draft fields), open/approve/confirm timestamps, and a Playwright gate status. Users open `applyUrl`, approve the fill plan, paste values themselves (or run fill-only assist per ADR-033), then confirm submission (moves pipeline to `applied`). Unsupervised Playwright submit remains forbidden; production fill adapters are gated by `APPLY_AUTOMATION_LIVE` / fixture flags.
 **Rationale:** Ships useful assisted apply immediately while encoding the user-in-the-loop boundary in data + API.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28
@@ -337,5 +337,16 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Options:** OpenSearch cluster; Meilisearch only; stay on Postgres FTS forever.
 **Outcome:** **Accepted** — Optional Meilisearch behind `MEILI_HOST` for keyword search + facets; automatic fallback to Postgres FTS. Hybrid semantic search stays on Postgres/pgvector (ADR-011). Ingest best-effort indexes documents; `pnpm jobs:reindex` backfills. Advanced analytics = weekly time-series + pipeline charts on user dashboard and admin overview (Recharts), not a separate BI product. OpenSearch remains deferred.
 **Rationale:** Meilisearch is the lighter ops fit for this monorepo; preserves existing hybrid path; charts reuse Prisma aggregates already used for Module 18/20.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-28
+
+---
+
+## ADR-033: Wave 3 — Playwright ATS fill adapters (never unsupervised submit)
+
+**Context:** Wave 3 needed production ATS browser assist beyond checklist/copy-paste, while ADR-028 forbids unsupervised submit.
+**Options:** Full auto-apply; extension-only; fill-only Playwright adapters gated by env/flags + user-confirmed submit.
+**Outcome:** **Accepted** — Detect Greenhouse / Lever / Ashby / Workable (URL or ingest `source`) plus `/apply-fixture`. After fill-plan approval, `run_fill` launches Playwright to fill mapped fields only (never clicks Submit/Apply). Live ATS requires `APPLY_AUTOMATION_LIVE=1`; fixture assist uses `/apply-fixture` and/or `APPLY_AUTOMATION_FIXTURE` / admin `apply_automation_fixture`. Persist `atsVendor` + `fillAttemptJson` for observability. Stage still moves to `applied` only via `confirm_submitted`.
+**Rationale:** Delivers Wave 3 automation depth without weakening the user-in-the-loop submit boundary.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-28

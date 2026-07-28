@@ -669,9 +669,14 @@ model ApplyAssistSession {
   submittedAt    DateTime? @map("submitted_at")
   submitNote     String?   @map("submit_note") @db.Text
 
-  /// skipped | approved_pending | fixture_ran | blocked
+  /// skipped | approved_pending | fixture_ran | adapter_filled | adapter_failed | blocked
   playwrightStatus String  @default("skipped") @map("playwright_status")
   playwrightDetail String? @map("playwright_detail") @db.Text
+
+  /// greenhouse | lever | ashby | workable | fixture | unknown
+  atsVendor String? @map("ats_vendor")
+  /// Last fill attempt observability (no secrets): vendor, filled fields, errors, durationMs
+  fillAttemptJson Json? @map("fill_attempt_json")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

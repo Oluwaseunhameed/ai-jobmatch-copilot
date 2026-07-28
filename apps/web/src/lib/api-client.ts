@@ -357,12 +357,22 @@ export type ApplyAssistSession = {
   }>;
   readinessPct: number;
   applyUrl: string | null;
+  atsVendor?: string | null;
   openedAt: string | null;
   fillApprovedAt: string | null;
   submittedAt: string | null;
   submitNote: string | null;
   playwrightStatus: string;
   playwrightDetail: string | null;
+  lastFillAttempt?: {
+    vendor: string;
+    ok: boolean;
+    filled: string[];
+    errors: string[];
+    durationMs: number;
+    at: string;
+    browserRan: boolean;
+  } | null;
   createdAt: string;
   updatedAt: string;
   job?: {
@@ -370,6 +380,7 @@ export type ApplyAssistSession = {
     title: string;
     slug: string;
     companyName: string;
+    source?: string | null;
   };
 };
 
@@ -395,6 +406,16 @@ export function approveApplyFill(applicationId: string) {
     {
       method: 'POST',
       body: JSON.stringify({ action: 'approve_fill' }),
+    },
+  );
+}
+
+export function runApplyFill(applicationId: string, input?: { dryRun?: boolean }) {
+  return apiFetch<ApplyAssistSession>(
+    `/api/users/me/applications/${encodeURIComponent(applicationId)}/apply-assist`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ action: 'run_fill', dryRun: input?.dryRun === true }),
     },
   );
 }

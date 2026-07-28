@@ -4,6 +4,7 @@ import {
   confirmApplySubmitted,
   getOrCreateApplyAssist,
   markApplyOpened,
+  runApplyAssistFill,
 } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
@@ -34,9 +35,13 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const { id } = await params;
-  let body: { action?: string; submitNote?: string | null };
+  let body: { action?: string; submitNote?: string | null; dryRun?: boolean };
   try {
-    body = (await request.json()) as { action?: string; submitNote?: string | null };
+    body = (await request.json()) as {
+      action?: string;
+      submitNote?: string | null;
+      dryRun?: boolean;
+    };
   } catch {
     return NextResponse.json({ error: { message: 'Invalid JSON body' } }, { status: 400 });
   }
@@ -44,7 +49,12 @@ export async function POST(request: Request, { params }: Params) {
   const action = body.action?.trim();
   if (!action) {
     return NextResponse.json(
-      { error: { message: 'action is required (open | approve_fill | confirm_submitted)' } },
+      {
+        error: {
+          message:
+            'action is required (open | approve_fill | run_fill | confirm_submitted)',
+        },
+      },
       { status: 400 },
     );
   }
@@ -60,6 +70,18 @@ export async function POST(request: Request, { params }: Params) {
 
     if (action === 'approve_fill') {
       const session = await approveApplyFillPlan(app.user.id, id);
+      if (!session) {
+        return NextResponse.json({ error: { message: 'Application not found' } }, { status: 404 });
+      }
+      return NextResponse.json(session);
+    }
+
+    if (action === 'run_fill') {
+      const session = await runApplyAssistFill({
+        userId: app.user.id,
+        applicationId: id,
+        dryRun: body.dryRun === true,
+      });
       if (!session) {
         return NextResponse.json({ error: { message: 'Application not found' } }, { status: 404 });
       }

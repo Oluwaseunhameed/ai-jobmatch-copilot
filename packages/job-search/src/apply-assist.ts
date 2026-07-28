@@ -2,10 +2,13 @@ import type {
   ApplyAssistSessionDto,
   ApplyAssistStatus,
   ApplyChecklistItemDto,
+  ApplyFillAttemptDto,
   ApplyFillFieldDto,
   ApplyPlaywrightStatus,
 } from '@jobmatch/types';
 import { isApplyAssistStatus } from '@jobmatch/types';
+
+import { isFixtureApplyUrl } from './apply/ats-detect';
 
 export type ApplyAssistContext = {
   applyUrl: string | null;
@@ -20,6 +23,7 @@ export type ApplyAssistContext = {
   skills: string[];
   jobTitle: string;
   companyName: string;
+  jobSource?: string | null;
 };
 
 export function normalizeAssistStatus(value?: string | null): ApplyAssistStatus {
@@ -125,12 +129,13 @@ export function computeReadinessPct(checklist: ApplyChecklistItemDto[]): number 
 
 /**
  * Playwright gate: never auto-submit. Approval only records intent;
- * execution stays skipped unless a fixture URL is explicitly enabled.
+ * fill-only adapters run via explicit `run_fill` after approval.
  */
 export function evaluatePlaywrightGate(input: {
   fillApproved: boolean;
   applyUrl: string | null;
   allowFixture?: boolean;
+  liveFillEnabled?: boolean;
 }): { status: ApplyPlaywrightStatus; detail: string } {
   if (!input.fillApproved) {
     return {
@@ -139,25 +144,30 @@ export function evaluatePlaywrightGate(input: {
     };
   }
 
-  const fixtureEnabled =
-    input.allowFixture === true || process.env.APPLY_AUTOMATION_FIXTURE === '1';
-  const isFixture =
-    Boolean(input.applyUrl) &&
-    (/fixture|localhost:3999|example\.test\/apply/i.test(input.applyUrl ?? '') ||
-      fixtureEnabled);
+  if (isFixtureApplyUrl(input.applyUrl)) {
+    const fixtureEnabled =
+      input.allowFixture === true || process.env.APPLY_AUTOMATION_FIXTURE === '1';
+    return {
+      // Historical: allowFixture marks fixture as ready (fill still via run_fill).
+      status: fixtureEnabled ? 'fixture_ran' : 'approved_pending',
+      detail: fixtureEnabled
+        ? 'Fixture mode: fields may be filled in a local demo form only. Submit remains a manual user action.'
+        : 'Fill plan approved. Fixture URL detected — run fill-only assist; Submit remains a manual action.',
+    };
+  }
 
-  if (!isFixture) {
+  if (input.liveFillEnabled || process.env.APPLY_AUTOMATION_LIVE === '1') {
     return {
       status: 'approved_pending',
       detail:
-        'Fill plan approved. Playwright will not submit forms. Open the apply URL and paste fields yourself, then confirm submission.',
+        'Fill plan approved. Live ATS fill-only is enabled — run assist to fill fields. Never auto-submit; confirm after you submit.',
     };
   }
 
   return {
-    status: 'fixture_ran',
+    status: 'approved_pending',
     detail:
-      'Fixture mode: fields may be filled in a local demo form only. Submit remains a manual user action.',
+      'Fill plan approved. Playwright will not submit forms. Open the apply URL and paste fields yourself, then confirm submission.',
   };
 }
 
@@ -174,6 +184,8 @@ export function toApplyAssistSessionDto(row: {
   submitNote: string | null;
   playwrightStatus: string;
   playwrightDetail: string | null;
+  atsVendor?: string | null;
+  fillAttemptJson?: unknown;
   createdAt: Date;
   updatedAt: Date;
   application?: {
@@ -182,6 +194,7 @@ export function toApplyAssistSessionDto(row: {
       title: string;
       slug: string;
       applyUrl: string | null;
+      source?: string | null;
       company: { name: string };
     };
   };
@@ -193,6 +206,11 @@ export function toApplyAssistSessionDto(row: {
     ? (row.fillPlanJson as ApplyFillFieldDto[])
     : [];
 
+  const lastFillAttempt =
+    row.fillAttemptJson && typeof row.fillAttemptJson === 'object'
+      ? (row.fillAttemptJson as ApplyFillAttemptDto)
+      : null;
+
   return {
     id: row.id,
     userId: row.userId,
@@ -202,12 +220,14 @@ export function toApplyAssistSessionDto(row: {
     fillPlan,
     readinessPct: computeReadinessPct(checklist),
     applyUrl: row.application?.job?.applyUrl ?? null,
+    atsVendor: row.atsVendor ?? null,
     openedAt: row.openedAt?.toISOString() ?? null,
     fillApprovedAt: row.fillApprovedAt?.toISOString() ?? null,
     submittedAt: row.submittedAt?.toISOString() ?? null,
     submitNote: row.submitNote,
     playwrightStatus: row.playwrightStatus,
     playwrightDetail: row.playwrightDetail,
+    lastFillAttempt,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     job: row.application?.job
@@ -216,6 +236,7 @@ export function toApplyAssistSessionDto(row: {
           title: row.application.job.title,
           slug: row.application.job.slug,
           companyName: row.application.job.company.name,
+          source: row.application.job.source ?? null,
         }
       : undefined,
   };

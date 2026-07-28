@@ -9,7 +9,7 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "echo \"No lint configured yet\"",
-    "test": "tsx --test src/match.test.ts src/insights.test.ts src/company-profile.test.ts src/growth.test.ts src/interview.test.ts src/coding.test.ts src/coach.test.ts src/portfolio.test.ts src/networking.test.ts src/apply-assist.test.ts src/admin.test.ts src/ingest/normalize.test.ts",
+    "test": "tsx --test src/match.test.ts src/insights.test.ts src/company-profile.test.ts src/growth.test.ts src/interview.test.ts src/coding.test.ts src/coach.test.ts src/portfolio.test.ts src/networking.test.ts src/apply-assist.test.ts src/apply/apply-adapters.test.ts src/admin.test.ts src/ingest/normalize.test.ts",
     "jobs:embed": "tsx scripts/embed-jobs.ts",
     "jobs:ingest": "tsx scripts/ingest-jobs.ts",
     "jobs:purge-seed": "tsx scripts/purge-seed-jobs.ts",
@@ -19,7 +19,8 @@
     "@jobmatch/database": "workspace:*",
     "@jobmatch/email": "workspace:*",
     "@jobmatch/types": "workspace:*",
-    "meilisearch": "0.49.0"
+    "meilisearch": "0.49.0",
+    "playwright": "1.54.2"
   },
   "devDependencies": {
     "@jobmatch/typescript-config": "workspace:*",

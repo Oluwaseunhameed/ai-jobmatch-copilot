@@ -54,5 +54,11 @@ describe('apply assist', () => {
       allowFixture: true,
     });
     assert.equal(fixture.status, 'fixture_ran');
+
+    const applyFixturePath = evaluatePlaywrightGate({
+      fillApproved: true,
+      applyUrl: 'http://localhost:3000/apply-fixture',
+    });
+    assert.equal(applyFixturePath.status, 'approved_pending');
   });
 });

@@ -1,8 +1,8 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Full Program — Wave 3 (Automation depth)
+## Current Sprint: Full Program — Wave 4 (AI depth)
 
-### Phases 0–5 — Complete ✅ · Wave 1 — Complete ✅ · Wave 2 — Complete ✅
+### Phases 0–5 — Complete ✅ · Wave 1 — Complete ✅ · Wave 2 — Complete ✅ · Wave 3 — Complete ✅
 
 ### Wave 2 — Data & discovery ✅
 
@@ -14,10 +14,10 @@
 - [x] Meilisearch keyword search + `pnpm jobs:reindex` (Postgres FTS fallback)
 - [x] Advanced analytics dashboard (user `/dashboard` + admin trends)
 
-### Wave 3 — Automation depth
+### Wave 3 — Automation depth ✅
 
-- [ ] Production Playwright ATS adapters
-- [ ] Apply-assist hardening
+- [x] Production Playwright ATS adapters (Greenhouse / Lever / Ashby / Workable + `/apply-fixture`) — **fill-only**, never unsupervised submit (ADR-028 / ADR-033)
+- [x] Apply-assist hardening — `run_fill`, fill attempt observability, fixture page, env/flag gates
 
 ### Wave 4 — AI depth
 
@@ -101,5 +101,5 @@
 | Nest admin portal parity                     | Module 20  | Low      | Deprioritized                                         |
 | LaunchDarkly / A/B at scale                  | Module 20  | Low      | Wave 6                                                |
 | Coach / support admin workflows              | Module 20  | Medium   | Wave 5                                                |
-| Production Playwright ATS adapters           | Module 10  | Medium   | Wave 3                                                |
+| Production Playwright ATS adapters           | Module 10  | Medium   | Wave 3 ✅                                              |
 | Team tier / referral / multi-region          | Phase 6    | Medium   | Waves 5–6                                             |

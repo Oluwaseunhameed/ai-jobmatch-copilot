@@ -1166,7 +1166,17 @@ export type ApplyPlaywrightStatus =
   | 'skipped'
   | 'approved_pending'
   | 'fixture_ran'
+  | 'adapter_filled'
+  | 'adapter_failed'
   | 'blocked';
+
+export type AtsVendor =
+  | 'greenhouse'
+  | 'lever'
+  | 'ashby'
+  | 'workable'
+  | 'fixture'
+  | 'unknown';
 
 export const APPLY_ASSIST_STATUSES: ApplyAssistStatus[] = [
   'ready',
@@ -1196,6 +1206,17 @@ export interface ApplyFillFieldDto {
   sensitive: boolean;
 }
 
+export interface ApplyFillAttemptDto {
+  vendor: AtsVendor | string;
+  ok: boolean;
+  filled: string[];
+  errors: string[];
+  durationMs: number;
+  at: string;
+  /** True when Playwright launched; false for dry-run / unavailable browser. */
+  browserRan: boolean;
+}
+
 export interface ApplyAssistSessionDto {
   id: string;
   userId: string;
@@ -1205,12 +1226,14 @@ export interface ApplyAssistSessionDto {
   fillPlan: ApplyFillFieldDto[];
   readinessPct: number;
   applyUrl: string | null;
+  atsVendor: AtsVendor | string | null;
   openedAt: string | null;
   fillApprovedAt: string | null;
   submittedAt: string | null;
   submitNote: string | null;
   playwrightStatus: ApplyPlaywrightStatus | string;
   playwrightDetail: string | null;
+  lastFillAttempt: ApplyFillAttemptDto | null;
   createdAt: string;
   updatedAt: string;
   job?: {
@@ -1218,5 +1241,6 @@ export interface ApplyAssistSessionDto {
     title: string;
     slug: string;
     companyName: string;
+    source?: string | null;
   };
 }

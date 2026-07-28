@@ -145,7 +145,17 @@ export {
   confirmApplySubmitted,
   getOrCreateApplyAssist,
   markApplyOpened,
+  runApplyAssistFill,
 } from './apply-assist-service';
+
+export {
+  atsVendorLabel,
+  buildSelectorPlan,
+  canRunAssistFill,
+  detectAts,
+  isFixtureApplyUrl,
+  runAtsFill,
+} from './apply';
 
 export {
   DEFAULT_FEATURE_FLAGS,

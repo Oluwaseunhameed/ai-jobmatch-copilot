@@ -10,6 +10,7 @@ import {
   confirmApplySubmitted,
   getApplyAssist,
   markApplyOpened,
+  runApplyFill,
   type ApplyAssistSession,
   type Application,
 } from '@/lib/api-client';
@@ -24,7 +25,9 @@ export function ApplyAssistPanel({
 }) {
   const [session, setSession] = useState<ApplyAssistSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pendingAction, setPendingAction] = useState<'open' | 'approve' | 'confirm' | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    'open' | 'approve' | 'fill' | 'confirm' | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -51,7 +54,7 @@ export function ApplyAssistPanel({
   }, [application.id]);
 
   async function run(
-    actionKey: 'open' | 'approve' | 'confirm',
+    actionKey: 'open' | 'approve' | 'fill' | 'confirm',
     action: () => Promise<ApplyAssistSession>,
   ) {
     setPendingAction(actionKey);
@@ -93,6 +96,9 @@ export function ApplyAssistPanel({
 
   const submitted = session.status === 'submitted';
   const pending = pendingAction != null;
+  const canRunFill =
+    session.status === 'fill_approved' || Boolean(session.fillApprovedAt);
+  const attempt = session.lastFillAttempt;
 
   return (
     <div className="mt-5 space-y-4 rounded-xl border border-border/80 bg-muted/20 p-4">
@@ -100,10 +106,11 @@ export function ApplyAssistPanel({
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Assisted apply
+            {session.atsVendor ? ` · ${session.atsVendor}` : ''}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Checklist + approved fill plan. Playwright never submits without you — confirm after you
-            apply.
+            Checklist + approved fill plan. Fill-only browser assist never submits — confirm after
+            you apply.
           </p>
         </div>
         <p className="text-sm font-medium tabular-nums text-foreground">
@@ -178,6 +185,13 @@ export function ApplyAssistPanel({
         </p>
       ) : null}
 
+      {attempt ? (
+        <p className="text-xs text-muted-foreground">
+          Last fill · {attempt.ok ? 'ok' : 'failed'} · {attempt.filled.length} field(s)
+          {attempt.errors.length ? ` · ${attempt.errors[0]}` : ''} · {attempt.durationMs}ms
+        </p>
+      ) : null}
+
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       {!submitted ? (
@@ -200,6 +214,15 @@ export function ApplyAssistPanel({
             >
               {pendingAction === 'approve' ? <Spinner size="sm" /> : null}
               Approve fill plan
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={pending || !canRunFill}
+              onClick={() => void run('fill', () => runApplyFill(application.id))}
+            >
+              {pendingAction === 'fill' ? <Spinner size="sm" /> : null}
+              Run fill assist
             </Button>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">

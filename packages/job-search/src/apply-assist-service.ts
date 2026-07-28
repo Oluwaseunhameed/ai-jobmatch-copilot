@@ -1,5 +1,5 @@
 import { prisma, type Prisma } from '@jobmatch/database';
-import type { ApplyAssistSessionDto } from '@jobmatch/types';
+import type { ApplyAssistSessionDto, ApplyFillAttemptDto } from '@jobmatch/types';
 
 import {
   buildApplyChecklist,
@@ -9,6 +9,8 @@ import {
   toApplyAssistSessionDto,
   type ApplyAssistContext,
 } from './apply-assist';
+import { atsVendorLabel, detectAts, isFixtureApplyUrl } from './apply/ats-detect';
+import { runAtsFill } from './apply/run-fill';
 
 export {
   buildApplyChecklist,
@@ -30,6 +32,14 @@ const assistInclude = {
   },
 } satisfies Prisma.ApplyAssistSessionInclude;
 
+async function isFixtureFlagEnabled(): Promise<boolean> {
+  if (process.env.APPLY_AUTOMATION_FIXTURE === '1') return true;
+  const row = await prisma.appFeatureFlag.findUnique({
+    where: { key: 'apply_automation_fixture' },
+  });
+  return Boolean(row?.enabled);
+}
+
 async function loadContext(userId: string, applicationId: string): Promise<{
   application: {
     id: string;
@@ -42,6 +52,7 @@ async function loadContext(userId: string, applicationId: string): Promise<{
       title: string;
       slug: string;
       applyUrl: string | null;
+      source: string;
       company: { name: string };
     };
     resume: { id: string; title: string } | null;
@@ -99,6 +110,7 @@ async function loadContext(userId: string, applicationId: string): Promise<{
     skills: profile?.skills.map((s) => s.name) ?? [],
     jobTitle: application.job.title,
     companyName: application.job.company.name,
+    jobSource: application.job.source,
   };
 
   return { application, ctx };
@@ -113,6 +125,7 @@ export async function getOrCreateApplyAssist(
 
   const checklist = buildApplyChecklist(loaded.ctx);
   const fillPlan = buildFillPlan(loaded.ctx);
+  const vendor = detectAts(loaded.ctx.applyUrl, loaded.ctx.jobSource);
 
   const existing = await prisma.applyAssistSession.findUnique({
     where: { applicationId },
@@ -129,6 +142,7 @@ export async function getOrCreateApplyAssist(
       data: {
         checklistJson: checklist as unknown as Prisma.InputJsonValue,
         fillPlanJson: fillPlan as unknown as Prisma.InputJsonValue,
+        atsVendor: vendor,
         status:
           existing.status === 'cancelled'
             ? 'ready'
@@ -146,6 +160,7 @@ export async function getOrCreateApplyAssist(
       status: 'ready',
       checklistJson: checklist as unknown as Prisma.InputJsonValue,
       fillPlanJson: fillPlan as unknown as Prisma.InputJsonValue,
+      atsVendor: vendor,
       playwrightStatus: 'skipped',
       playwrightDetail: 'Awaiting user approval before any browser assist.',
     },
@@ -197,18 +212,105 @@ export async function approveApplyFillPlan(
     );
   }
 
+  const allowFixture = await isFixtureFlagEnabled();
   const gate = evaluatePlaywrightGate({
     fillApproved: true,
     applyUrl: loaded.ctx.applyUrl,
+    allowFixture,
+    liveFillEnabled: process.env.APPLY_AUTOMATION_LIVE === '1',
   });
+  const vendor = detectAts(loaded.ctx.applyUrl, loaded.ctx.jobSource);
 
   const row = await prisma.applyAssistSession.update({
     where: { id: session.id },
     data: {
       status: 'fill_approved',
       fillApprovedAt: new Date(),
+      atsVendor: vendor,
       playwrightStatus: gate.status,
       playwrightDetail: gate.detail,
+    },
+    include: assistInclude,
+  });
+
+  return toApplyAssistSessionDto(row);
+}
+
+/**
+ * Fill-only Playwright assist. Never submits. Requires prior fill-plan approval.
+ */
+export async function runApplyAssistFill(input: {
+  userId: string;
+  applicationId: string;
+  /** Plan selectors without launching Chromium. */
+  dryRun?: boolean;
+}): Promise<ApplyAssistSessionDto | null> {
+  const loaded = await loadContext(input.userId, input.applicationId);
+  if (!loaded) return null;
+
+  const session = await getOrCreateApplyAssist(input.userId, input.applicationId);
+  if (!session) return null;
+  if (session.status === 'submitted') return session;
+
+  if (session.status !== 'fill_approved' && !session.fillApprovedAt) {
+    throw new Error('Approve the fill plan before running browser assist.');
+  }
+
+  const applyUrl = loaded.ctx.applyUrl;
+  if (!applyUrl) {
+    throw new Error('No apply URL on this job — cannot run fill assist.');
+  }
+
+  const vendor = detectAts(applyUrl, loaded.ctx.jobSource);
+  const allowFixture = await isFixtureFlagEnabled();
+  const liveEnabled = process.env.APPLY_AUTOMATION_LIVE === '1';
+
+  if (vendor === 'unknown') {
+    throw new Error(
+      'ATS vendor unknown — use a Greenhouse/Lever/Ashby/Workable URL, or /apply-fixture for local demo.',
+    );
+  }
+
+  if (vendor !== 'fixture' && !liveEnabled) {
+    // Still allow dry-run planning without live env.
+    if (!input.dryRun) {
+      throw new Error(
+        `${atsVendorLabel(vendor)} live fill requires APPLY_AUTOMATION_LIVE=1 (fill-only; never auto-submit).`,
+      );
+    }
+  }
+
+  // Fixture fill: URL-based fixtures are always allowed; flag/env for explicit enable elsewhere.
+  if (vendor === 'fixture' && !isFixtureApplyUrl(applyUrl) && !allowFixture) {
+    throw new Error('Enable apply_automation_fixture (admin) or APPLY_AUTOMATION_FIXTURE=1.');
+  }
+
+  const attempt: ApplyFillAttemptDto = await runAtsFill({
+    applyUrl,
+    fillPlan: session.fillPlan,
+    vendor,
+    dryRun: input.dryRun === true,
+    headless: true,
+  });
+
+  const playwrightStatus = attempt.ok
+    ? vendor === 'fixture'
+      ? 'fixture_ran'
+      : 'adapter_filled'
+    : 'adapter_failed';
+
+  const detail = attempt.ok
+    ? `Filled ${attempt.filled.length} field(s) via ${atsVendorLabel(vendor)} (${attempt.browserRan ? 'browser' : 'dry-run'}). Submit remains manual — confirm after you apply.`
+    : `Fill assist failed: ${attempt.errors.join('; ') || 'unknown error'}. Paste manually, then confirm submission.`;
+
+  const row = await prisma.applyAssistSession.update({
+    where: { id: session.id },
+    data: {
+      status: 'fill_approved',
+      atsVendor: vendor,
+      fillAttemptJson: attempt as unknown as Prisma.InputJsonValue,
+      playwrightStatus,
+      playwrightDetail: detail,
     },
     include: assistInclude,
   });
@@ -230,6 +332,13 @@ export async function confirmApplySubmitted(input: {
   const note = input.submitNote?.trim().slice(0, 2000) || null;
   const stamp = new Date();
 
+  const keepPw =
+    session.playwrightStatus === 'fixture_ran' ||
+    session.playwrightStatus === 'adapter_filled' ||
+    session.playwrightStatus === 'adapter_failed'
+      ? session.playwrightStatus
+      : 'skipped';
+
   const [row] = await prisma.$transaction([
     prisma.applyAssistSession.update({
       where: { id: session.id },
@@ -237,8 +346,7 @@ export async function confirmApplySubmitted(input: {
         status: 'submitted',
         submittedAt: stamp,
         submitNote: note,
-        playwrightStatus:
-          session.playwrightStatus === 'fixture_ran' ? 'fixture_ran' : 'skipped',
+        playwrightStatus: keepPw,
         playwrightDetail:
           session.playwrightDetail ??
           'User confirmed submission manually. No unsupervised Playwright submit.',

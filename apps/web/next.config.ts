@@ -11,7 +11,13 @@ const nextConfig: NextConfig = {
   ],
   // Queue has a compiled CommonJS entry and must remain external so webpack
   // does not traverse BullMQ's unused optional Valkey transport.
-  serverExternalPackages: ['@prisma/client', '@jobmatch/queue', 'bullmq'],
+  serverExternalPackages: [
+    '@prisma/client',
+    '@jobmatch/queue',
+    'bullmq',
+    'playwright',
+    'playwright-core',
+  ],
   webpack(config, { webpack }) {
     // BullMQ exports its optional Valkey adapter from the package root. Webpack
     // attempts to resolve that adapter even though this app uses Redis/ioredis,
