@@ -23,6 +23,8 @@ const fr = {
     account: 'Compte',
     security: 'Sécurité',
     plan: 'Offre',
+    team: 'Équipe',
+    referral: 'Parrainage',
     appearance: 'Apparence',
     notifications: 'Notifications',
     theme: 'Thème',

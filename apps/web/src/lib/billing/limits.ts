@@ -77,9 +77,9 @@ export async function assertWithinPlanLimit(userId: string, action: PlanAction) 
         used,
         planId,
         message:
-          planId === 'pro'
-            ? `Pro plan allows ${limits.maxResumes} resumes.`
-            : `Free plan allows ${limits.maxResumes} resumes. Upgrade to Pro for more.`,
+          planId === 'free'
+            ? `Free plan allows ${limits.maxResumes} resumes. Upgrade to Pro for more.`
+            : `${planId === 'team' ? 'Team' : 'Pro'} plan allows ${limits.maxResumes} resumes.`,
       });
     }
     return { planId, limits, used };
@@ -96,9 +96,9 @@ export async function assertWithinPlanLimit(userId: string, action: PlanAction) 
         used,
         planId,
         message:
-          planId === 'pro'
-            ? `Pro plan allows ${limits.maxSavedJobs} saved jobs.`
-            : `Free plan allows ${limits.maxSavedJobs} saved jobs. Upgrade to Pro for more.`,
+          planId === 'free'
+            ? `Free plan allows ${limits.maxSavedJobs} saved jobs. Upgrade to Pro for more.`
+            : `${planId === 'team' ? 'Team' : 'Pro'} plan allows ${limits.maxSavedJobs} saved jobs.`,
       });
     }
     return { planId, limits, used };

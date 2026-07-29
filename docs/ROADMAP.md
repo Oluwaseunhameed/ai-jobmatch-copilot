@@ -149,6 +149,7 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 - Referral program
 - In-app notification center + NotificationLog
 - Education / Experience profile models
+- Team checkout + plan gating; referral cookie redeem harden (ADR-037)
 
 ### Wave 6 — Scale & infra
 

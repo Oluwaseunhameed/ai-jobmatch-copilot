@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 type LemonPayload = {
   meta?: {
     event_name?: string;
-    custom_data?: { user_id?: string; purchase_type?: string };
+    custom_data?: { user_id?: string; purchase_type?: string; plan_id?: string };
   };
   data?: {
     id?: string;
@@ -80,6 +80,7 @@ export async function POST(request: Request) {
       userId,
       status,
       provider: 'lemon_squeezy',
+      planId: payload.meta?.custom_data?.plan_id === 'team' ? 'team' : undefined,
       providerCustomerId: attrs?.customer_id != null ? String(attrs.customer_id) : null,
       providerSubscriptionId: payload.data?.id ? String(payload.data.id) : null,
       providerVariantId: attrs?.variant_id != null ? String(attrs.variant_id) : null,
@@ -94,12 +95,13 @@ export async function POST(request: Request) {
   if (event === 'order_created' || event === 'order_refunded') {
     const variantId =
       attrs?.first_order_item?.variant_id ?? attrs?.variant_id ?? null;
-    const oneTimeVariant = process.env.LEMON_SQUEEZY_PRO_ONETIME_VARIANT_ID;
+    const oneTimeVariants = [
+      process.env.LEMON_SQUEEZY_PRO_ONETIME_VARIANT_ID,
+      process.env.LEMON_SQUEEZY_TEAM_ONETIME_VARIANT_ID,
+    ].filter(Boolean);
     const isOneTime =
       payload.meta?.custom_data?.purchase_type === 'one_time' ||
-      (oneTimeVariant != null &&
-        variantId != null &&
-        String(variantId) === String(oneTimeVariant));
+      (variantId != null && oneTimeVariants.some((id) => String(variantId) === String(id)));
 
     if (isOneTime) {
       const periodEnd = new Date();
@@ -108,6 +110,7 @@ export async function POST(request: Request) {
         userId,
         status: event === 'order_refunded' ? 'canceled' : 'active',
         provider: 'lemon_squeezy',
+        planId: payload.meta?.custom_data?.plan_id === 'team' ? 'team' : undefined,
         providerCustomerId: attrs?.customer_id != null ? String(attrs.customer_id) : null,
         providerSubscriptionId: payload.data?.id ? `order_${payload.data.id}` : null,
         providerVariantId: variantId != null ? String(variantId) : null,

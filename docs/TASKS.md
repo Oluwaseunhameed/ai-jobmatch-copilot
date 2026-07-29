@@ -41,6 +41,12 @@
 - [x] In-app notification center + NotificationLog
 - [x] Education / Experience models
 
+### Wave 5 follow-up (pre–Wave 6) ✅
+
+- [x] Team plan checkout (Lemon/Paystack) + webhook `planId` mapping + create/invite gate
+- [x] Referral `jm_ref` redeem after Clerk webhook race + cookie clear
+- [x] Settings i18n for Team / Referral; interview/coding hub copy refresh
+
 ### Wave 6 — Scale & infra
 
 - [ ] Multi-region deployment
@@ -72,7 +78,7 @@
 | Nest optimize endpoints parity               | Module 4   | Low      | Deprioritized                                         |
 | Licensed job API ingestion                   | Module 5   | Medium   | ✅ Wave 2 — multi-provider ingest (ADR-031)           |
 | Meilisearch / OpenSearch                     | Module 5   | Low      | ✅ Wave 2 — Meilisearch + FTS fallback (ADR-032)      |
-| LLM JD narrative insights                    | Module 6   | Medium   | Wave 4                                                |
+| LLM JD narrative insights                    | Module 6   | —        | ✅ Wave 4                                             |
 | Required vs preferred job skills split       | Module 6   | Low      | Single `Job.skills[]` for now                         |
 | Dedicated saved-jobs route                   | Module 18  | Low      | ✅ Wave 1 — `/jobs/saved`                             |
 | Charts / advanced analytics                  | Module 18  | Low      | ✅ Wave 2 — dashboard + admin trends                  |
@@ -93,14 +99,14 @@
 | Nest company profile parity                  | Module 7   | Low      | Deprioritized                                         |
 | LLM personalized coaching                    | Module 15  | —        | ✅ Done — Module 16 (ADR-025)                         |
 | Nest growth hub parity                       | Module 15  | Low      | Deprioritized                                         |
-| Voice + LLM conversational mock interview    | Module 12  | Medium   | Wave 4                                                |
+| Voice + LLM conversational mock interview    | Module 12  | —        | ✅ Wave 4 (TTS deferred)                              |
 | Nest interview prep parity                   | Module 12  | Low      | Deprioritized                                         |
-| Full AI code review / sandboxed runner       | Module 13  | Medium   | Wave 4                                                |
+| Full AI code review / sandboxed runner       | Module 13  | —        | ✅ Wave 4 review API; sandbox deferred                |
 | Nest coding session parity                   | Module 13  | Low      | Deprioritized                                         |
 | Nest career coach parity                     | Module 16  | Low      | Deprioritized                                         |
-| Coach long-term memory / tool agents         | Module 16  | Medium   | Wave 4                                                |
+| Coach long-term memory / tool agents         | Module 16  | —        | ✅ Wave 4                                             |
 | Nest portfolio parity                        | Module 14  | Low      | Deprioritized                                         |
-| Hosted portfolio site / GitHub project sync  | Module 14  | Medium   | Wave 4                                                |
+| Hosted portfolio site / GitHub project sync  | Module 14  | —        | ✅ Wave 4                                             |
 | Nest networking parity                       | Module 8   | Low      | Deprioritized                                         |
 | LinkedIn scrape / auto-message               | Module 8   | —        | Explicitly out of scope (ADR-027)                     |
 | Nest apply-assist parity                     | Module 10  | Low      | Deprioritized                                         |
@@ -108,4 +114,4 @@
 | LaunchDarkly / A/B at scale                  | Module 20  | Low      | Wave 6                                                |
 | Coach / support admin workflows              | Module 20  | —        | ✅ Wave 5                                             |
 | Production Playwright ATS adapters           | Module 10  | Medium   | Wave 3 ✅                                              |
-| Team tier / referral / multi-region          | Phase 6    | Medium   | Team + referral ✅ Wave 5; multi-region Wave 6         |
+| Team tier / referral / multi-region          | Phase 6    | Medium   | Team + referral + Team checkout ✅; multi-region Wave 6 |

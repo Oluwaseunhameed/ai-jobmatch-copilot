@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@jobmatch/database';
-import type { BillingProvider } from '@jobmatch/types';
+import type { BillingProvider, PlanId } from '@jobmatch/types';
 
 import { requireAppUser } from '@/lib/auth';
-import { createLemonCheckout, lemonConfigured } from '@/lib/billing/lemon';
-import { createPaystackCheckout, paystackConfigured } from '@/lib/billing/paystack';
+import {
+  createLemonCheckout,
+  lemonConfigured,
+  lemonTeamConfigured,
+} from '@/lib/billing/lemon';
+import {
+  createPaystackCheckout,
+  paystackConfigured,
+  paystackTeamConfigured,
+} from '@/lib/billing/paystack';
 import { resolveBillingProvider } from '@/lib/billing/region';
 import { resolveUserPlanId } from '@/lib/billing/limits';
 
@@ -43,6 +51,8 @@ export async function GET() {
       providers: {
         lemon_squeezy: lemonConfigured(),
         paystack: paystackConfigured(),
+        lemon_team: lemonTeamConfigured(),
+        paystack_team: paystackTeamConfigured(),
       },
     },
     { headers: { 'Cache-Control': 'no-store' } },
@@ -58,7 +68,10 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
     provider?: BillingProvider;
     purchaseType?: 'subscription' | 'one_time';
+    planId?: PlanId;
   } | null;
+
+  const checkoutPlan: 'pro' | 'team' = body?.planId === 'team' ? 'team' : 'pro';
 
   const profile = await prisma.careerProfile.findUnique({
     where: { userId: app.user.id },
@@ -73,7 +86,19 @@ export async function POST(request: Request) {
 
   try {
     if (provider === 'paystack') {
-      if (!paystackConfigured()) {
+      if (checkoutPlan === 'team') {
+        if (!paystackTeamConfigured()) {
+          return NextResponse.json(
+            {
+              error: {
+                message:
+                  'Paystack Team is not configured yet. Add PAYSTACK_TEAM_PLAN_CODE or PAYSTACK_TEAM_AMOUNT_KOBO.',
+              },
+            },
+            { status: 503 },
+          );
+        }
+      } else if (!paystackConfigured()) {
         return NextResponse.json(
           {
             error: {
@@ -88,11 +113,24 @@ export async function POST(request: Request) {
         userId: app.user.id,
         email: app.user.email,
         mode: purchaseType,
+        planId: checkoutPlan,
       });
       return NextResponse.json({ provider, url: checkout.url, reference: checkout.reference });
     }
 
-    if (!lemonConfigured()) {
+    if (checkoutPlan === 'team') {
+      if (!lemonTeamConfigured()) {
+        return NextResponse.json(
+          {
+            error: {
+              message:
+                'Lemon Squeezy Team is not configured yet. Add LEMON_SQUEEZY_TEAM_VARIANT_ID.',
+            },
+          },
+          { status: 503 },
+        );
+      }
+    } else if (!lemonConfigured()) {
       return NextResponse.json(
         {
           error: {
@@ -109,6 +147,7 @@ export async function POST(request: Request) {
       email: app.user.email,
       name: app.user.name,
       purchaseType,
+      planId: checkoutPlan,
     });
     return NextResponse.json({ provider, url: checkout.url });
   } catch (error) {

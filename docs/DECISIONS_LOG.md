@@ -379,7 +379,18 @@ Format: **Decision · Context · Options · Outcome · Date**
 
 **Context:** Wave 5 needed structured education/work experience on profiles, durable notification delivery with an in-app center, a Team plan tier for coach-led cohorts, coach/support staff workflows, and a referral loop that rewards after onboarding — without unsupervised apply automation or a separate notification microservice.
 **Options:** Third-party notification inbox; email-only alerts; full enterprise SSO org model; minimal Prisma + BFF extensions on the existing monorepo.
-**Outcome:** **Accepted** — `Education` / `WorkExperience` on `CareerProfile` with BFF PUT + profile UI. `NotificationLog` stores in-app rows; transactional emails in `resume-parsing/notifications` always `recordInApp` when the user exists, then respect email prefs. Header bell polls BFF `/api/users/me/notifications`. `Team` + `TeamMembership` + `CoachAssignment` with `team` plan limits (`TEAM_PLAN_LIMITS`, display-only checkout). Coach desk (`requireCoach`) and support lookup (`requireSupport`) BFF routes + pages. Referrals: `/register?ref=` → `jm_ref` cookie → `redeemReferralCode` on first user ensure; `maybeRewardReferral` on onboarding complete extends referrer Pro.
+**Outcome:** **Accepted** — `Education` / `WorkExperience` on `CareerProfile` with BFF PUT + profile UI. `NotificationLog` stores in-app rows; transactional emails in `resume-parsing/notifications` always `recordInApp` when the user exists, then respect email prefs. Header bell polls BFF `/api/users/me/notifications`. `Team` + `TeamMembership` + `CoachAssignment` with `team` plan limits (`TEAM_PLAN_LIMITS`). Coach desk (`requireCoach`) and support lookup (`requireSupport`) BFF routes + pages. Referrals: `/register?ref=` → `jm_ref` cookie → `redeemReferralCode` on authenticated requests while cookie present; `maybeRewardReferral` on onboarding complete extends referrer Pro. Team checkout + plan gating completed in ADR-037.
 **Rationale:** Keeps Wave 5 on the established Next BFF + Prisma pattern, ships staff tooling with role gates, and ties growth mechanics to completed onboarding rather than signup alone.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-29
+
+---
+
+## ADR-037: Team plan checkout + referral attribution harden
+
+**Context:** Wave 5 shipped Team models/UI but checkout always wrote `planId: 'pro'`, team create was ungated, and referral redeem only ran on first local-user ensure (Clerk webhook race skipped attribution).
+**Options:** Keep Team as manual DB promotion; separate Team billing service; extend existing Lemon/Paystack checkout + webhook mapping.
+**Outcome:** **Accepted** — Checkout accepts `planId: 'pro' | 'team'` with `LEMON_SQUEEZY_TEAM_VARIANT_ID` / `PAYSTACK_TEAM_PLAN_CODE` (+ optional amounts). Webhooks pass `plan_id` custom/metadata and map variant/plan codes via `resolvePaidPlanId`. Team create/invite require active Team subscription. Referral redeem runs whenever `jm_ref` is present on `requireAppUser`, then clears the cookie.
+**Rationale:** Reuses Pro billing plumbing; prevents free Team abuse; closes webhook/ensure race without Clerk custom metadata.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-29

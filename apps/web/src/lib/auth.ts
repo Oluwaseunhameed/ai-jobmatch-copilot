@@ -14,6 +14,26 @@ export type AdminGateResult =
   | { status: 'forbidden' };
 
 /**
+ * Attribute `jm_ref` cookie even when Clerk webhook created the user first
+ * (ensure path would otherwise skip redeem forever). Clears cookie after attempt.
+ */
+async function maybeRedeemReferralCookie(userId: string) {
+  const jar = await cookies();
+  const refCode = jar.get('jm_ref')?.value?.trim();
+  if (!refCode) return;
+  try {
+    await redeemReferralCode({ referredUserId: userId, code: refCode });
+  } catch {
+    // best-effort
+  }
+  try {
+    jar.delete('jm_ref');
+  } catch {
+    // cookie may be read-only in some contexts
+  }
+}
+
+/**
  * Require a Clerk session and a mirrored Postgres User.
  *
  * Prefer the local DB row keyed by session userId. `currentUser()` hits Clerk's
@@ -31,6 +51,7 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
     include: { preferences: true },
   });
   if (existing) {
+    await maybeRedeemReferralCookie(existing.id);
     return { userId: session.userId, user: existing };
   }
 
@@ -58,14 +79,7 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
       image: clerkUser.imageUrl,
     });
 
-    const refCode = (await cookies()).get('jm_ref')?.value;
-    if (refCode) {
-      try {
-        await redeemReferralCode({ referredUserId: user.id, code: refCode });
-      } catch {
-        // best-effort
-      }
-    }
+    await maybeRedeemReferralCookie(user.id);
 
     return {
       userId: session.userId,

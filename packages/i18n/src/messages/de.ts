@@ -23,6 +23,8 @@ const de = {
     account: 'Konto',
     security: 'Sicherheit',
     plan: 'Tarif',
+    team: 'Team',
+    referral: 'Empfehlung',
     appearance: 'Darstellung',
     notifications: 'Benachrichtigungen',
     theme: 'Design',

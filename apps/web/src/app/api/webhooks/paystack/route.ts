@@ -15,7 +15,7 @@ type PaystackEvent = {
     plan?: { plan_code?: string };
     authorization?: { authorization_code?: string };
     paid_at?: string;
-    metadata?: { user_id?: string };
+    metadata?: { user_id?: string; plan_id?: string };
     subscription_code?: string;
     next_payment_date?: string;
   };
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
       userId,
       status: 'active',
       provider: 'paystack',
+      planId: data?.metadata?.plan_id === 'team' ? 'team' : undefined,
       providerCustomerId: data?.customer?.customer_code ?? null,
       providerSubscriptionId:
         data?.subscription_code || data?.reference || data?.authorization?.authorization_code || null,
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
       userId,
       status: 'canceled',
       provider: 'paystack',
+      planId: data?.metadata?.plan_id === 'team' ? 'team' : undefined,
       providerCustomerId: data?.customer?.customer_code ?? null,
       providerSubscriptionId: data?.subscription_code ?? null,
       providerVariantId: data?.plan?.plan_code ?? null,

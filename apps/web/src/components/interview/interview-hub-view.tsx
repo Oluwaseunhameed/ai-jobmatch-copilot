@@ -17,7 +17,8 @@ export function InterviewHubView({ preps }: { preps: InterviewPrep[] }) {
         </h1>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           Generate a prep pack from any job posting, rehearse with tips, and track a confidence score.
-          Voice mock interviews are deferred; this pack covers behavioral through DevOps categories.
+          Practice with mock feedback and browser voice input; this pack covers behavioral through
+          DevOps categories. TTS playback remains deferred.
         </p>
       </div>
 

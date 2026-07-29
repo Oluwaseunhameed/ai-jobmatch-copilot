@@ -78,7 +78,11 @@ export default function TeamSettingsPage() {
       <SettingsNav />
       <h2 className="font-display text-2xl font-semibold tracking-tight">Team</h2>
       <p className="mb-6 mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
-        Create a team workspace and invite coaches or members by email.
+        Create a team workspace and invite coaches or members by email. Requires an active{' '}
+        <a href="/settings/plan" className="underline underline-offset-2">
+          Team plan
+        </a>
+        .
       </p>
 
       {loading ? (

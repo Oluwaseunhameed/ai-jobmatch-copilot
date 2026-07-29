@@ -1,11 +1,12 @@
 import { prisma } from '@jobmatch/database';
-import type {
-  CoachDeskMemberDto,
-  SupportUserLookupDto,
-  TeamDto,
-  TeamMembershipDto,
-  TeamMemberRole,
-  CoachAssignmentDto,
+import {
+  TEAM_PLAN_LIMITS,
+  type CoachDeskMemberDto,
+  type SupportUserLookupDto,
+  type TeamDto,
+  type TeamMembershipDto,
+  type TeamMemberRole,
+  type CoachAssignmentDto,
 } from '@jobmatch/types';
 
 import { createInAppNotification } from './notification-service';
@@ -41,7 +42,7 @@ export async function getOrCreateTeamForOwner(userId: string, name?: string): Pr
     data: {
       name: name?.trim() || `${user?.name ?? 'Team'}'s team`,
       ownerUserId: userId,
-      seatLimit: 10,
+      seatLimit: TEAM_PLAN_LIMITS.maxTeamSeats,
       memberships: { create: { userId, role: 'owner' } },
     },
     include: {

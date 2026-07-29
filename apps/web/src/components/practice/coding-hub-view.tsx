@@ -41,8 +41,7 @@ export function CodingHubView({ sessions: initial }: { sessions: CodingPracticeS
           </h1>
           <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
             Work LeetCode-style, HackerRank-style, and take-home prompts. Track minutes, mark
-            outcomes, and use the review checklist as a lightweight code review. Full AI code
-            review stays deferred.
+            outcomes, and paste solutions for AI review. A sandboxed code runner remains deferred.
           </p>
         </div>
         <Button disabled={pending} onClick={() => void startGeneral()}>

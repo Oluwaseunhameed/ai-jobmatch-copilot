@@ -27,13 +27,18 @@ type BillingStatus = {
   } | null;
   country: string | null;
   suggestedProvider: BillingProvider;
-  providers: { lemon_squeezy: boolean; paystack: boolean };
+  providers: {
+    lemon_squeezy: boolean;
+    paystack: boolean;
+    lemon_team?: boolean;
+    paystack_team?: boolean;
+  };
 };
 
 export function PlanUpgradePanel() {
   const [status, setStatus] = useState<BillingStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [checkoutPending, setCheckoutPending] = useState(false);
+  const [checkoutPending, setCheckoutPending] = useState<'pro' | 'team' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [provider, setProvider] = useState<BillingProvider>('lemon_squeezy');
 
@@ -53,14 +58,14 @@ export function PlanUpgradePanel() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function startCheckout() {
-    setCheckoutPending(true);
+  async function startCheckout(planId: 'pro' | 'team') {
+    setCheckoutPending(planId);
     setError(null);
     try {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider }),
+        body: JSON.stringify({ provider, planId }),
       });
       const body = (await res.json().catch(() => null)) as {
         url?: string;
@@ -71,7 +76,7 @@ export function PlanUpgradePanel() {
       }
       window.location.href = body.url;
     } catch (err) {
-      setCheckoutPending(false);
+      setCheckoutPending(null);
       setError(err instanceof Error ? err.message : 'Checkout failed');
     }
   }
@@ -91,7 +96,8 @@ export function PlanUpgradePanel() {
   const teamFeatures = teamPlanFeatures();
   const isPro = planId === 'pro';
   const isTeam = planId === 'team';
-  const isPaid = isPro || isTeam;
+  const teamCheckoutReady =
+    Boolean(status?.providers.lemon_team) || Boolean(status?.providers.paystack_team);
 
   return (
     <div className="max-w-xl space-y-4">
@@ -110,7 +116,7 @@ export function PlanUpgradePanel() {
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           {isTeam
-            ? `Team plan includes up to ${TEAM_PLAN_LIMITS.maxTeamSeats} seats for coaches and members. Contact sales for billing changes.`
+            ? `Team plan includes up to ${TEAM_PLAN_LIMITS.maxTeamSeats} seats for coaches and members.`
             : isPro
               ? status?.subscription?.provider === 'paystack'
                 ? 'Billed via Paystack (NGN).'
@@ -136,10 +142,10 @@ export function PlanUpgradePanel() {
         </ul>
       </section>
 
-      {!isPaid && (
+      {!isTeam && (
         <section className="surface-panel p-5 sm:p-6">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Upgrade to Pro
+            Upgrade
           </p>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Nigerian accounts use Paystack (NGN). Everyone else checks out with Lemon Squeezy
@@ -173,11 +179,6 @@ export function PlanUpgradePanel() {
             </label>
           </div>
 
-          <p className="mt-3 text-xs text-muted-foreground">
-            Checkout starts a Pro subscription by default. One-time purchases use the same
-            providers when a one-time product / amount is configured in env.
-          </p>
-
           {!status?.country && (
             <p className="mt-3 text-xs text-muted-foreground">
               Tip: set your country on{' '}
@@ -188,32 +189,58 @@ export function PlanUpgradePanel() {
             </p>
           )}
 
-          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li>
-              Resumes {FREE_PLAN_LIMITS.maxResumes} → {PRO_PLAN_LIMITS.maxResumes}
-            </li>
-            <li>
-              Saved jobs {FREE_PLAN_LIMITS.maxSavedJobs} → {PRO_PLAN_LIMITS.maxSavedJobs}
-            </li>
-            <li>
-              Optimisations / month {FREE_PLAN_LIMITS.aiOptimizePerMonth} →{' '}
-              {PRO_PLAN_LIMITS.aiOptimizePerMonth}
-            </li>
-            <li>
-              Cover letters / month {FREE_PLAN_LIMITS.aiCoverLettersPerMonth} →{' '}
-              {PRO_PLAN_LIMITS.aiCoverLettersPerMonth}
-            </li>
-          </ul>
+          {!isPro && (
+            <>
+              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                <li>
+                  Resumes {FREE_PLAN_LIMITS.maxResumes} → {PRO_PLAN_LIMITS.maxResumes}
+                </li>
+                <li>
+                  Saved jobs {FREE_PLAN_LIMITS.maxSavedJobs} → {PRO_PLAN_LIMITS.maxSavedJobs}
+                </li>
+                <li>
+                  Optimisations / month {FREE_PLAN_LIMITS.aiOptimizePerMonth} →{' '}
+                  {PRO_PLAN_LIMITS.aiOptimizePerMonth}
+                </li>
+              </ul>
+              <Button
+                className="mt-5"
+                size="sm"
+                disabled={checkoutPending !== null}
+                onClick={() => void startCheckout('pro')}
+              >
+                {checkoutPending === 'pro' ? <Spinner size="sm" /> : null}
+                {checkoutPending === 'pro' ? 'Redirecting…' : 'Upgrade to Pro'}
+              </Button>
+            </>
+          )}
 
-          <Button
-            className="mt-5"
-            size="sm"
-            disabled={checkoutPending}
-            onClick={() => void startCheckout()}
-          >
-            {checkoutPending ? <Spinner size="sm" /> : null}
-            {checkoutPending ? 'Redirecting…' : 'Upgrade to Pro'}
-          </Button>
+          <div className="mt-8 border-t border-border/70 pt-5">
+            <p className="text-sm font-medium">Team</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Up to {TEAM_PLAN_LIMITS.maxTeamSeats} seats, coach desk, and Pro-level limits per
+              seat. Manage members at Settings → Team after checkout.
+            </p>
+            {!teamCheckoutReady && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Team checkout needs{' '}
+                {provider === 'paystack'
+                  ? 'PAYSTACK_TEAM_PLAN_CODE (or PAYSTACK_TEAM_AMOUNT_KOBO)'
+                  : 'LEMON_SQUEEZY_TEAM_VARIANT_ID'}{' '}
+                in env.
+              </p>
+            )}
+            <Button
+              className="mt-4"
+              size="sm"
+              variant={isPro ? 'default' : 'outline'}
+              disabled={checkoutPending !== null || !teamCheckoutReady}
+              onClick={() => void startCheckout('team')}
+            >
+              {checkoutPending === 'team' ? <Spinner size="sm" /> : null}
+              {checkoutPending === 'team' ? 'Redirecting…' : 'Upgrade to Team'}
+            </Button>
+          </div>
         </section>
       )}
     </div>

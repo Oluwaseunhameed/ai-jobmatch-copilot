@@ -23,6 +23,8 @@ const es = {
     account: 'Cuenta',
     security: 'Seguridad',
     plan: 'Plan',
+    team: 'Equipo',
+    referral: 'Referidos',
     appearance: 'Apariencia',
     notifications: 'Notificaciones',
     theme: 'Tema',

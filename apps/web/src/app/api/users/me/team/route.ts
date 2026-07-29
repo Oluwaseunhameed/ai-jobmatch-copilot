@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getOrCreateTeamForOwner, listTeamsForUser } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import { resolveUserPlanId } from '@/lib/billing/limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,20 @@ export async function POST(request: Request) {
   const app = await requireAppUser();
   if (!app) {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
+  }
+
+  const planId = await resolveUserPlanId(app.user.id);
+  if (planId !== 'team') {
+    return NextResponse.json(
+      {
+        error: {
+          message: 'Team plan required. Upgrade at Settings → Plan.',
+          code: 'TEAM_PLAN_REQUIRED',
+          upgradeUrl: '/settings/plan',
+        },
+      },
+      { status: 403 },
+    );
   }
 
   let body: Record<string, unknown> = {};

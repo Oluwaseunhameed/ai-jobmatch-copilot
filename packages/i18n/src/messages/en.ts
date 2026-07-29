@@ -23,6 +23,8 @@ const en = {
     account: 'Account',
     security: 'Security',
     plan: 'Plan',
+    team: 'Team',
+    referral: 'Referral',
     appearance: 'Appearance',
     notifications: 'Notifications',
     theme: 'Theme',

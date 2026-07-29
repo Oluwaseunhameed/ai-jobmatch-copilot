@@ -5,6 +5,13 @@ export function paystackConfigured() {
   return Boolean(process.env.PAYSTACK_SECRET_KEY);
 }
 
+export function paystackTeamConfigured() {
+  return Boolean(
+    process.env.PAYSTACK_SECRET_KEY &&
+      (process.env.PAYSTACK_TEAM_PLAN_CODE || process.env.PAYSTACK_TEAM_AMOUNT_KOBO),
+  );
+}
+
 export function verifyPaystackSignature(rawBody: string, signature: string | null) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret || !signature) return false;
@@ -56,6 +63,7 @@ export async function createPaystackCheckout(input: {
   email: string;
   amountKobo?: number;
   planCode?: string;
+  planId?: 'pro' | 'team';
   mode?: 'subscription' | 'one_time';
 }): Promise<{ url: string; reference: string }> {
   const secret = process.env.PAYSTACK_SECRET_KEY;
@@ -64,10 +72,20 @@ export async function createPaystackCheckout(input: {
   }
 
   const mode = input.mode ?? 'subscription';
+  const planId = input.planId === 'team' ? 'team' : 'pro';
   const plan =
-    mode === 'one_time' ? undefined : input.planCode || process.env.PAYSTACK_PRO_PLAN_CODE;
+    mode === 'one_time'
+      ? undefined
+      : input.planCode ||
+        (planId === 'team'
+          ? process.env.PAYSTACK_TEAM_PLAN_CODE
+          : process.env.PAYSTACK_PRO_PLAN_CODE);
   const fallbackKobo = parseKobo(
-    input.amountKobo ?? process.env.PAYSTACK_PRO_AMOUNT_KOBO ?? 0,
+    input.amountKobo ??
+      (planId === 'team'
+        ? process.env.PAYSTACK_TEAM_AMOUNT_KOBO
+        : process.env.PAYSTACK_PRO_AMOUNT_KOBO) ??
+      0,
   );
   const amount = await resolvePaystackAmountKobo({
     secret,
@@ -84,6 +102,7 @@ export async function createPaystackCheckout(input: {
     metadata: {
       user_id: input.userId,
       purchase_type: mode,
+      plan_id: planId,
       custom_fields: [
         { display_name: 'User ID', variable_name: 'user_id', value: input.userId },
       ],
