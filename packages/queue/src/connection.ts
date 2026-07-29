@@ -56,6 +56,10 @@ export function getConnection(): Redis {
         return Math.min(times * 200, 1_000);
       },
     });
+    // Prevent unhandled 'error' crashes when Redis is unreachable.
+    connection.on('error', () => {
+      /* swallowed — callers treat cache/queue as best-effort */
+    });
   }
 
   return connection;

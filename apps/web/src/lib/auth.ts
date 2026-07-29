@@ -144,30 +144,39 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
   }
 
   const userId = session.userId;
-  const cached = await withRedisJsonCache<SerializedAppUser | null>({
-    key: cacheKeys.authUser(userId),
-    ttlSeconds: 60,
-    shouldCache: (value) => value !== null,
-    compute: async () => {
-      const existing = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { preferences: true },
-      });
-      if (!existing) return null;
-
-      // Ensure preferences row exists so downstream layout doesn't hit the DB again.
-      if (!existing.preferences) {
-        await prisma.userPreference.create({ data: { userId: existing.id } });
-        const refreshed = await prisma.user.findUnique({
-          where: { id: existing.id },
+  let cached: SerializedAppUser | null = null;
+  try {
+    cached = await withRedisJsonCache<SerializedAppUser | null>({
+      key: cacheKeys.authUser(userId),
+      ttlSeconds: 60,
+      shouldCache: (value) => value !== null,
+      compute: async () => {
+        const existing = await prisma.user.findUnique({
+          where: { id: userId },
           include: { preferences: true },
         });
-        return refreshed ? serializeAppUser(refreshed) : null;
-      }
+        if (!existing) return null;
 
-      return serializeAppUser(existing);
-    },
-  });
+        // Ensure preferences row exists so downstream layout doesn't hit the DB again.
+        if (!existing.preferences) {
+          await prisma.userPreference.create({ data: { userId: existing.id } });
+          const refreshed = await prisma.user.findUnique({
+            where: { id: existing.id },
+            include: { preferences: true },
+          });
+          return refreshed ? serializeAppUser(refreshed) : null;
+        }
+
+        return serializeAppUser(existing);
+      },
+    });
+  } catch (error) {
+    console.error('[auth] local user lookup failed', {
+      userId,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    cached = null;
+  }
 
   if (cached) {
     // Fire-and-forget — cookie redeem is best-effort.

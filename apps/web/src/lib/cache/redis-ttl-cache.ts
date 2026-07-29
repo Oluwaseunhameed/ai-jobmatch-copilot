@@ -2,7 +2,21 @@ import { getConnection } from '@jobmatch/queue';
 
 const inFlight = new Map<string, Promise<unknown>>();
 
+function redisConfigured(): boolean {
+  const url = process.env.REDIS_URL?.trim();
+  if (!url) return false;
+  // Mirror packages/queue: never hit developer-machine Redis from Vercel.
+  if (
+    (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) &&
+    /localhost|127\.0\.0\.1/i.test(url)
+  ) {
+    return false;
+  }
+  return true;
+}
+
 async function tryGetConnection() {
+  if (!redisConfigured()) return null;
   try {
     return getConnection();
   } catch {
