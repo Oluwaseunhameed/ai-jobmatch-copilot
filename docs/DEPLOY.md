@@ -41,6 +41,18 @@ Run this as a **release step** before/when the new API/web revision goes live (R
 
 Do **not** run `prisma migrate dev` or `db:push` against production.
 
+### First-time baseline (db:push history)
+
+If the database already has tables from `db:push` but **no** `_prisma_migrations` rows, do **not** run `migrate deploy` yet (it will try to recreate tables and fail). Baseline once:
+
+```bash
+export DATABASE_URL="postgresql://..."
+./scripts/baseline-prisma-migrations.sh
+pnpm db:migrate:deploy   # should report already up to date
+```
+
+After that, only new migration folders are applied by `migrate deploy`.
+
 ---
 
 ## 3. Deploy web (Vercel)
@@ -155,7 +167,7 @@ See also `apps/*/.env.example` and `.env.production.example`.
 
 ## 6. Post-deploy checklist
 
-- [ ] `pnpm db:migrate:deploy` applied
+- [ ] `pnpm db:migrate:deploy` applied (baseline first if DB came from `db:push` — see §2)
 - [ ] Web `/api/health` returns `ok`
 - [ ] API `/api/v1/health/ready` returns `ok` with `checks.database=ok`
 - [ ] Redis check `ok` when `REDIS_URL` set
