@@ -23,6 +23,94 @@ export type ExtractedEducation = {
   description: string | null;
 };
 
+export type ExtractedLocation = {
+  city: string | null;
+  country: string | null;
+};
+
+const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+const PHONE_RE = /(?:\+?\d{1,3}[\s-]?)?(?:\(?\d{2,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}/g;
+const URL_RE = /https?:\/\/[^\s)]+|www\.[^\s)]+/gi;
+
+const US_STATES =
+  'AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC';
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const COUNTRIES = [
+  'United States',
+  'USA',
+  'U.S.A.',
+  'U.S.',
+  'United Kingdom',
+  'UK',
+  'Canada',
+  'Australia',
+  'Germany',
+  'France',
+  'Netherlands',
+  'Spain',
+  'Italy',
+  'Ireland',
+  'India',
+  'Nigeria',
+  'Kenya',
+  'Ghana',
+  'South Africa',
+  'Brazil',
+  'Mexico',
+  'Singapore',
+  'Japan',
+  'China',
+  'UAE',
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Poland',
+  'Sweden',
+  'Norway',
+  'Denmark',
+  'Finland',
+  'Switzerland',
+  'Portugal',
+  'Belgium',
+  'Austria',
+  'New Zealand',
+  'Philippines',
+  'Indonesia',
+  'Malaysia',
+  'Pakistan',
+  'Bangladesh',
+  'Egypt',
+  'Israel',
+  'Turkey',
+  'Argentina',
+  'Chile',
+  'Colombia',
+  'Romania',
+  'Czech Republic',
+  'Czechia',
+];
+
+const COUNTRY_RE = new RegExp(`\\b(?:${COUNTRIES.map(escapeRegExp).join('|')})\\b`, 'i');
+const CITY_COUNTRY_RE = new RegExp(
+  `\\b([A-Z][A-Za-z.'\\- ]{1,40}),\\s*(${COUNTRIES.map(escapeRegExp).join('|')}|${US_STATES})\\b`,
+  'i',
+);
+const LOCATION_LABEL_RE = /^(?:location|based\s+in|residing\s+in|lives?\s+in)\s*[:\-]?\s*(.+)$/i;
+
+function normalizeCountry(token: string): string {
+  const t = token.trim();
+  if (/^(usa|u\.s\.a\.|u\.s\.)$/i.test(t) || new RegExp(`^(?:${US_STATES})$`, 'i').test(t)) {
+    return 'United States';
+  }
+  if (/^(uk|u\.k\.)$/i.test(t)) return 'United Kingdom';
+  if (/^uae$/i.test(t)) return 'United Arab Emirates';
+  if (/^czechia$/i.test(t)) return 'Czech Republic';
+  return t.slice(0, 80);
+}
+
 const ROLE_RE =
   /\b(engineer|developer|designer|manager|director|analyst|scientist|consultant|specialist|lead|intern|architect|founder)\b/i;
 
@@ -197,4 +285,91 @@ export function extractEducationFromText(text: string): ExtractedEducation[] {
   }
 
   return entries;
+}
+
+/** City / country from the resume header (first ~15 non-section lines). */
+export function extractLocationFromText(text: string): ExtractedLocation {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(0, 15);
+
+  for (const line of lines) {
+    if (/^(summary|experience|education|skills|projects)\b/i.test(line)) break;
+    if (EMAIL_RE.test(line) || URL_RE.test(line)) continue;
+
+    const labeled = line.match(LOCATION_LABEL_RE);
+    const candidate = labeled?.[1]?.trim() ?? line;
+    const match = candidate.match(CITY_COUNTRY_RE);
+    if (match) {
+      return {
+        city: match[1]!.trim().replace(/\s+/g, ' ').slice(0, 80),
+        country: normalizeCountry(match[2]!),
+      };
+    }
+
+    const countryOnly = candidate.match(COUNTRY_RE);
+    if (countryOnly && candidate.length <= 60) {
+      const before = candidate
+        .slice(0, countryOnly.index)
+        .replace(/[,\-|•]+$/g, '')
+        .trim();
+      return {
+        city: before && before.length >= 2 && before.length <= 40 ? before.slice(0, 80) : null,
+        country: normalizeCountry(countryOnly[0]!),
+      };
+    }
+  }
+
+  return { city: null, country: null };
+}
+
+export function extractPhonesFromText(text: string): string[] {
+  const matches = text.match(PHONE_RE) ?? [];
+  return matches
+    .map((p) => p.trim())
+    .filter((p) => p.replace(/\D/g, '').length >= 7)
+    .slice(0, 3);
+}
+
+export function extractLinksFromText(text: string): string[] {
+  const matches = text.match(URL_RE) ?? [];
+  return matches
+    .map((u) => (u.startsWith('http') ? u : `https://${u}`).replace(/[.,;:]+$/, ''))
+    .slice(0, 8);
+}
+
+/** Earliest experience start → years of experience (inclusive of current year). */
+export function inferYearsOfExperience(
+  experience: Array<{ startMonth?: string | null; endMonth?: string | null }>,
+  now = new Date(),
+): number | null {
+  const years: number[] = [];
+  for (const item of experience) {
+    const start = item.startMonth?.match(/\b((?:19|20)\d{2})\b/)?.[1];
+    if (start) years.push(Number(start));
+  }
+  if (!years.length) return null;
+  const earliest = Math.min(...years);
+  const yoe = now.getFullYear() - earliest;
+  if (yoe < 0 || yoe > 50) return null;
+  return yoe;
+}
+
+/** Detect remote / hybrid / on-site preference from resume wording. */
+export function inferWorkLocationPreference(
+  text: string,
+): 'remote' | 'hybrid' | 'on-site' | null {
+  const sample = text.slice(0, 2500);
+  if (/\bhybrid\b/i.test(sample)) return 'hybrid';
+  if (/\b(?:fully\s+)?remote\b|\bwork\s+from\s+home\b|\bwfh\b/i.test(sample)) return 'remote';
+  if (/\bon[-\s]?site\b|\bin[-\s]?office\b/i.test(sample)) return 'on-site';
+  return null;
+}
+
+export function isPortfolioUrl(url: string): boolean {
+  return /portfolio|behance\.net|dribbble\.com|carbonmade\.com|cargo\.site|read\.cv|notion\.site/i.test(
+    url,
+  );
 }

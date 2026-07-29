@@ -260,7 +260,7 @@ export function ResumeLibrary() {
     try {
       await applyResumeToProfile(id);
       setMessage(
-        'Parsed fields applied to your career profile (fills empty headline, summary, skills, education, experience, and contacts).',
+        'Parsed fields applied to your career profile (fills empty headline, summary, skills, education, experience, location, links, and a few career preferences).',
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not apply to profile');

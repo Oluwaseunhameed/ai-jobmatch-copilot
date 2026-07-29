@@ -38,8 +38,15 @@ export { runApplicationReminders } from './reminders';
 export {
   extractEducationFromText,
   extractExperienceFromText,
+  extractLinksFromText,
+  extractLocationFromText,
+  extractPhonesFromText,
+  inferWorkLocationPreference,
+  inferYearsOfExperience,
+  isPortfolioUrl,
   type ExtractedEducation,
   type ExtractedExperience,
+  type ExtractedLocation,
 } from './extract-profile-sections';
 
 

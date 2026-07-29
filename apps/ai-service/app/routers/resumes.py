@@ -61,6 +61,8 @@ class ParsedResume(BaseModel):
     emails: list[str] = Field(default_factory=list)
     phones: list[str] = Field(default_factory=list)
     links: list[str] = Field(default_factory=list)
+    city: str | None = None
+    country: str | None = None
     experience: list[ParsedExperience] = Field(default_factory=list)
     education: list[ParsedEducation] = Field(default_factory=list)
     source: str = "heuristic"
@@ -113,6 +115,8 @@ async def parse_resume(
         emails=list(structured.get("emails") or []),
         phones=list(structured.get("phones") or []),
         links=list(structured.get("links") or []),
+        city=structured.get("city"),
+        country=structured.get("country"),
         experience=[
             ParsedExperience(**item)
             for item in (structured.get("experience") or [])

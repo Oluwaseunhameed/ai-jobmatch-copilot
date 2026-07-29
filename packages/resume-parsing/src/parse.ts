@@ -27,6 +27,8 @@ export type AiParseResponse = {
   emails: string[];
   phones: string[];
   links: string[];
+  city?: string | null;
+  country?: string | null;
   experience?: Array<{
     title: string;
     company: string;
@@ -243,6 +245,8 @@ function assertAiResponse(body: unknown): AiParseResponse {
     emails: stringArray(candidate.emails),
     phones: stringArray(candidate.phones),
     links: stringArray(candidate.links),
+    city: nullableString(candidate.city),
+    country: nullableString(candidate.country),
     experience: Array.isArray(candidate.experience)
       ? candidate.experience
           .filter(
@@ -292,6 +296,8 @@ async function persistResult(resumeId: string, parsed: AiParseResponse) {
     emails: parsed.emails,
     phones: parsed.phones,
     links: parsed.links,
+    city: parsed.city ?? null,
+    country: parsed.country ?? null,
     experience: parsed.experience ?? [],
     education: parsed.education ?? [],
     source: parsed.source,

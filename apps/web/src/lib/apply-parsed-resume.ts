@@ -3,6 +3,10 @@ import {
   prisma,
   type Prisma,
 } from '@jobmatch/database';
+import {
+  inferYearsOfExperience,
+  isPortfolioUrl,
+} from '@jobmatch/resume-parsing';
 
 import { invalidateProfileCache } from '@/lib/cache/jobmatch-hubs-cache';
 
@@ -32,11 +36,19 @@ type ParsedJson = {
   skills?: string[];
   phones?: string[];
   links?: string[];
+  city?: string | null;
+  country?: string | null;
+  yearsOfExperience?: number | null;
+  workLocationPreference?: string | null;
+  desiredRoles?: string[];
   experience?: ParsedExperience[];
   education?: ParsedEducation[];
   /** Aliases some extractors may use */
   workExperience?: ParsedExperience[];
 };
+
+const ROLE_HINT_RE =
+  /\b(engineer|developer|designer|manager|director|analyst|scientist|consultant|specialist|lead|intern|architect|founder|product)\b/i;
 
 function pickGithub(links: string[]) {
   return links.find((l) => /github\.com/i.test(l)) ?? null;
@@ -46,14 +58,28 @@ function pickLinkedIn(links: string[]) {
   return links.find((l) => /linkedin\.com/i.test(l)) ?? null;
 }
 
+function pickPortfolio(links: string[]) {
+  return links.find((l) => isPortfolioUrl(l)) ?? null;
+}
+
 function pickWebsite(links: string[]) {
   return (
     links.find(
       (l) =>
         !/github\.com|linkedin\.com|mailto:/i.test(l) &&
+        !isPortfolioUrl(l) &&
         /^https?:\/\//i.test(l),
     ) ?? null
   );
+}
+
+function normalizeWorkLocationPreference(
+  value: string | null | undefined,
+): 'remote' | 'hybrid' | 'on-site' | null {
+  if (!value) return null;
+  const v = value.trim().toLowerCase();
+  if (v === 'remote' || v === 'hybrid' || v === 'on-site') return v;
+  return null;
 }
 
 export async function updateProfile(
@@ -66,12 +92,16 @@ export async function updateProfile(
     applyExperience?: boolean;
     applyEducation?: boolean;
     applyContacts?: boolean;
+    applyLocation?: boolean;
+    applyPreferences?: boolean;
   },
 ) {
   const data = (parsed ?? {}) as ParsedJson;
   const applyExperience = options.applyExperience !== false;
   const applyEducation = options.applyEducation !== false;
   const applyContacts = options.applyContacts !== false;
+  const applyLocation = options.applyLocation !== false;
+  const applyPreferences = options.applyPreferences !== false;
 
   await prisma.careerProfile.upsert({
     where: { userId },
@@ -174,6 +204,15 @@ export async function updateProfile(
     }
   }
 
+  if (applyLocation) {
+    if (data.city?.trim() && !current.city?.trim()) {
+      patch.city = data.city.trim().slice(0, 80);
+    }
+    if (data.country?.trim() && !current.country?.trim()) {
+      patch.country = data.country.trim().slice(0, 80);
+    }
+  }
+
   if (applyContacts) {
     const phone = data.phones?.[0]?.trim();
     if (phone && !current.phone?.trim()) {
@@ -183,11 +222,47 @@ export async function updateProfile(
     const links = Array.isArray(data.links) ? data.links.map((l) => l.trim()).filter(Boolean) : [];
     const github = pickGithub(links);
     const linkedin = pickLinkedIn(links);
+    const portfolio = pickPortfolio(links);
     const website = pickWebsite(links);
 
     if (github && !current.githubUrl?.trim()) patch.githubUrl = github.slice(0, 300);
     if (linkedin && !current.linkedinUrl?.trim()) patch.linkedinUrl = linkedin.slice(0, 300);
+    if (portfolio && !current.portfolioUrl?.trim()) patch.portfolioUrl = portfolio.slice(0, 300);
     if (website && !current.websiteUrl?.trim()) patch.websiteUrl = website.slice(0, 300);
+  }
+
+  if (applyPreferences) {
+    if (!current.currentJobTitle?.trim()) {
+      const fromHeadline = data.headline?.trim();
+      const fromExp = experience.find((e) => e?.title?.trim())?.title?.trim();
+      const title = fromHeadline && ROLE_HINT_RE.test(fromHeadline) ? fromHeadline : fromExp;
+      if (title) patch.currentJobTitle = title.slice(0, 120);
+    }
+
+    if (current.yearsOfExperience == null) {
+      const parsedYoe =
+        typeof data.yearsOfExperience === 'number' && data.yearsOfExperience >= 0
+          ? data.yearsOfExperience
+          : inferYearsOfExperience(experience);
+      if (parsedYoe != null) patch.yearsOfExperience = parsedYoe;
+    }
+
+    if (!current.desiredRoles.length) {
+      const fromParsed = Array.isArray(data.desiredRoles)
+        ? data.desiredRoles.map((r) => r.trim()).filter(Boolean)
+        : [];
+      const fromHeadline =
+        data.headline?.trim() && ROLE_HINT_RE.test(data.headline)
+          ? [data.headline.trim()]
+          : [];
+      const roles = (fromParsed.length ? fromParsed : fromHeadline).slice(0, 5);
+      if (roles.length) patch.desiredRoles = roles.map((r) => r.slice(0, 80));
+    }
+
+    if (!current.workLocationPreference?.trim()) {
+      const pref = normalizeWorkLocationPreference(data.workLocationPreference);
+      if (pref) patch.workLocationPreference = pref;
+    }
   }
 
   const updated = await prisma.careerProfile.update({

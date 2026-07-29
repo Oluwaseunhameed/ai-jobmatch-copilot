@@ -151,3 +151,19 @@ TypeScript, Python, PostgreSQL
     assert result["experience"][0]["company"]
     assert len(result["education"]) >= 1
     assert "MIT" in result["education"][0]["school"] or result["education"][0]["school"]
+
+
+def test_extracts_city_and_country_from_header():
+    text = """
+Jane Doe
+Senior Engineer
+Lagos, Nigeria
+jane@example.com
++234 806 294 8801
+
+Summary
+Engineer based in Lagos building APIs.
+"""
+    result = structure_resume_text(text)
+    assert result["city"] == "Lagos"
+    assert result["country"] == "Nigeria"

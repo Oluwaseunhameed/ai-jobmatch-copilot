@@ -2,6 +2,11 @@ import { prisma } from '@jobmatch/database';
 import {
   extractEducationFromText,
   extractExperienceFromText,
+  extractLinksFromText,
+  extractLocationFromText,
+  extractPhonesFromText,
+  inferWorkLocationPreference,
+  inferYearsOfExperience,
 } from '@jobmatch/resume-parsing';
 import { NextResponse } from 'next/server';
 
@@ -16,6 +21,11 @@ type ParsedPayload = {
   skills?: string[];
   phones?: string[];
   links?: string[];
+  city?: string | null;
+  country?: string | null;
+  yearsOfExperience?: number | null;
+  workLocationPreference?: string | null;
+  desiredRoles?: string[];
   experience?: unknown[];
   education?: unknown[];
   workExperience?: unknown[];
@@ -23,7 +33,7 @@ type ParsedPayload = {
 
 /**
  * Apply parsed resume fields onto the career profile (empty fields only).
- * Includes headline/summary/skills plus education, experience, and contacts.
+ * Includes overview, education/experience, location/contacts/links, and a few preferences.
  */
 export async function POST(request: Request, { params }: Params) {
   const app = await requireAppUser();
@@ -54,6 +64,8 @@ export async function POST(request: Request, { params }: Params) {
     applyExperience?: boolean;
     applyEducation?: boolean;
     applyContacts?: boolean;
+    applyLocation?: boolean;
+    applyPreferences?: boolean;
   };
 
   const parsed = { ...(resume.parsedJson as ParsedPayload) };
@@ -71,6 +83,28 @@ export async function POST(request: Request, { params }: Params) {
   if (text && !hasEducation) {
     parsed.education = extractEducationFromText(text);
   }
+  if (text && !parsed.city && !parsed.country) {
+    const location = extractLocationFromText(text);
+    parsed.city = location.city;
+    parsed.country = location.country;
+  }
+  if (text && (!Array.isArray(parsed.phones) || parsed.phones.length === 0)) {
+    parsed.phones = extractPhonesFromText(text);
+  }
+  if (text && (!Array.isArray(parsed.links) || parsed.links.length === 0)) {
+    parsed.links = extractLinksFromText(text);
+  }
+
+  const experienceForPrefs = (
+    Array.isArray(parsed.experience) ? parsed.experience : parsed.workExperience ?? []
+  ) as Array<{ startMonth?: string | null; endMonth?: string | null }>;
+
+  if (parsed.yearsOfExperience == null) {
+    parsed.yearsOfExperience = inferYearsOfExperience(experienceForPrefs);
+  }
+  if (!parsed.workLocationPreference && text) {
+    parsed.workLocationPreference = inferWorkLocationPreference(text);
+  }
 
   const profile = await updateProfile(app.user.id, parsed, {
     applyHeadline: body.applyHeadline !== false,
@@ -79,6 +113,8 @@ export async function POST(request: Request, { params }: Params) {
     applyExperience: body.applyExperience !== false,
     applyEducation: body.applyEducation !== false,
     applyContacts: body.applyContacts !== false,
+    applyLocation: body.applyLocation !== false,
+    applyPreferences: body.applyPreferences !== false,
   });
 
   return NextResponse.json(profile, {

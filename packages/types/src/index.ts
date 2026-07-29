@@ -53,6 +53,11 @@ export interface ParsedResumeData {
   emails?: string[];
   phones?: string[];
   links?: string[];
+  city?: string | null;
+  country?: string | null;
+  yearsOfExperience?: number | null;
+  workLocationPreference?: 'remote' | 'hybrid' | 'on-site' | string | null;
+  desiredRoles?: string[];
   experience?: Array<{
     title: string;
     company: string;

@@ -467,7 +467,16 @@ export function confirmApplySubmitted(
 
 export function applyResumeToProfile(
   id: string,
-  options?: { applyHeadline?: boolean; applySummary?: boolean; applySkills?: boolean },
+  options?: {
+    applyHeadline?: boolean;
+    applySummary?: boolean;
+    applySkills?: boolean;
+    applyExperience?: boolean;
+    applyEducation?: boolean;
+    applyContacts?: boolean;
+    applyLocation?: boolean;
+    applyPreferences?: boolean;
+  },
 ) {
   return apiFetch<CareerProfile>(`/api/users/me/resumes/${id}/apply`, {
     method: 'POST',

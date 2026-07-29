@@ -175,6 +175,7 @@ def _heuristic_structure(text: str, title_hint: str | None = None) -> dict[str, 
     skills = _extract_skills(text)
     experience = _extract_experience(lines)
     education = _extract_education(lines)
+    location = _extract_location(lines)
 
     return {
         "headline": headline,
@@ -183,10 +184,71 @@ def _heuristic_structure(text: str, title_hint: str | None = None) -> dict[str, 
         "emails": emails[:3],
         "phones": phones,
         "links": urls,
+        "city": location.get("city"),
+        "country": location.get("country"),
         "experience": experience,
         "education": education,
         "source": "heuristic",
     }
+
+
+_US_STATES = (
+    "AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|"
+    "NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC"
+)
+_COUNTRIES = (
+    "United States|USA|U\\.S\\.A\\.|U\\.S\\.|United Kingdom|UK|Canada|Australia|Germany|"
+    "France|Netherlands|Spain|Italy|Ireland|India|Nigeria|Kenya|Ghana|South Africa|"
+    "Brazil|Mexico|Singapore|Japan|China|UAE|United Arab Emirates|Saudi Arabia|Poland|"
+    "Sweden|Norway|Denmark|Finland|Switzerland|Portugal|Belgium|Austria|New Zealand|"
+    "Philippines|Indonesia|Malaysia|Pakistan|Bangladesh|Egypt|Israel|Turkey|Argentina|"
+    "Chile|Colombia|Romania|Czech Republic|Czechia"
+)
+_CITY_COUNTRY_RE = re.compile(
+    rf"\b([A-Z][A-Za-z.'\- ]{{1,40}}),\s*({_COUNTRIES}|{_US_STATES})\b"
+)
+_COUNTRY_ONLY_RE = re.compile(rf"\b({_COUNTRIES})\b", re.I)
+_LOCATION_LABEL_RE = re.compile(
+    r"(?i)^(?:location|based\s+in|residing\s+in|lives?\s+in)\s*[:\-]?\s*(.+)$"
+)
+
+
+def _normalize_country(token: str) -> str:
+    t = token.strip()
+    if re.fullmatch(r"(?i)usa|u\.s\.a\.|u\.s\.", t) or re.fullmatch(_US_STATES, t, re.I):
+        return "United States"
+    if re.fullmatch(r"(?i)uk|u\.k\.", t):
+        return "United Kingdom"
+    if re.fullmatch(r"(?i)uae", t):
+        return "United Arab Emirates"
+    if re.fullmatch(r"(?i)czechia", t):
+        return "Czech Republic"
+    return t[:80]
+
+
+def _extract_location(lines: list[str]) -> dict[str, str | None]:
+    """Best-effort city/country from the resume header."""
+    for line in lines[:15]:
+        if BODY_HEADING_RE.match(line) or BODY_INLINE_RE.match(line):
+            break
+        if EMAIL_RE.search(line) or URL_RE.search(line):
+            continue
+        labeled = _LOCATION_LABEL_RE.match(line)
+        candidate = labeled.group(1).strip() if labeled else line
+        match = _CITY_COUNTRY_RE.search(candidate)
+        if match:
+            return {
+                "city": re.sub(r"\s+", " ", match.group(1).strip())[:80],
+                "country": _normalize_country(match.group(2)),
+            }
+        country_only = _COUNTRY_ONLY_RE.search(candidate)
+        if country_only and len(candidate) <= 60:
+            before = candidate[: country_only.start()].rstrip(" ,-|•").strip()
+            return {
+                "city": before[:80] if 2 <= len(before) <= 40 else None,
+                "country": _normalize_country(country_only.group(1)),
+            }
+    return {"city": None, "country": None}
 
 
 def _extract_headline(
