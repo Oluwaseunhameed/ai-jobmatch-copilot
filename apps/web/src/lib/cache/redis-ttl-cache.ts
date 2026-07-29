@@ -14,12 +14,12 @@ async function getJson<T>(key: string): Promise<T | null> {
   const conn = await tryGetConnection();
   if (!conn) return null;
 
-  const raw = await conn.get(key);
-  if (!raw) return null;
-
   try {
+    const raw = await conn.get(key);
+    if (!raw) return null;
     return JSON.parse(raw) as T;
   } catch {
+    // Redis down / timed out — fall through to DB compute.
     return null;
   }
 }
@@ -28,7 +28,11 @@ async function setJson<T>(key: string, value: T, ttlSeconds: number) {
   const conn = await tryGetConnection();
   if (!conn) return;
 
-  await conn.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+  try {
+    await conn.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+  } catch {
+    // Best-effort write; ignore failures.
+  }
 }
 
 export async function withRedisJsonCache<T>(args: {

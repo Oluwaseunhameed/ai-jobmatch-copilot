@@ -8,7 +8,18 @@ import IORedis, { type Redis } from 'ioredis';
  */
 export function redisUrl(): string | null {
   const url = process.env.REDIS_URL?.trim();
-  return url ? url : null;
+  if (!url) return null;
+
+  // Vercel (and similar) serverless cannot reach a developer machine Redis.
+  // A hanging localhost connect will 504 the whole page — treat as unset.
+  if (
+    (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) &&
+    /localhost|127\.0\.0\.1/i.test(url)
+  ) {
+    return null;
+  }
+
+  return url;
 }
 
 export type QueueDriver = 'redis' | 'inline';
@@ -38,6 +49,12 @@ export function getConnection(): Redis {
       // Required by BullMQ: it manages its own retry semantics for blocking commands.
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
+      connectTimeout: 3_000,
+      // Fail fast in serverless instead of retrying until the platform kills the invoke.
+      retryStrategy(times) {
+        if (times > 3) return null;
+        return Math.min(times * 200, 1_000);
+      },
     });
   }
 
