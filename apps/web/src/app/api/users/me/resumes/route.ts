@@ -9,6 +9,10 @@ import { NextResponse } from 'next/server';
 
 import { requireAppUser } from '@/lib/auth';
 import { PlanLimitError, assertWithinPlanLimit } from '@/lib/billing/limits';
+import {
+  getCachedResumesJson,
+  invalidateResumesCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 import { requestResumeParse } from '@/lib/resume-parse';
 
 export async function GET() {
@@ -17,11 +21,13 @@ export async function GET() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  const resumes = await prisma.resume.findMany({
-    where: { userId: app.user.id },
-    include: { versions: { orderBy: { createdAt: 'desc' } } },
-    orderBy: [{ isPrimary: 'desc' }, { updatedAt: 'desc' }],
-  });
+  const resumes = await getCachedResumesJson(app.user.id, async () =>
+    prisma.resume.findMany({
+      where: { userId: app.user.id },
+      include: { versions: { orderBy: { createdAt: 'desc' } } },
+      orderBy: [{ isPrimary: 'desc' }, { updatedAt: 'desc' }],
+    }),
+  );
 
   return NextResponse.json(resumes, {
     headers: { 'Cache-Control': 'no-store' },
@@ -91,6 +97,7 @@ export async function POST(request: Request) {
     });
 
     await requestResumeParse(app.user.id, resume.id, 'upload');
+    await invalidateResumesCache(app.user.id);
 
     return NextResponse.json(resume, {
       status: 201,

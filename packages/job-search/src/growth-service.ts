@@ -32,6 +32,10 @@ export async function getCareerGrowthHub(userId: string): Promise<CareerGrowthHu
         salaryCurrency: true,
         salaryPeriod: true,
       },
+      // Cap the sample used for skill-gap analysis so we never do a full table scan.
+      // 500 recent postings are more than enough for statistically stable gap signals.
+      orderBy: { postedAt: 'desc' },
+      take: 500,
     }),
   ]);
 

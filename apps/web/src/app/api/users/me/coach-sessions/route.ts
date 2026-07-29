@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createCoachSession, listCoachSessions } from '@jobmatch/job-search';
+import { createCoachSession } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import {
+  getCachedCoachSessions,
+  invalidateCoachCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +15,7 @@ export async function GET() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  const coachSessions = await listCoachSessions(app.user.id);
+  const coachSessions = await getCachedCoachSessions(app.user.id);
   return NextResponse.json(
     { coachSessions },
     { headers: { 'Cache-Control': 'no-store' } },
@@ -37,6 +41,7 @@ export async function POST(request: Request) {
       focus: body.focus,
       message: body.message,
     });
+    await invalidateCoachCache(app.user.id);
     return NextResponse.json(session, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Could not create coach session';

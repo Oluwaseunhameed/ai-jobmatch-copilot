@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -23,15 +24,18 @@ export function ThemeToggle() {
   }
 
   const isDark = resolvedTheme === 'dark';
+  const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-    >
-      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-    </Button>
+    <Tooltip content={label}>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label={label}
+        onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      >
+        {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      </Button>
+    </Tooltip>
   );
 }

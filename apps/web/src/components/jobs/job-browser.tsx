@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
+import { Tooltip } from '@/components/ui/tooltip';
 import {
   createSavedSearch,
   deleteSavedSearch,
@@ -307,36 +308,41 @@ export function JobBrowser() {
                 >
                   <button
                     type="button"
-                    className="max-w-[160px] truncate hover:text-foreground"
+                    className="max-w-[160px] cursor-pointer truncate hover:text-foreground"
                     onClick={() => applySavedSearch(search)}
                   >
                     {search.name}
                   </button>
-                  <button
-                    type="button"
-                    className="rounded-full p-1 hover:bg-muted hover:text-foreground"
-                    aria-label={search.alertEnabled ? 'Disable job alert' : 'Enable job alert'}
-                    title={
+                  <Tooltip
+                    content={
                       search.alertEnabled
                         ? 'Alerts on — email when new jobs match'
-                        : 'Alerts off'
+                        : 'Enable job alerts'
                     }
-                    onClick={() => void toggleAlert(search)}
                   >
-                    {search.alertEnabled ? (
-                      <Bell className="h-3.5 w-3.5" />
-                    ) : (
-                      <BellOff className="h-3.5 w-3.5" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-full p-1 hover:bg-muted hover:text-foreground"
-                    aria-label="Delete saved search"
-                    onClick={() => void removeSavedSearch(search.id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                    <button
+                      type="button"
+                      className="cursor-pointer rounded-full p-1 hover:bg-muted hover:text-foreground"
+                      aria-label={search.alertEnabled ? 'Disable job alert' : 'Enable job alert'}
+                      onClick={() => void toggleAlert(search)}
+                    >
+                      {search.alertEnabled ? (
+                        <Bell className="h-3.5 w-3.5" />
+                      ) : (
+                        <BellOff className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Delete saved search">
+                    <button
+                      type="button"
+                      className="cursor-pointer rounded-full p-1 hover:bg-muted hover:text-foreground"
+                      aria-label="Delete saved search"
+                      onClick={() => void removeSavedSearch(search.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </Tooltip>
                 </div>
               );
             })}
@@ -584,7 +590,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors',
+        'inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors',
         active
           ? 'border-primary/40 bg-primary/10 text-foreground'
           : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',

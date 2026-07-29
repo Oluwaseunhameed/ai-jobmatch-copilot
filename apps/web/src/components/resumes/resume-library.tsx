@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { Tooltip } from '@/components/ui/tooltip';
 import {
   applyResumeToProfile,
   deleteResume,
@@ -558,20 +559,22 @@ export function ResumeLibrary() {
                           Download
                         </a>
                       </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Delete resume"
-                        disabled={rowBusy}
-                        onClick={() => void remove(resume.id)}
-                      >
-                        {deleting ? (
-                          <Spinner label="Deleting resume" />
-                        ) : (
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        )}
-                      </Button>
+                      <Tooltip content="Delete resume">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Delete resume"
+                          disabled={rowBusy}
+                          onClick={() => void remove(resume.id)}
+                        >
+                          {deleting ? (
+                            <Spinner label="Deleting resume" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          )}
+                        </Button>
+                      </Tooltip>
                     </div>
                   </div>
                 </li>

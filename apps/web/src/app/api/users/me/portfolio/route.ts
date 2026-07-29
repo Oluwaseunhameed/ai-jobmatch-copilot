@@ -2,12 +2,15 @@ import { NextResponse } from 'next/server';
 import {
   createPortfolioProject,
   createProjectFromSuggestion,
-  getPortfolioBrief,
   importGithubRepo,
   publishPortfolio,
 } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import {
+  getCachedPortfolioBrief,
+  invalidatePortfolioCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +20,7 @@ export async function GET() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  const brief = await getPortfolioBrief(app.user.id);
+  const brief = await getCachedPortfolioBrief(app.user.id);
   return NextResponse.json(brief, { headers: { 'Cache-Control': 'no-store' } });
 }
 
@@ -40,6 +43,7 @@ export async function POST(request: Request) {
         userId: app.user.id,
         slug: typeof body.slug === 'string' ? body.slug : null,
       });
+      await invalidatePortfolioCache(app.user.id);
       return NextResponse.json(brief);
     }
 
@@ -49,6 +53,7 @@ export async function POST(request: Request) {
         userId: app.user.id,
         repoUrl,
       });
+      await invalidatePortfolioCache(app.user.id);
       return NextResponse.json(project, { status: 201 });
     }
 
@@ -58,6 +63,7 @@ export async function POST(request: Request) {
         suggestionId: typeof body.suggestionId === 'string' ? body.suggestionId : undefined,
         skill: typeof body.skill === 'string' ? body.skill : undefined,
       });
+      await invalidatePortfolioCache(app.user.id);
       return NextResponse.json(project, { status: 201 });
     }
 
@@ -83,6 +89,7 @@ export async function POST(request: Request) {
         suggestedSkill: (body.suggestedSkill as string | null | undefined) ?? null,
       },
     });
+    await invalidatePortfolioCache(app.user.id);
     return NextResponse.json(project, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Could not create project';

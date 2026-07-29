@@ -2,6 +2,8 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { cookies } from 'next/headers';
 import { ensureUserFromClerk, prisma, type User, type UserPreference } from '@jobmatch/database';
 import { parseAdminEmails, redeemReferralCode, userHasAdminAccess } from '@jobmatch/job-search';
+import { cacheKeys } from '@/lib/cache/jobmatch-hubs-cache';
+import { withRedisJsonCache } from '@/lib/cache/redis-ttl-cache';
 
 export type AppAuthContext = {
   userId: string;
@@ -13,13 +15,108 @@ export type AdminGateResult =
   | { status: 'unauthorized' }
   | { status: 'forbidden' };
 
+type SerializedUserPreference = {
+  theme: UserPreference['theme'];
+  locale: UserPreference['locale'];
+  timezone: UserPreference['timezone'];
+  emailJobAlerts: UserPreference['emailJobAlerts'];
+  emailApplicationUpdates: UserPreference['emailApplicationUpdates'];
+  emailWeeklyDigest: UserPreference['emailWeeklyDigest'];
+  emailMarketing: UserPreference['emailMarketing'];
+  pushEnabled: UserPreference['pushEnabled'];
+  onboardingCompleted: UserPreference['onboardingCompleted'];
+  lastWeeklyDigestAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type SerializedAppUser = {
+  id: User['id'];
+  name: User['name'];
+  email: User['email'];
+  emailVerified: User['emailVerified'];
+  image: User['image'];
+  role: User['role'];
+  createdAt: string;
+  updatedAt: string;
+  preferences: SerializedUserPreference | null;
+};
+
+function serializeAppUser(existing: User & { preferences: UserPreference | null }): SerializedAppUser {
+  return {
+    id: existing.id,
+    name: existing.name,
+    email: existing.email,
+    emailVerified: existing.emailVerified,
+    image: existing.image ?? null,
+    role: existing.role,
+    createdAt: existing.createdAt.toISOString(),
+    updatedAt: existing.updatedAt.toISOString(),
+    preferences: existing.preferences
+      ? {
+          theme: existing.preferences.theme,
+          locale: existing.preferences.locale,
+          timezone: existing.preferences.timezone,
+          emailJobAlerts: existing.preferences.emailJobAlerts,
+          emailApplicationUpdates: existing.preferences.emailApplicationUpdates,
+          emailWeeklyDigest: existing.preferences.emailWeeklyDigest,
+          emailMarketing: existing.preferences.emailMarketing,
+          pushEnabled: existing.preferences.pushEnabled,
+          onboardingCompleted: existing.preferences.onboardingCompleted,
+          lastWeeklyDigestAt: existing.preferences.lastWeeklyDigestAt
+            ? existing.preferences.lastWeeklyDigestAt.toISOString()
+            : null,
+          createdAt: existing.preferences.createdAt.toISOString(),
+          updatedAt: existing.preferences.updatedAt.toISOString(),
+        }
+      : null,
+  };
+}
+
+function deserializeAppUser(serialized: SerializedAppUser): User & { preferences: UserPreference | null } {
+  return {
+    id: serialized.id,
+    name: serialized.name,
+    email: serialized.email,
+    emailVerified: serialized.emailVerified,
+    image: serialized.image ?? null,
+    role: serialized.role,
+    createdAt: new Date(serialized.createdAt),
+    updatedAt: new Date(serialized.updatedAt),
+    // Only the app uses these fields (theme/locale/onboarding/settings gates).
+    preferences: serialized.preferences
+      ? ({
+          theme: serialized.preferences.theme,
+          locale: serialized.preferences.locale,
+          timezone: serialized.preferences.timezone,
+          emailJobAlerts: serialized.preferences.emailJobAlerts,
+          emailApplicationUpdates: serialized.preferences.emailApplicationUpdates,
+          emailWeeklyDigest: serialized.preferences.emailWeeklyDigest,
+          emailMarketing: serialized.preferences.emailMarketing,
+          pushEnabled: serialized.preferences.pushEnabled,
+          onboardingCompleted: serialized.preferences.onboardingCompleted,
+          lastWeeklyDigestAt: serialized.preferences.lastWeeklyDigestAt
+            ? new Date(serialized.preferences.lastWeeklyDigestAt)
+            : null,
+          createdAt: new Date(serialized.preferences.createdAt),
+          updatedAt: new Date(serialized.preferences.updatedAt),
+        } as UserPreference)
+      : null,
+  };
+}
+
 /**
  * Attribute `jm_ref` cookie even when Clerk webhook created the user first
  * (ensure path would otherwise skip redeem forever). Clears cookie after attempt.
+ *
+ * Reading cookies() is synchronous once the store is awaited, so we check for
+ * the cookie BEFORE doing any async work — the vast majority of requests have
+ * no referral cookie and return instantly.
  */
 async function maybeRedeemReferralCookie(userId: string) {
   const jar = await cookies();
   const refCode = jar.get('jm_ref')?.value?.trim();
+  // Fast path: no cookie → nothing to do, no DB round-trip.
   if (!refCode) return;
   try {
     await redeemReferralCode({ referredUserId: userId, code: refCode });
@@ -46,13 +143,36 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
     return null;
   }
 
-  const existing = await prisma.user.findUnique({
-    where: { id: session.userId },
-    include: { preferences: true },
+  const userId = session.userId;
+  const cached = await withRedisJsonCache<SerializedAppUser | null>({
+    key: cacheKeys.authUser(userId),
+    ttlSeconds: 60,
+    shouldCache: (value) => value !== null,
+    compute: async () => {
+      const existing = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { preferences: true },
+      });
+      if (!existing) return null;
+
+      // Ensure preferences row exists so downstream layout doesn't hit the DB again.
+      if (!existing.preferences) {
+        await prisma.userPreference.create({ data: { userId: existing.id } });
+        const refreshed = await prisma.user.findUnique({
+          where: { id: existing.id },
+          include: { preferences: true },
+        });
+        return refreshed ? serializeAppUser(refreshed) : null;
+      }
+
+      return serializeAppUser(existing);
+    },
   });
-  if (existing) {
-    await maybeRedeemReferralCookie(existing.id);
-    return { userId: session.userId, user: existing };
+
+  if (cached) {
+    // Fire-and-forget — cookie redeem is best-effort.
+    void maybeRedeemReferralCookie(userId);
+    return { userId, user: deserializeAppUser(cached) };
   }
 
   try {
@@ -79,7 +199,7 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
       image: clerkUser.imageUrl,
     });
 
-    await maybeRedeemReferralCookie(user.id);
+    void maybeRedeemReferralCookie(user.id);
 
     return {
       userId: session.userId,

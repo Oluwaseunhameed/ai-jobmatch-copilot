@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createInterviewPrep, listInterviewPreps } from '@jobmatch/job-search';
+import { createInterviewPrep } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import {
+  getCachedInterviewPreps,
+  invalidateInterviewCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +16,7 @@ export async function GET(request: Request) {
   }
 
   const jobId = new URL(request.url).searchParams.get('jobId');
-  const preps = await listInterviewPreps(app.user.id);
+  const preps = await getCachedInterviewPreps(app.user.id);
   const filtered = jobId ? preps.filter((p) => p.jobId === jobId) : preps;
   return NextResponse.json(
     { interviewPreps: filtered },
@@ -43,6 +47,7 @@ export async function POST(request: Request) {
       jobId: body.jobId.trim(),
       categories: body.categories,
     });
+    await invalidateInterviewCache(app.user.id);
     return NextResponse.json(prep, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Could not create interview prep';

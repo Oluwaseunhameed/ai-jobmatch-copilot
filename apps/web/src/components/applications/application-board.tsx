@@ -237,7 +237,7 @@ export function ApplicationBoard() {
                     />
                     <button
                       type="button"
-                      className="min-w-0 flex-1 text-left"
+                      className="min-w-0 flex-1 cursor-pointer text-left"
                       onClick={() => setSelectedId(row.id)}
                     >
                       <p className="text-xs font-medium text-primary">

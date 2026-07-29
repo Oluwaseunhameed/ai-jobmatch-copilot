@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { searchJobs } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import { getCachedJobSearch, searchJobs } from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,19 +32,24 @@ export async function GET(request: Request) {
       ? sortRaw
       : undefined;
 
+  // Stable key for identical filter sets so navigating away and back reuses results.
+  const queryKey = url.searchParams.toString() || 'default';
+
   try {
-    const result = await searchJobs({
-      q: url.searchParams.get('q') ?? undefined,
-      workMode: splitCsv(url.searchParams.get('workMode')),
-      employmentType: splitCsv(url.searchParams.get('employmentType')),
-      seniority: splitCsv(url.searchParams.get('seniority')),
-      country: url.searchParams.get('country') ?? undefined,
-      salaryMin: salaryMinRaw ? Number(salaryMinRaw) : undefined,
-      sort,
-      page: pageRaw ? Number(pageRaw) : undefined,
-      limit: limitRaw ? Number(limitRaw) : undefined,
-      userId: app.user.id,
-    });
+    const result = await getCachedJobSearch(app.user.id, queryKey, () =>
+      searchJobs({
+        q: url.searchParams.get('q') ?? undefined,
+        workMode: splitCsv(url.searchParams.get('workMode')),
+        employmentType: splitCsv(url.searchParams.get('employmentType')),
+        seniority: splitCsv(url.searchParams.get('seniority')),
+        country: url.searchParams.get('country') ?? undefined,
+        salaryMin: salaryMinRaw ? Number(salaryMinRaw) : undefined,
+        sort,
+        page: pageRaw ? Number(pageRaw) : undefined,
+        limit: limitRaw ? Number(limitRaw) : undefined,
+        userId: app.user.id,
+      }),
+    );
 
     return NextResponse.json(result, {
       headers: { 'Cache-Control': 'no-store' },

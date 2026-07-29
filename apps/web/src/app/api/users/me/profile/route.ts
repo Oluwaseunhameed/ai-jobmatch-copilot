@@ -6,6 +6,10 @@ import {
 import { NextResponse } from 'next/server';
 
 import { requireAppUser } from '@/lib/auth';
+import {
+  getCachedProfileJson,
+  invalidateProfileCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 
 const profileInclude = {
   skills: { orderBy: { createdAt: 'asc' as const } },
@@ -19,12 +23,14 @@ export async function GET() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  const profile = await prisma.careerProfile.upsert({
-    where: { userId: app.user.id },
-    create: { userId: app.user.id },
-    update: {},
-    include: profileInclude,
-  });
+  const profile = await getCachedProfileJson(app.user.id, () =>
+    prisma.careerProfile.upsert({
+      where: { userId: app.user.id },
+      create: { userId: app.user.id },
+      update: {},
+      include: profileInclude,
+    }),
+  );
 
   return NextResponse.json(profile);
 }
@@ -144,5 +150,6 @@ export async function PUT(request: Request) {
     include: profileInclude,
   });
 
+  await invalidateProfileCache(app.user.id);
   return NextResponse.json(profile);
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getTrendingJobs } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import { getCachedTrendingJobs } from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,15 +14,17 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const daysRaw = Number(url.searchParams.get('days'));
   const limitRaw = Number(url.searchParams.get('limit'));
+  const days = Number.isFinite(daysRaw) && daysRaw > 0 ? daysRaw : 14;
+  const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 6;
 
-  const jobs = await getTrendingJobs({
-    days: Number.isFinite(daysRaw) && daysRaw > 0 ? daysRaw : undefined,
-    limit: Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : undefined,
+  const jobs = await getCachedTrendingJobs({
     userId: app.user.id,
+    days,
+    limit,
   });
 
   return NextResponse.json(
-    { jobs, days: Number.isFinite(daysRaw) && daysRaw > 0 ? daysRaw : 14 },
+    { jobs, days },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

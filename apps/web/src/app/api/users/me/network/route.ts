@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createNetworkingContact, getNetworkingHub } from '@jobmatch/job-search';
+import { createNetworkingContact } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import {
+  getCachedNetworkingHub,
+  invalidateNetworkingCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +15,7 @@ export async function GET() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  const hub = await getNetworkingHub(app.user.id);
+  const hub = await getCachedNetworkingHub(app.user.id);
   return NextResponse.json(hub, { headers: { 'Cache-Control': 'no-store' } });
 }
 
@@ -44,6 +48,7 @@ export async function POST(request: Request) {
         relatedJobId: (body.relatedJobId as string | null | undefined) ?? null,
       },
     });
+    await invalidateNetworkingCache(app.user.id);
     return NextResponse.json(contact, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Could not create contact';

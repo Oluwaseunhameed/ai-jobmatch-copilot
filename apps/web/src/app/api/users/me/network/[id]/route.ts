@@ -6,6 +6,7 @@ import {
 } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import { invalidateNetworkingCache } from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,6 +79,7 @@ export async function PATCH(request: Request, { params }: Params) {
       },
     });
 
+    await invalidateNetworkingCache(app.user.id);
     return NextResponse.json(contact);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Could not update contact';
@@ -98,5 +100,6 @@ export async function DELETE(_request: Request, { params }: Params) {
     return NextResponse.json({ error: { message: 'Not found' } }, { status: 404 });
   }
 
+  await invalidateNetworkingCache(app.user.id);
   return NextResponse.json({ ok: true });
 }

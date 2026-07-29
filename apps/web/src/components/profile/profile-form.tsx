@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ProfileFormSkeleton } from '@/components/profile/profile-form-skeleton';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -442,20 +443,22 @@ export function ProfileForm() {
                   }}
                 />
                 <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Remove experience"
-                    onClick={() =>
-                      setField(
-                        'workExperience',
-                        form.workExperience.filter((_, i) => i !== index),
-                      )
-                    }
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <Tooltip content="Remove experience">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove experience"
+                      onClick={() =>
+                        setField(
+                          'workExperience',
+                          form.workExperience.filter((_, i) => i !== index),
+                        )
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
                 </div>
               </div>
             ))}
@@ -550,20 +553,22 @@ export function ProfileForm() {
                   />
                 </div>
                 <div className="flex justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Remove education"
-                    onClick={() =>
-                      setField(
-                        'education',
-                        form.education.filter((_, i) => i !== index),
-                      )
-                    }
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <Tooltip content="Remove education">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove education"
+                      onClick={() =>
+                        setField(
+                          'education',
+                          form.education.filter((_, i) => i !== index),
+                        )
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </Tooltip>
                 </div>
               </div>
             ))}
@@ -641,20 +646,22 @@ export function ProfileForm() {
                     setField('skills', skills);
                   }}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Remove skill"
-                  onClick={() =>
-                    setField(
-                      'skills',
-                      form.skills.filter((_, i) => i !== index),
-                    )
-                  }
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <Tooltip content="Remove skill">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove skill"
+                    onClick={() =>
+                      setField(
+                        'skills',
+                        form.skills.filter((_, i) => i !== index),
+                      )
+                    }
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </Tooltip>
               </div>
             ))}
           </div>

@@ -2,14 +2,9 @@ import Link from 'next/link';
 import { ArrowRight, Bookmark, Eye, KanbanSquare } from 'lucide-react';
 import {
   completenessBreakdown,
-  prisma,
   type CompletenessProfile,
 } from '@jobmatch/database';
-import {
-  enrichJobsWithMatch,
-  getUserAnalytics,
-  loadProfileSkillNames,
-} from '@jobmatch/job-search';
+import { enrichJobsWithMatch } from '@jobmatch/job-search';
 import {
   APPLICATION_STAGE_LABELS,
   type ApplicationStage,
@@ -20,7 +15,8 @@ import { Button } from '@/components/ui/button';
 import { TrendingJobsPanel } from '@/components/jobs/trending-jobs-panel';
 import { requireAppUser } from '@/lib/auth';
 import { formatPostedAt } from '@/lib/api-client';
-import { getCurrentPlanId, PLAN_LABELS } from '@/lib/plan';
+import { getCachedDashboardSnapshot } from '@/lib/cache/jobmatch-hubs-cache';
+import { PLAN_LABELS } from '@/lib/plan';
 import { cn } from '@/lib/utils';
 
 const GAP_LABELS: Record<string, string> = {
@@ -45,9 +41,9 @@ const INTERVIEW_STAGES = new Set<ApplicationStage>([
   'final_interview',
 ]);
 
-function formatActivityAt(date: Date | null) {
+function formatActivityAt(date: Date | string | null) {
   if (!date) return null;
-  return formatPostedAt(date.toISOString());
+  return formatPostedAt(typeof date === 'string' ? date : date.toISOString());
 }
 
 function countStages(
@@ -66,7 +62,38 @@ export default async function DashboardPage() {
   const name = app?.user.name ?? 'there';
   const userId = app?.user.id;
 
-  const [
+  const empty = {
+    profile: null,
+    resumeCount: 0,
+    primaryResume: null,
+    savedCount: 0,
+    viewedCount: 0,
+    applicationCount: 0,
+    applicationsByStage: [] as Array<{ stage: string; _count: { _all: number } }>,
+    recentApplications: [] as Array<{
+      id: string;
+      stage: string;
+      updatedAt: string;
+      job: { title: string; slug: string; company: { name: string } };
+    }>,
+    recentSavedRows: [] as Array<{
+      createdAt: string;
+      job: {
+        id: string;
+        slug: string;
+        title: string;
+        skills: string[];
+        company: { name: string };
+      };
+    }>,
+    lastInteraction: null as { createdAt: string; type: string } | null,
+    openJobs: 0,
+    profileSkills: [] as string[],
+    planId: 'free' as const,
+    analytics: null,
+  };
+
+  const {
     profile,
     resumeCount,
     primaryResume,
@@ -81,59 +108,7 @@ export default async function DashboardPage() {
     profileSkills,
     planId,
     analytics,
-  ] = await Promise.all([
-    userId
-      ? prisma.careerProfile.findUnique({
-          where: { userId },
-          include: { skills: true },
-        })
-      : Promise.resolve(null),
-    userId ? prisma.resume.count({ where: { userId } }) : Promise.resolve(0),
-    userId
-      ? prisma.resume.findFirst({ where: { userId, isPrimary: true } })
-      : Promise.resolve(null),
-    userId
-      ? prisma.jobInteraction.count({ where: { userId, type: 'saved' } })
-      : Promise.resolve(0),
-    userId
-      ? prisma.jobInteraction.count({ where: { userId, type: 'viewed' } })
-      : Promise.resolve(0),
-    userId ? prisma.application.count({ where: { userId } }) : Promise.resolve(0),
-    userId
-      ? prisma.application.groupBy({
-          by: ['stage'],
-          where: { userId },
-          _count: { _all: true },
-        })
-      : Promise.resolve([]),
-    userId
-      ? prisma.application.findMany({
-          where: { userId },
-          orderBy: { updatedAt: 'desc' },
-          take: 5,
-          include: { job: { include: { company: true } } },
-        })
-      : Promise.resolve([]),
-    userId
-      ? prisma.jobInteraction.findMany({
-          where: { userId, type: 'saved' },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          include: { job: { include: { company: true } } },
-        })
-      : Promise.resolve([]),
-    userId
-      ? prisma.jobInteraction.findFirst({
-          where: { userId },
-          orderBy: { createdAt: 'desc' },
-          select: { createdAt: true, type: true },
-        })
-      : Promise.resolve(null),
-    prisma.job.count({ where: { isActive: true } }),
-    userId ? loadProfileSkillNames(userId) : Promise.resolve([]),
-    userId ? getCurrentPlanId(userId) : Promise.resolve('free' as const),
-    userId ? getUserAnalytics(userId, 8) : Promise.resolve(null),
-  ]);
+  } = userId ? await getCachedDashboardSnapshot(userId) : empty;
 
   const preparingCount = countStages(applicationsByStage, ['saved', 'preparing']);
   const appliedCount = countStages(applicationsByStage, ['applied']);
@@ -223,9 +198,9 @@ export default async function DashboardPage() {
             />
           </div>
 
-          {profile?.headline && (
+          {typeof profile?.headline === 'string' && profile.headline ? (
             <p className="mt-4 text-sm font-medium text-foreground">{profile.headline}</p>
-          )}
+          ) : null}
 
           {gaps.length > 0 ? (
             <div className="mt-4">
@@ -421,7 +396,11 @@ export default async function DashboardPage() {
                       <p className="mt-0.5 text-sm text-muted-foreground">
                         {row.job.company.name}
                         <span aria-hidden> · </span>
-                        Updated {formatPostedAt(row.updatedAt.toISOString())}
+                        Updated {formatPostedAt(
+                          typeof row.updatedAt === 'string'
+                            ? row.updatedAt
+                            : new Date(row.updatedAt as string | Date).toISOString(),
+                        )}
                       </p>
                     </div>
                     <span
@@ -487,7 +466,11 @@ export default async function DashboardPage() {
                     <p className="mt-0.5 text-sm text-muted-foreground">
                       {job.companyName}
                       <span aria-hidden> · </span>
-                      Saved {formatPostedAt(job.savedAt.toISOString())}
+                      Saved {formatPostedAt(
+                        typeof job.savedAt === 'string'
+                          ? job.savedAt
+                          : new Date(job.savedAt as string | Date).toISOString(),
+                      )}
                     </p>
                   </div>
                   {typeof job.matchScore === 'number' ? (

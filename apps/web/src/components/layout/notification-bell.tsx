@@ -5,6 +5,7 @@ import { Bell } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 import {
   listNotifications,
   markAllNotificationsRead,
@@ -35,9 +36,13 @@ export function NotificationBell({ className }: { className?: string }) {
   }, []);
 
   useEffect(() => {
-    void refresh();
-    const id = window.setInterval(() => void refresh(), POLL_MS);
-    return () => window.clearInterval(id);
+    // Delay first fetch by 1.5 s so it doesn't compete with the page's own data loading.
+    const initial = window.setTimeout(() => void refresh(), 1_500);
+    const interval = window.setInterval(() => void refresh(), POLL_MS);
+    return () => {
+      window.clearTimeout(initial);
+      window.clearInterval(interval);
+    };
   }, [refresh]);
 
   useEffect(() => {
@@ -63,21 +68,23 @@ export function NotificationBell({ className }: { className?: string }) {
 
   return (
     <div ref={panelRef} className={cn('relative', className)}>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="relative"
-      >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 && (
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </Button>
+      <Tooltip content={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ''}`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="relative"
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </Button>
+      </Tooltip>
 
       {open && (
         <div className="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-border/80 bg-card shadow-lift">
@@ -86,7 +93,7 @@ export function NotificationBell({ className }: { className?: string }) {
             {unreadCount > 0 && (
               <button
                 type="button"
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
                 onClick={() => void onMarkAll()}
               >
                 Mark all read
@@ -129,7 +136,7 @@ export function NotificationBell({ className }: { className?: string }) {
                       {!n.readAt && (
                         <button
                           type="button"
-                          className="text-[10px] text-primary hover:underline"
+                          className="cursor-pointer text-[10px] text-primary hover:underline"
                           onClick={() => void onMarkRead(n.id)}
                         >
                           Mark read

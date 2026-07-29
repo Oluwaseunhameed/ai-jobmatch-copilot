@@ -8,6 +8,7 @@ import {
 import { notifyApplicationStageChanged } from '@jobmatch/resume-parsing';
 
 import { requireAppUser } from '@/lib/auth';
+import { invalidateApplicationsCache } from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -133,6 +134,7 @@ export async function PATCH(request: Request, { params }: Params) {
     });
   }
 
+  await invalidateApplicationsCache(app.user.id);
   return NextResponse.json(toApplicationDto(updated));
 }
 
@@ -152,5 +154,6 @@ export async function DELETE(_request: Request, { params }: Params) {
   }
 
   await prisma.application.delete({ where: { id } });
+  await invalidateApplicationsCache(app.user.id);
   return NextResponse.json({ ok: true });
 }

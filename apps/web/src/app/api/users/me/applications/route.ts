@@ -8,6 +8,10 @@ import {
 } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import {
+  getCachedApplicationsJson,
+  invalidateApplicationsCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,16 +21,16 @@ export async function GET() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  const rows = await prisma.application.findMany({
-    where: { userId: app.user.id },
-    include: applicationInclude,
-    orderBy: [{ updatedAt: 'desc' }],
+  const payload = await getCachedApplicationsJson(app.user.id, async () => {
+    const rows = await prisma.application.findMany({
+      where: { userId: app.user.id },
+      include: applicationInclude,
+      orderBy: [{ updatedAt: 'desc' }],
+    });
+    return { applications: rows.map(toApplicationDto) };
   });
 
-  return NextResponse.json(
-    { applications: rows.map(toApplicationDto) },
-    { headers: { 'Cache-Control': 'no-store' } },
-  );
+  return NextResponse.json(payload, { headers: { 'Cache-Control': 'no-store' } });
 }
 
 export async function POST(request: Request) {
@@ -129,5 +133,6 @@ export async function POST(request: Request) {
     include: applicationInclude,
   });
 
+  await invalidateApplicationsCache(app.user.id);
   return NextResponse.json(toApplicationDto(created), { status: 201 });
 }

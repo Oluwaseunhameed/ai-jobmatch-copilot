@@ -19,6 +19,7 @@ import { SignOutButton } from '@/components/auth/sign-out-button';
 import { BrandMark } from '@/components/brand/brand-mark';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 const ADMIN_NAV = [
@@ -116,7 +117,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-foreground/25 backdrop-blur-[2px]"
+            className="absolute inset-0 cursor-pointer bg-foreground/25 backdrop-blur-[2px]"
             aria-label="Close navigation"
             onClick={() => setOpen(false)}
           />
@@ -129,15 +130,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border/80 bg-background/90 px-4 backdrop-blur-md md:hidden">
           <BrandMark href="/admin" size="sm" compact />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <Tooltip content={open ? 'Close menu' : 'Open menu'}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </Tooltip>
         </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">

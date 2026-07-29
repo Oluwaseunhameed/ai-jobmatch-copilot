@@ -28,6 +28,7 @@ import { BrandMark } from '@/components/brand/brand-mark';
 import { NotificationBell } from '@/components/layout/notification-bell';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 type NavItem = {
@@ -264,7 +265,7 @@ export function AppShell({
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-foreground/25 backdrop-blur-[2px]"
+            className="absolute inset-0 cursor-pointer bg-foreground/25 backdrop-blur-[2px]"
             aria-label="Close navigation"
             onClick={() => setOpen(false)}
           />
@@ -286,15 +287,17 @@ export function AppShell({
           <BrandMark href="/dashboard" size="sm" compact />
           <div className="flex items-center gap-1">
             <NotificationBell />
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={open ? 'Close menu' : 'Open menu'}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-            >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+            <Tooltip content={open ? 'Close menu' : 'Open menu'}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={open ? 'Close menu' : 'Open menu'}
+                aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}
+              >
+                {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+            </Tooltip>
           </div>
         </header>
 

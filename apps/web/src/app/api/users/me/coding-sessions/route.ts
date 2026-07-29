@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createCodingSession, listCodingSessions } from '@jobmatch/job-search';
+import { createCodingSession } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import {
+  getCachedCodingSessions,
+  invalidateCodingCache,
+} from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +16,7 @@ export async function GET(request: Request) {
   }
 
   const jobId = new URL(request.url).searchParams.get('jobId');
-  const sessions = await listCodingSessions(app.user.id);
+  const sessions = await getCachedCodingSessions(app.user.id);
   const filtered = jobId ? sessions.filter((s) => s.jobId === jobId) : sessions;
   return NextResponse.json(
     { codingSessions: filtered },
@@ -46,6 +50,7 @@ export async function POST(request: Request) {
       difficulties: body.difficulties,
       limit: body.limit,
     });
+    await invalidateCodingCache(app.user.id);
     return NextResponse.json(session, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Could not create coding session';

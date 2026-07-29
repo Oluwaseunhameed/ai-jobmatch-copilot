@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getCareerGrowthHub } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
+import { getCachedCareerGrowthHub } from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +11,6 @@ export async function GET() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  const hub = await getCareerGrowthHub(app.user.id);
+  const hub = await getCachedCareerGrowthHub(app.user.id);
   return NextResponse.json(hub, { headers: { 'Cache-Control': 'no-store' } });
 }
