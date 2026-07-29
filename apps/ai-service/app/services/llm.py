@@ -37,6 +37,12 @@ USER_PROMPT = (
     "Never the candidate's name, never a file name.\n"
     "  summary (string|null): 1-3 sentences in the candidate's own voice. Do not invent facts.\n"
     "  skills (string[]): concrete technologies and competencies, max 25, no duplicates.\n"
+    "  experience (object[]): work history entries with keys "
+    "title, company, location, startMonth, endMonth, isCurrent, description. "
+    "Use nulls when unknown. Do not invent employers.\n"
+    "  education (object[]): education entries with keys "
+    "school, degree, field, startYear, endYear, description. "
+    "Years are integers or null. Do not invent schools.\n"
     "Do not invent employers, dates or achievements.\n\n"
     "RESUME:\n{text}"
 )
@@ -51,12 +57,83 @@ RESUME_JSON_SCHEMA: dict[str, Any] = {
                 "headline": {"type": ["string", "null"]},
                 "summary": {"type": ["string", "null"]},
                 "skills": {"type": "array", "items": {"type": "string"}},
+                "experience": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "title": {"type": "string"},
+                            "company": {"type": "string"},
+                            "location": {"type": ["string", "null"]},
+                            "startMonth": {"type": ["string", "null"]},
+                            "endMonth": {"type": ["string", "null"]},
+                            "isCurrent": {"type": "boolean"},
+                            "description": {"type": ["string", "null"]},
+                        },
+                        "required": [
+                            "title",
+                            "company",
+                            "location",
+                            "startMonth",
+                            "endMonth",
+                            "isCurrent",
+                            "description",
+                        ],
+                        "additionalProperties": False,
+                    },
+                },
+                "education": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "school": {"type": "string"},
+                            "degree": {"type": ["string", "null"]},
+                            "field": {"type": ["string", "null"]},
+                            "startYear": {"type": ["integer", "null"]},
+                            "endYear": {"type": ["integer", "null"]},
+                            "description": {"type": ["string", "null"]},
+                        },
+                        "required": [
+                            "school",
+                            "degree",
+                            "field",
+                            "startYear",
+                            "endYear",
+                            "description",
+                        ],
+                        "additionalProperties": False,
+                    },
+                },
             },
-            "required": ["headline", "summary", "skills"],
+            "required": ["headline", "summary", "skills", "experience", "education"],
             "additionalProperties": False,
         },
     },
 }
+
+
+class LlmExperience(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    title: str = ""
+    company: str = ""
+    location: str | None = None
+    startMonth: str | None = None
+    endMonth: str | None = None
+    isCurrent: bool = False
+    description: str | None = None
+
+
+class LlmEducation(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    school: str = ""
+    degree: str | None = None
+    field: str | None = None
+    startYear: int | None = None
+    endYear: int | None = None
+    description: str | None = None
 
 
 class LlmResumeFields(BaseModel):
@@ -67,6 +144,8 @@ class LlmResumeFields(BaseModel):
     headline: str | None = None
     summary: str | None = None
     skills: list[str] = Field(default_factory=list)
+    experience: list[LlmExperience] = Field(default_factory=list)
+    education: list[LlmEducation] = Field(default_factory=list)
 
 
 @dataclass
@@ -151,7 +230,7 @@ def _complete(litellm: Any, model: str, text: str) -> str:
         "model": model,
         "messages": messages,
         "temperature": 0.1,
-        "max_tokens": 900,
+        "max_tokens": 1800,
         "timeout": settings.llm_timeout_seconds,
     }
 
@@ -244,11 +323,56 @@ def merge(base: dict[str, Any], outcome: LlmOutcome) -> dict[str, Any]:
     headline = (fields.headline or "").strip() or base.get("headline")
     summary = (fields.summary or "").strip() or base.get("summary")
 
+    experience = list(base.get("experience") or [])
+    if fields.experience:
+        llm_experience: list[dict[str, Any]] = []
+        for item in fields.experience:
+            title = (item.title or "").strip()
+            company = (item.company or "").strip()
+            if not title or not company:
+                continue
+            llm_experience.append(
+                {
+                    "title": title[:120],
+                    "company": company[:120],
+                    "location": (item.location or None),
+                    "startMonth": (item.startMonth or None),
+                    "endMonth": (item.endMonth or None),
+                    "isCurrent": bool(item.isCurrent),
+                    "description": (item.description or None),
+                    "highlights": [],
+                }
+            )
+        if llm_experience:
+            experience = llm_experience[:8]
+
+    education = list(base.get("education") or [])
+    if fields.education:
+        llm_education: list[dict[str, Any]] = []
+        for item in fields.education:
+            school = (item.school or "").strip()
+            if not school:
+                continue
+            llm_education.append(
+                {
+                    "school": school[:160],
+                    "degree": (item.degree or None),
+                    "field": (item.field or None),
+                    "startYear": item.startYear,
+                    "endYear": item.endYear,
+                    "description": (item.description or None),
+                }
+            )
+        if llm_education:
+            education = llm_education[:6]
+
     merged.update(
         {
             "headline": headline,
             "summary": summary,
             "skills": skills[:MAX_SKILLS],
+            "experience": experience,
+            "education": education,
             "source": "heuristic+llm",
         }
     )

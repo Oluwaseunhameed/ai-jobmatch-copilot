@@ -10,7 +10,8 @@ export default function ResumesPage() {
         </h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
           Upload PDF or DOCX resumes, mark a primary, and download anytime. New uploads are parsed
-          automatically so you can apply headline and skills to your career profile.
+          automatically so you can apply headline, skills, education, and experience to your career
+          profile.
         </p>
       </div>
       <ResumeLibrary />

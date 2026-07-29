@@ -4,11 +4,57 @@ import {
   type Prisma,
 } from '@jobmatch/database';
 
+import { invalidateProfileCache } from '@/lib/cache/jobmatch-hubs-cache';
+
+type ParsedExperience = {
+  title?: string;
+  company?: string;
+  location?: string | null;
+  startMonth?: string | null;
+  endMonth?: string | null;
+  isCurrent?: boolean;
+  description?: string | null;
+  highlights?: string[];
+};
+
+type ParsedEducation = {
+  school?: string;
+  degree?: string | null;
+  field?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+  description?: string | null;
+};
+
 type ParsedJson = {
   headline?: string | null;
   summary?: string | null;
   skills?: string[];
+  phones?: string[];
+  links?: string[];
+  experience?: ParsedExperience[];
+  education?: ParsedEducation[];
+  /** Aliases some extractors may use */
+  workExperience?: ParsedExperience[];
 };
+
+function pickGithub(links: string[]) {
+  return links.find((l) => /github\.com/i.test(l)) ?? null;
+}
+
+function pickLinkedIn(links: string[]) {
+  return links.find((l) => /linkedin\.com/i.test(l)) ?? null;
+}
+
+function pickWebsite(links: string[]) {
+  return (
+    links.find(
+      (l) =>
+        !/github\.com|linkedin\.com|mailto:/i.test(l) &&
+        /^https?:\/\//i.test(l),
+    ) ?? null
+  );
+}
 
 export async function updateProfile(
   userId: string,
@@ -17,9 +63,15 @@ export async function updateProfile(
     applyHeadline: boolean;
     applySummary: boolean;
     applySkills: boolean;
+    applyExperience?: boolean;
+    applyEducation?: boolean;
+    applyContacts?: boolean;
   },
 ) {
   const data = (parsed ?? {}) as ParsedJson;
+  const applyExperience = options.applyExperience !== false;
+  const applyEducation = options.applyEducation !== false;
+  const applyContacts = options.applyContacts !== false;
 
   await prisma.careerProfile.upsert({
     where: { userId },
@@ -29,7 +81,11 @@ export async function updateProfile(
 
   const current = await prisma.careerProfile.findUnique({
     where: { userId },
-    include: { skills: true },
+    include: {
+      skills: true,
+      education: true,
+      workExperience: true,
+    },
   });
 
   if (!current) {
@@ -67,17 +123,95 @@ export async function updateProfile(
     }
   }
 
+  const experience = Array.isArray(data.experience)
+    ? data.experience
+    : Array.isArray(data.workExperience)
+      ? data.workExperience
+      : [];
+
+  if (applyExperience && current.workExperience.length === 0 && experience.length) {
+    const toCreate = experience
+      .filter((e) => e?.title?.trim() && e?.company?.trim())
+      .slice(0, 8)
+      .map((e, index) => ({
+        title: e.title!.trim().slice(0, 120),
+        company: e.company!.trim().slice(0, 120),
+        location: e.location?.trim()?.slice(0, 120) || null,
+        startMonth: e.startMonth?.trim()?.slice(0, 32) || null,
+        endMonth: e.endMonth?.trim()?.slice(0, 32) || null,
+        isCurrent: Boolean(e.isCurrent),
+        description: e.description?.trim()?.slice(0, 4000) || null,
+        highlights: Array.isArray(e.highlights)
+          ? e.highlights.filter((h): h is string => typeof h === 'string').slice(0, 12)
+          : [],
+        sortOrder: index,
+      }));
+
+    if (toCreate.length) {
+      patch.workExperience = { create: toCreate };
+      if (!current.currentJobTitle?.trim()) {
+        patch.currentJobTitle = toCreate[0]?.title ?? undefined;
+      }
+    }
+  }
+
+  if (applyEducation && current.education.length === 0 && Array.isArray(data.education)) {
+    const toCreate = data.education
+      .filter((e) => e?.school?.trim())
+      .slice(0, 6)
+      .map((e, index) => ({
+        school: e.school!.trim().slice(0, 160),
+        degree: e.degree?.trim()?.slice(0, 120) || null,
+        field: e.field?.trim()?.slice(0, 160) || null,
+        startYear: typeof e.startYear === 'number' ? e.startYear : null,
+        endYear: typeof e.endYear === 'number' ? e.endYear : null,
+        description: e.description?.trim()?.slice(0, 2000) || null,
+        sortOrder: index,
+      }));
+
+    if (toCreate.length) {
+      patch.education = { create: toCreate };
+    }
+  }
+
+  if (applyContacts) {
+    const phone = data.phones?.[0]?.trim();
+    if (phone && !current.phone?.trim()) {
+      patch.phone = phone.slice(0, 40);
+    }
+
+    const links = Array.isArray(data.links) ? data.links.map((l) => l.trim()).filter(Boolean) : [];
+    const github = pickGithub(links);
+    const linkedin = pickLinkedIn(links);
+    const website = pickWebsite(links);
+
+    if (github && !current.githubUrl?.trim()) patch.githubUrl = github.slice(0, 300);
+    if (linkedin && !current.linkedinUrl?.trim()) patch.linkedinUrl = linkedin.slice(0, 300);
+    if (website && !current.websiteUrl?.trim()) patch.websiteUrl = website.slice(0, 300);
+  }
+
   const updated = await prisma.careerProfile.update({
     where: { userId },
     data: patch,
-    include: { skills: { orderBy: { createdAt: 'asc' } } },
+    include: {
+      skills: { orderBy: { createdAt: 'asc' } },
+      education: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] },
+      workExperience: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] },
+    },
   });
 
   const completenessScore = calculateCompletenessScore(updated);
 
-  return prisma.careerProfile.update({
+  const result = await prisma.careerProfile.update({
     where: { userId },
     data: { completenessScore },
-    include: { skills: { orderBy: { createdAt: 'asc' } } },
+    include: {
+      skills: { orderBy: { createdAt: 'asc' } },
+      education: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] },
+      workExperience: { orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }] },
+    },
   });
+
+  await invalidateProfileCache(userId);
+  return result;
 }

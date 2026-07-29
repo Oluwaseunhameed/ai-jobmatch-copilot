@@ -490,6 +490,24 @@ export type ParsedResumeJson = {
   emails?: string[];
   phones?: string[];
   links?: string[];
+  experience?: Array<{
+    title?: string;
+    company?: string;
+    location?: string | null;
+    startMonth?: string | null;
+    endMonth?: string | null;
+    isCurrent?: boolean;
+    description?: string | null;
+    highlights?: string[];
+  }>;
+  education?: Array<{
+    school?: string;
+    degree?: string | null;
+    field?: string | null;
+    startYear?: number | null;
+    endYear?: number | null;
+    description?: string | null;
+  }>;
   source?: string;
   status?: string;
   llm?: ParsedResumeLlm;

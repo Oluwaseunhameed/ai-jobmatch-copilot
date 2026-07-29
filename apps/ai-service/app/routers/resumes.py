@@ -30,6 +30,26 @@ class LlmMetadata(BaseModel):
     durationMs: int | None = None
 
 
+class ParsedExperience(BaseModel):
+    title: str
+    company: str
+    location: str | None = None
+    startMonth: str | None = None
+    endMonth: str | None = None
+    isCurrent: bool = False
+    description: str | None = None
+    highlights: list[str] = Field(default_factory=list)
+
+
+class ParsedEducation(BaseModel):
+    school: str
+    degree: str | None = None
+    field: str | None = None
+    startYear: int | None = None
+    endYear: int | None = None
+    description: str | None = None
+
+
 class ParsedResume(BaseModel):
     file_name: str
     mime_type: str
@@ -41,6 +61,8 @@ class ParsedResume(BaseModel):
     emails: list[str] = Field(default_factory=list)
     phones: list[str] = Field(default_factory=list)
     links: list[str] = Field(default_factory=list)
+    experience: list[ParsedExperience] = Field(default_factory=list)
+    education: list[ParsedEducation] = Field(default_factory=list)
     source: str = "heuristic"
     status: str = "ready"
     llm: LlmMetadata = Field(default_factory=LlmMetadata)
@@ -91,6 +113,16 @@ async def parse_resume(
         emails=list(structured.get("emails") or []),
         phones=list(structured.get("phones") or []),
         links=list(structured.get("links") or []),
+        experience=[
+            ParsedExperience(**item)
+            for item in (structured.get("experience") or [])
+            if isinstance(item, dict) and item.get("title") and item.get("company")
+        ],
+        education=[
+            ParsedEducation(**item)
+            for item in (structured.get("education") or [])
+            if isinstance(item, dict) and item.get("school")
+        ],
         source=str(structured.get("source") or "heuristic"),
         status="ready",
         llm=LlmMetadata(**(structured.get("llm") or {})),

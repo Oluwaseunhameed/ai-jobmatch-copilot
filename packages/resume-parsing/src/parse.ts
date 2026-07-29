@@ -27,6 +27,24 @@ export type AiParseResponse = {
   emails: string[];
   phones: string[];
   links: string[];
+  experience?: Array<{
+    title: string;
+    company: string;
+    location?: string | null;
+    startMonth?: string | null;
+    endMonth?: string | null;
+    isCurrent?: boolean;
+    description?: string | null;
+    highlights?: string[];
+  }>;
+  education?: Array<{
+    school: string;
+    degree?: string | null;
+    field?: string | null;
+    startYear?: number | null;
+    endYear?: number | null;
+    description?: string | null;
+  }>;
   source: string;
   status: string;
   llm?: LlmMetadata;
@@ -225,6 +243,31 @@ function assertAiResponse(body: unknown): AiParseResponse {
     emails: stringArray(candidate.emails),
     phones: stringArray(candidate.phones),
     links: stringArray(candidate.links),
+    experience: Array.isArray(candidate.experience)
+      ? candidate.experience
+          .filter(
+            (item): item is NonNullable<AiParseResponse['experience']>[number] =>
+              Boolean(
+                item &&
+                  typeof item === 'object' &&
+                  typeof (item as { title?: unknown }).title === 'string' &&
+                  typeof (item as { company?: unknown }).company === 'string',
+              ),
+          )
+          .slice(0, 8)
+      : [],
+    education: Array.isArray(candidate.education)
+      ? candidate.education
+          .filter(
+            (item): item is NonNullable<AiParseResponse['education']>[number] =>
+              Boolean(
+                item &&
+                  typeof item === 'object' &&
+                  typeof (item as { school?: unknown }).school === 'string',
+              ),
+          )
+          .slice(0, 6)
+      : [],
     source: typeof candidate.source === 'string' ? candidate.source : 'heuristic',
     status: typeof candidate.status === 'string' ? candidate.status : 'ready',
     llm: normalizeLlmMetadata(candidate.llm),
@@ -249,6 +292,8 @@ async function persistResult(resumeId: string, parsed: AiParseResponse) {
     emails: parsed.emails,
     phones: parsed.phones,
     links: parsed.links,
+    experience: parsed.experience ?? [],
+    education: parsed.education ?? [],
     source: parsed.source,
     status: parsed.status,
     llm: parsed.llm,

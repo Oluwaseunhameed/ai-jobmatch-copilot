@@ -259,7 +259,9 @@ export function ResumeLibrary() {
     setMessage(null);
     try {
       await applyResumeToProfile(id);
-      setMessage('Parsed fields applied to your career profile (empty fields only).');
+      setMessage(
+        'Parsed fields applied to your career profile (fills empty headline, summary, skills, education, experience, and contacts).',
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not apply to profile');
     } finally {

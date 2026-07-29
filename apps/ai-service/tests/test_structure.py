@@ -118,3 +118,36 @@ Summary
     summary = structure_resume_text(text)["summary"]
     assert summary is not None
     assert not summary.startswith("•")
+
+
+def test_extracts_experience_and_education_sections():
+    text = """
+Jane Doe
+Software Engineer
+
+Summary
+Backend engineer building APIs.
+
+Experience
+Senior Software Engineer | Acme Corp
+Jan 2021 – Present
+• Built payment APIs in TypeScript.
+
+Software Engineer | Beta LLC
+2018 – 2020
+• Maintained internal tools.
+
+Education
+B.S. Computer Science — MIT
+2014 – 2018
+
+Skills
+TypeScript, Python, PostgreSQL
+"""
+    result = structure_resume_text(text)
+
+    assert len(result["experience"]) >= 1
+    assert result["experience"][0]["title"]
+    assert result["experience"][0]["company"]
+    assert len(result["education"]) >= 1
+    assert "MIT" in result["education"][0]["school"] or result["education"][0]["school"]

@@ -1,4 +1,8 @@
 import { prisma } from '@jobmatch/database';
+import {
+  extractEducationFromText,
+  extractExperienceFromText,
+} from '@jobmatch/resume-parsing';
 import { NextResponse } from 'next/server';
 
 import { requireAppUser } from '@/lib/auth';
@@ -6,8 +10,20 @@ import { updateProfile } from '@/lib/apply-parsed-resume';
 
 type Params = { params: Promise<{ id: string }> };
 
+type ParsedPayload = {
+  headline?: string | null;
+  summary?: string | null;
+  skills?: string[];
+  phones?: string[];
+  links?: string[];
+  experience?: unknown[];
+  education?: unknown[];
+  workExperience?: unknown[];
+};
+
 /**
- * Apply parsed resume headline/summary/skills onto the career profile.
+ * Apply parsed resume fields onto the career profile (empty fields only).
+ * Includes headline/summary/skills plus education, experience, and contacts.
  */
 export async function POST(request: Request, { params }: Params) {
   const app = await requireAppUser();
@@ -35,12 +51,34 @@ export async function POST(request: Request, { params }: Params) {
     applyHeadline?: boolean;
     applySummary?: boolean;
     applySkills?: boolean;
+    applyExperience?: boolean;
+    applyEducation?: boolean;
+    applyContacts?: boolean;
   };
 
-  const profile = await updateProfile(app.user.id, resume.parsedJson, {
+  const parsed = { ...(resume.parsedJson as ParsedPayload) };
+  const text = resume.parsedText?.trim() ?? '';
+
+  const hasExperience =
+    (Array.isArray(parsed.experience) && parsed.experience.length > 0) ||
+    (Array.isArray(parsed.workExperience) && parsed.workExperience.length > 0);
+  const hasEducation = Array.isArray(parsed.education) && parsed.education.length > 0;
+
+  // Older parses only stored headline/summary/skills — recover sections from text.
+  if (text && !hasExperience) {
+    parsed.experience = extractExperienceFromText(text);
+  }
+  if (text && !hasEducation) {
+    parsed.education = extractEducationFromText(text);
+  }
+
+  const profile = await updateProfile(app.user.id, parsed, {
     applyHeadline: body.applyHeadline !== false,
     applySummary: body.applySummary !== false,
     applySkills: body.applySkills !== false,
+    applyExperience: body.applyExperience !== false,
+    applyEducation: body.applyEducation !== false,
+    applyContacts: body.applyContacts !== false,
   });
 
   return NextResponse.json(profile, {

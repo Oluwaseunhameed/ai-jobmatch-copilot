@@ -35,7 +35,13 @@ export {
 
 export { runApplicationReminders } from './reminders';
 
-export { ResumeParseError, classifyParseError, type ParseFailureKind } from './errors';
+export {
+  extractEducationFromText,
+  extractExperienceFromText,
+  type ExtractedEducation,
+  type ExtractedExperience,
+} from './extract-profile-sections';
+
 
 export {
   createLogger,
