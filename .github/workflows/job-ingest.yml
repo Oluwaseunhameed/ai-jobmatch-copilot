@@ -80,7 +80,8 @@ jobs:
         run: pnpm db:generate
 
       - name: Build workspace packages used by ingest
-        run: pnpm --filter @jobmatch/types build && pnpm --filter @jobmatch/database build && pnpm --filter @jobmatch/job-search build
+        # `...` includes workspace deps (@jobmatch/types, database, email, …)
+        run: pnpm --filter @jobmatch/job-search... build
 
       - name: Run job ingest
         run: |
