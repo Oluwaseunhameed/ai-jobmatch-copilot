@@ -14,6 +14,8 @@ export function SettingsNav() {
     { href: '/settings/account', label: t.settings.account },
     { href: '/settings/security', label: t.settings.security },
     { href: '/settings/plan', label: t.settings.plan },
+    { href: '/settings/team', label: 'Team' },
+    { href: '/settings/referral', label: 'Referral' },
     { href: '/settings/appearance', label: t.settings.appearance },
     { href: '/settings/notifications', label: t.settings.notifications },
   ];

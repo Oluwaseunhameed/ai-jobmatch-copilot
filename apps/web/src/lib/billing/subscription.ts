@@ -21,22 +21,22 @@ function stillInPaidPeriod(currentPeriodEnd: Date | null) {
   return !currentPeriodEnd || currentPeriodEnd.getTime() > Date.now();
 }
 
-/** Pro while active/on_trial within period, or canceled-but-still-in-period. */
+/** Paid plan while active/on_trial within period, or canceled-but-still-in-period. */
 export function resolvePlanFromSubscription(row: {
+  planId?: string | null;
   status: string;
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: Date | null;
 } | null): PlanId {
   if (!row) return 'free';
-  if (isProStatus(row.status) && stillInPaidPeriod(row.currentPeriodEnd)) return 'pro';
-  if (
-    row.status === 'canceled' &&
-    row.currentPeriodEnd &&
-    row.currentPeriodEnd.getTime() > Date.now()
-  ) {
-    return 'pro';
-  }
-  return 'free';
+  const paid =
+    (isProStatus(row.status) && stillInPaidPeriod(row.currentPeriodEnd)) ||
+    (row.status === 'canceled' &&
+      row.currentPeriodEnd &&
+      row.currentPeriodEnd.getTime() > Date.now());
+  if (!paid) return 'free';
+  if (row.planId === 'team') return 'team';
+  return 'pro';
 }
 
 export async function upsertSubscription(input: UpsertSubscriptionInput) {

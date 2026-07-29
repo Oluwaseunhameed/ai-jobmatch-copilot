@@ -143,7 +143,7 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 | Coach long-term memory + light application tool | ✅ |
 | Public portfolio page + GitHub import | ✅ |
 
-### Wave 5 — Platform & enterprise (Phase 6 core)
+### Wave 5 — Platform & enterprise (Phase 6 core) ✅
 
 - Team tier (career coaches) + support/coach admin workflows
 - Referral program

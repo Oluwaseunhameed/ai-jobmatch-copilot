@@ -1,8 +1,8 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Full Program — Wave 5 (Platform & enterprise)
+## Current Sprint: Full Program — Wave 6 (Scale & infra)
 
-### Phases 0–5 — Complete ✅ · Waves 1–4 — Complete ✅
+### Phases 0–5 — Complete ✅ · Waves 1–4 — Complete ✅ · Wave 5 — Complete ✅
 
 ### Wave 2 — Data & discovery ✅
 
@@ -33,13 +33,13 @@
 - [x] Coach long-term memory + light tools (`CoachMemory`, recent applications in context)
 - [x] Hosted portfolio `/p/[slug]` + GitHub repo import
 
-### Wave 5 — Platform & enterprise
+### Wave 5 — Platform & enterprise ✅
 
-- [ ] Team tier (career coaches)
-- [ ] Coach / support admin workflows
-- [ ] Referral program
-- [ ] In-app notification center + NotificationLog
-- [ ] Education / Experience models
+- [x] Team tier (career coaches)
+- [x] Coach / support admin workflows
+- [x] Referral program
+- [x] In-app notification center + NotificationLog
+- [x] Education / Experience models
 
 ### Wave 6 — Scale & infra
 
@@ -62,7 +62,7 @@
 
 | Item                                         | Introduced | Priority | Notes                                                 |
 | -------------------------------------------- | ---------- | -------- | ----------------------------------------------------- |
-| Education / Experience models                | Module 2   | Medium   | Wave 5                                                |
+| Education / Experience models                | Module 2   | —        | ✅ Wave 5                                             |
 | Nest vs Next dual path (profile/resume/jobs) | Module 2–5 | Low      | BFF uses Prisma; Nest optional                        |
 | E2E profile/resume/jobs tests                | Module 2–5 | Medium   | ✅ Wave 1 public smoke; auth flows later              |
 | UploadThing / Cloudinary                     | Module 3   | Low      | Wave 6 / ADR-010                                      |
@@ -83,8 +83,8 @@
 | Nest application-draft endpoints parity      | Module 9   | Low      | Deprioritized                                         |
 | Cover letter PDF / DOCX export               | Module 9   | Low      | ✅ Wave 1 — PDF                                       |
 | Weekly digest email                          | Module 17  | Medium   | ✅ Wave 1                                             |
-| NotificationLog / delivery audit             | Module 17  | Low      | Wave 5                                                |
-| In-app notification center                   | Module 17  | Low      | Wave 5                                                |
+| NotificationLog / delivery audit             | Module 17  | —        | ✅ Wave 5                                             |
+| In-app notification center                   | Module 17  | —        | ✅ Wave 5                                             |
 | Nest saved-search / trending parity          | Module 5   | Low      | Deprioritized                                         |
 | employmentType / country / salaryMin in UI   | Module 5   | Low      | ✅ Wave 1                                             |
 | Skill.level / years in match scoring         | Module 6   | Low      | Profile proficiency not weighted yet                  |
@@ -106,6 +106,6 @@
 | Nest apply-assist parity                     | Module 10  | Low      | Deprioritized                                         |
 | Nest admin portal parity                     | Module 20  | Low      | Deprioritized                                         |
 | LaunchDarkly / A/B at scale                  | Module 20  | Low      | Wave 6                                                |
-| Coach / support admin workflows              | Module 20  | Medium   | Wave 5                                                |
+| Coach / support admin workflows              | Module 20  | —        | ✅ Wave 5                                             |
 | Production Playwright ATS adapters           | Module 10  | Medium   | Wave 3 ✅                                              |
-| Team tier / referral / multi-region          | Phase 6    | Medium   | Waves 5–6                                             |
+| Team tier / referral / multi-region          | Phase 6    | Medium   | Team + referral ✅ Wave 5; multi-region Wave 6         |

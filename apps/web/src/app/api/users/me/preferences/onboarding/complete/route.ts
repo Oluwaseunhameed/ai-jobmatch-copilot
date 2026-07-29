@@ -1,4 +1,5 @@
 import { prisma } from '@jobmatch/database';
+import { maybeRewardReferral } from '@jobmatch/job-search';
 import { NextResponse } from 'next/server';
 
 import { requireAppUser } from '@/lib/auth';
@@ -14,6 +15,12 @@ export async function POST() {
     create: { userId: app.user.id, onboardingCompleted: true },
     update: { onboardingCompleted: true },
   });
+
+  try {
+    await maybeRewardReferral(app.user.id);
+  } catch {
+    // best-effort referral reward
+  }
 
   return NextResponse.json(preferences);
 }

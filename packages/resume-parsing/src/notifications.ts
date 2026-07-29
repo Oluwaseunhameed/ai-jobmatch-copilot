@@ -12,6 +12,30 @@ import { createLogger, type StructuredLogger } from './logger';
 
 const defaultLogger = createLogger('notifications');
 
+async function recordInApp(input: {
+  userId: string;
+  type: string;
+  title: string;
+  body: string;
+  href?: string | null;
+}) {
+  try {
+    await prisma.notificationLog.create({
+      data: {
+        userId: input.userId,
+        type: input.type,
+        channel: 'in_app',
+        title: input.title.slice(0, 200),
+        body: input.body.slice(0, 4_000),
+        href: input.href ?? null,
+        status: 'delivered',
+      },
+    });
+  } catch {
+    // best-effort
+  }
+}
+
 type PrefUser = {
   id: string;
   name: string;
@@ -52,11 +76,28 @@ export async function notifyOptimizationComplete(input: {
   const logger = input.logger ?? defaultLogger;
   try {
     const user = await loadPrefUser(input.userId);
-    if (!user || !allowsApplicationUpdates(user)) {
+    if (!user) {
       logger.log('info', 'notify.skipped', {
         type: 'optimization_complete',
         userId: input.userId,
-        reason: !user ? 'missing_user' : 'pref_disabled',
+        reason: 'missing_user',
+      });
+      return;
+    }
+
+    await recordInApp({
+      userId: input.userId,
+      type: 'optimization_complete',
+      title: 'Resume optimization ready',
+      body: `${input.jobTitle} at ${input.companyName}: ${input.beforeScore} → ${input.afterScore}`,
+      href: `/jobs/${input.jobSlug}`,
+    });
+
+    if (!allowsApplicationUpdates(user)) {
+      logger.log('info', 'notify.skipped', {
+        type: 'optimization_complete',
+        userId: input.userId,
+        reason: 'pref_disabled',
       });
       return;
     }
@@ -94,11 +135,28 @@ export async function notifyApplicationDraftReady(input: {
   const logger = input.logger ?? defaultLogger;
   try {
     const user = await loadPrefUser(input.userId);
-    if (!user || !allowsApplicationUpdates(user)) {
+    if (!user) {
       logger.log('info', 'notify.skipped', {
         type: 'draft_ready',
         userId: input.userId,
-        reason: !user ? 'missing_user' : 'pref_disabled',
+        reason: 'missing_user',
+      });
+      return;
+    }
+
+    await recordInApp({
+      userId: input.userId,
+      type: 'draft_ready',
+      title: 'Application draft ready',
+      body: `${input.jobTitle} at ${input.companyName}`,
+      href: `/jobs/${input.jobSlug}`,
+    });
+
+    if (!allowsApplicationUpdates(user)) {
+      logger.log('info', 'notify.skipped', {
+        type: 'draft_ready',
+        userId: input.userId,
+        reason: 'pref_disabled',
       });
       return;
     }
@@ -134,11 +192,11 @@ export async function notifyApplicationStageChanged(input: {
   const logger = input.logger ?? defaultLogger;
   try {
     const user = await loadPrefUser(input.userId);
-    if (!user || !allowsApplicationUpdates(user)) {
+    if (!user) {
       logger.log('info', 'notify.skipped', {
         type: 'stage_changed',
         userId: input.userId,
-        reason: !user ? 'missing_user' : 'pref_disabled',
+        reason: 'missing_user',
       });
       return;
     }
@@ -146,6 +204,23 @@ export async function notifyApplicationStageChanged(input: {
     const stageLabel = isApplicationStage(input.stage)
       ? APPLICATION_STAGE_LABELS[input.stage]
       : input.stage;
+
+    await recordInApp({
+      userId: input.userId,
+      type: 'stage_changed',
+      title: 'Application stage updated',
+      body: `${input.jobTitle} at ${input.companyName}: ${stageLabel}`,
+      href: '/applications',
+    });
+
+    if (!allowsApplicationUpdates(user)) {
+      logger.log('info', 'notify.skipped', {
+        type: 'stage_changed',
+        userId: input.userId,
+        reason: 'pref_disabled',
+      });
+      return;
+    }
 
     const payload = applicationStageChangedEmail({
       name: user.name,
@@ -179,11 +254,11 @@ export async function notifyApplicationReminder(input: {
   const logger = input.logger ?? defaultLogger;
   try {
     const user = await loadPrefUser(input.userId);
-    if (!user || !allowsApplicationUpdates(user)) {
+    if (!user) {
       logger.log('info', 'notify.skipped', {
         type: 'application_reminder',
         userId: input.userId,
-        reason: !user ? 'missing_user' : 'pref_disabled',
+        reason: 'missing_user',
       });
       return false;
     }
@@ -191,6 +266,23 @@ export async function notifyApplicationReminder(input: {
     const stageLabel = isApplicationStage(input.stage)
       ? APPLICATION_STAGE_LABELS[input.stage]
       : input.stage;
+
+    await recordInApp({
+      userId: input.userId,
+      type: 'application_reminder',
+      title: 'Application reminder',
+      body: `${input.jobTitle} at ${input.companyName} (${stageLabel}) — idle ${input.daysIdle} days`,
+      href: '/applications',
+    });
+
+    if (!allowsApplicationUpdates(user)) {
+      logger.log('info', 'notify.skipped', {
+        type: 'application_reminder',
+        userId: input.userId,
+        reason: 'pref_disabled',
+      });
+      return false;
+    }
 
     const payload = applicationReminderEmail({
       name: user.name,

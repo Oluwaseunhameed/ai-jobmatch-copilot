@@ -2,6 +2,7 @@ import { prisma } from '@jobmatch/database';
 import {
   FREE_PLAN_LIMITS,
   PRO_PLAN_LIMITS,
+  TEAM_PLAN_LIMITS,
   type PlanId,
   type PlanLimits,
 } from '@jobmatch/types';
@@ -52,7 +53,9 @@ export async function resolveUserPlanId(userId: string): Promise<PlanId> {
 }
 
 export function limitsForPlan(planId: PlanId): PlanLimits {
-  return planId === 'pro' ? PRO_PLAN_LIMITS : FREE_PLAN_LIMITS;
+  if (planId === 'team') return TEAM_PLAN_LIMITS;
+  if (planId === 'pro') return PRO_PLAN_LIMITS;
+  return FREE_PLAN_LIMITS;
 }
 
 function monthWindow(now = new Date()) {

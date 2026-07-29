@@ -22,10 +22,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const locale = isLocale(preferences.locale) ? preferences.locale : 'en';
+  const role = app.user.role;
+  const showCoach = role === 'coach' || role === 'admin';
+  const showSupport = role === 'support' || role === 'admin';
 
   return (
     <LocaleProvider initialLocale={locale as 'en' | 'es' | 'fr' | 'de'}>
-      <AppShell showAdmin={isAdminAppUser(app.user)}>{children}</AppShell>
+      <AppShell
+        showAdmin={isAdminAppUser(app.user)}
+        showCoach={showCoach}
+        showSupport={showSupport}
+      >
+        {children}
+      </AppShell>
     </LocaleProvider>
   );
 }

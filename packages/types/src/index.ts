@@ -269,6 +269,52 @@ export interface SkillDto extends SkillInput {
   createdAt: string;
 }
 
+export interface EducationDto {
+  id: string;
+  school: string;
+  degree: string | null;
+  field: string | null;
+  startYear: number | null;
+  endYear: number | null;
+  description: string | null;
+  sortOrder: number;
+}
+
+export interface WorkExperienceDto {
+  id: string;
+  title: string;
+  company: string;
+  location: string | null;
+  startMonth: string | null;
+  endMonth: string | null;
+  isCurrent: boolean;
+  description: string | null;
+  highlights: string[];
+  sortOrder: number;
+}
+
+export interface EducationInput {
+  school: string;
+  degree?: string | null;
+  field?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+  description?: string | null;
+  sortOrder?: number;
+}
+
+export interface WorkExperienceInput {
+  title: string;
+  company: string;
+  location?: string | null;
+  startMonth?: string | null;
+  endMonth?: string | null;
+  isCurrent?: boolean;
+  description?: string | null;
+  highlights?: string[];
+  sortOrder?: number;
+}
+
 export interface CareerProfileDto {
   id: string;
   userId: string;
@@ -295,6 +341,8 @@ export interface CareerProfileDto {
   workLocationPreference: string | null;
   completenessScore: number;
   skills: SkillDto[];
+  education: EducationDto[];
+  workExperience: WorkExperienceDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -322,6 +370,8 @@ export interface UpdateCareerProfileInput {
   visaSponsorshipNeeded?: boolean;
   workLocationPreference?: WorkLocationPreference | string | null;
   skills?: SkillInput[];
+  education?: EducationInput[];
+  workExperience?: WorkExperienceInput[];
 }
 
 /**
@@ -361,7 +411,7 @@ export interface HealthCheckResponse {
 }
 
 /** Subscription & billing (Module 19). Lemon Squeezy (global) + Paystack (Nigeria). */
-export type PlanId = 'free' | 'pro';
+export type PlanId = 'free' | 'pro' | 'team';
 
 export type BillingProvider = 'lemon_squeezy' | 'paystack';
 
@@ -370,16 +420,20 @@ export type PlanLimits = {
   maxSavedJobs: number;
   aiOptimizePerMonth: number;
   aiCoverLettersPerMonth: number;
+  /** Team seats (owner + coaches + members). Free/Pro = 0. */
+  maxTeamSeats: number;
 };
 
 export const FREE_PLAN_ID: PlanId = 'free';
 export const PRO_PLAN_ID: PlanId = 'pro';
+export const TEAM_PLAN_ID: PlanId = 'team';
 
 export const FREE_PLAN_LIMITS: PlanLimits = {
   maxResumes: 5,
   maxSavedJobs: 50,
   aiOptimizePerMonth: 5,
   aiCoverLettersPerMonth: 5,
+  maxTeamSeats: 0,
 };
 
 export const PRO_PLAN_LIMITS: PlanLimits = {
@@ -387,11 +441,21 @@ export const PRO_PLAN_LIMITS: PlanLimits = {
   maxSavedJobs: 500,
   aiOptimizePerMonth: 50,
   aiCoverLettersPerMonth: 50,
+  maxTeamSeats: 0,
+};
+
+export const TEAM_PLAN_LIMITS: PlanLimits = {
+  maxResumes: 100,
+  maxSavedJobs: 1000,
+  aiOptimizePerMonth: 100,
+  aiCoverLettersPerMonth: 100,
+  maxTeamSeats: 10,
 };
 
 export const PLAN_LABELS: Record<PlanId, string> = {
   free: 'Free',
   pro: 'Pro',
+  team: 'Team',
 };
 
 /** Application pipeline stages (Module 11) */
@@ -1099,6 +1163,18 @@ export function isAdminRole(role: string): boolean {
   return role === 'admin';
 }
 
+export function isSupportRole(role: string): boolean {
+  return role === 'support' || role === 'admin';
+}
+
+export function isCoachRole(role: string): boolean {
+  return role === 'coach' || role === 'admin';
+}
+
+export function isStaffRole(role: string): boolean {
+  return role === 'admin' || role === 'support' || role === 'coach';
+}
+
 export interface AdminOverviewDto {
   users: { total: number; admins: number; onboarded: number };
   catalog: { companies: number; jobs: number; activeJobs: number };
@@ -1292,4 +1368,92 @@ export interface ApplyAssistSessionDto {
     companyName: string;
     source?: string | null;
   };
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 — Notifications, Team, Coach desk, Referrals
+// ---------------------------------------------------------------------------
+
+export interface NotificationLogDto {
+  id: string;
+  userId: string;
+  type: string;
+  channel: string;
+  title: string;
+  body: string;
+  href: string | null;
+  status: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export type TeamMemberRole = 'owner' | 'coach' | 'member';
+
+export interface TeamDto {
+  id: string;
+  name: string;
+  ownerUserId: string;
+  seatLimit: number;
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
+  memberships?: TeamMembershipDto[];
+}
+
+export interface TeamMembershipDto {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: TeamMemberRole | string;
+  user?: { id: string; name: string; email: string; role: string };
+  createdAt: string;
+}
+
+export interface CoachAssignmentDto {
+  id: string;
+  coachUserId: string;
+  memberUserId: string;
+  note: string | null;
+  member?: {
+    id: string;
+    name: string;
+    email: string;
+    headline: string | null;
+    completenessScore: number | null;
+  };
+  createdAt: string;
+}
+
+export interface CoachDeskMemberDto {
+  userId: string;
+  name: string;
+  email: string;
+  headline: string | null;
+  completenessScore: number | null;
+  applicationCount: number;
+  assignmentId: string | null;
+  source: 'assignment' | 'team';
+}
+
+export interface SupportUserLookupDto {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  planId: string;
+  subscriptionStatus: string | null;
+  onboardingCompleted: boolean;
+  headline: string | null;
+  completenessScore: number | null;
+  applicationCount: number;
+  resumeCount: number;
+  createdAt: string;
+}
+
+export interface ReferralSummaryDto {
+  code: string;
+  sharePath: string;
+  redemptionCount: number;
+  rewardedCount: number;
+  rewardDays: number;
 }

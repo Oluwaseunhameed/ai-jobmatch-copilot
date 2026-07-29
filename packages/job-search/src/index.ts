@@ -200,6 +200,29 @@ export {
 } from './meili';
 
 export {
+  createInAppNotification,
+  listNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  toNotificationLogDto,
+} from './notification-service';
+
+export {
+  addTeamMember,
+  assignCoachMember,
+  getOrCreateTeamForOwner,
+  listCoachDeskMembers,
+  listTeamsForUser,
+  supportLookupUser,
+} from './team-service';
+
+export {
+  getOrCreateReferralSummary,
+  maybeRewardReferral,
+  redeemReferralCode,
+} from './referral-service';
+
+export {
   labelSavedSearchQuery,
   normalizeSavedSearchQuery,
   parseSavedSearchQuery,

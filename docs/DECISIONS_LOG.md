@@ -375,11 +375,11 @@ Format: **Decision · Context · Options · Outcome · Date**
 
 ---
 
-## ADR-035: Wave 4 — AI depth overlays (LLM + degrade, no unsupervised automation)
+## ADR-036: Wave 5 — Platform & enterprise (profile depth, notifications, team, referrals)
 
-**Context:** Wave 4 needed LLM narratives, mock interview feedback, coding review, coach memory, and portfolio hosting without breaking deterministic MVPs or inventing sandbox/voice infra.
-**Options:** Replace template modules with LLM-only; full voice+sandbox agents; additive AI overlays with template fallback.
-**Outcome:** **Accepted** — Deterministic bases stay; ai-service adds `/v1/jobs/insights/narrative`, `/v1/interview/mock-turn`, `/v1/coding/review`, `/v1/coach/memory/summarize`. Coach injects `CoachMemory` + recent applications. Interview supports browser SpeechRecognition for capture only. Portfolio adds `/p/[slug]` publish + public GitHub import (`GITHUB_TOKEN` optional). Code execution sandbox and full TTS remain deferred.
-**Rationale:** Ships Wave 4 depth on the existing LiteLLM degrade pattern; keeps product usable when models are offline.
+**Context:** Wave 5 needed structured education/work experience on profiles, durable notification delivery with an in-app center, a Team plan tier for coach-led cohorts, coach/support staff workflows, and a referral loop that rewards after onboarding — without unsupervised apply automation or a separate notification microservice.
+**Options:** Third-party notification inbox; email-only alerts; full enterprise SSO org model; minimal Prisma + BFF extensions on the existing monorepo.
+**Outcome:** **Accepted** — `Education` / `WorkExperience` on `CareerProfile` with BFF PUT + profile UI. `NotificationLog` stores in-app rows; transactional emails in `resume-parsing/notifications` always `recordInApp` when the user exists, then respect email prefs. Header bell polls BFF `/api/users/me/notifications`. `Team` + `TeamMembership` + `CoachAssignment` with `team` plan limits (`TEAM_PLAN_LIMITS`, display-only checkout). Coach desk (`requireCoach`) and support lookup (`requireSupport`) BFF routes + pages. Referrals: `/register?ref=` → `jm_ref` cookie → `redeemReferralCode` on first user ensure; `maybeRewardReferral` on onboarding complete extends referrer Pro.
+**Rationale:** Keeps Wave 5 on the established Next BFF + Prisma pattern, ships staff tooling with role gates, and ties growth mechanics to completed onboarding rather than signup alone.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-29

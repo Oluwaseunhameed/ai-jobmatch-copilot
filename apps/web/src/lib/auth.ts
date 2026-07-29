@@ -1,6 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { cookies } from 'next/headers';
 import { ensureUserFromClerk, prisma, type User, type UserPreference } from '@jobmatch/database';
-import { parseAdminEmails, userHasAdminAccess } from '@jobmatch/job-search';
+import { parseAdminEmails, redeemReferralCode, userHasAdminAccess } from '@jobmatch/job-search';
 
 export type AppAuthContext = {
   userId: string;
@@ -57,6 +58,15 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
       image: clerkUser.imageUrl,
     });
 
+    const refCode = (await cookies()).get('jm_ref')?.value;
+    if (refCode) {
+      try {
+        await redeemReferralCode({ referredUserId: user.id, code: refCode });
+      } catch {
+        // best-effort
+      }
+    }
+
     return {
       userId: session.userId,
       user,
@@ -100,6 +110,33 @@ export async function requireAdmin(): Promise<AdminGateResult> {
     return { status: 'ok', app: { userId: app.userId, user: updated } };
   }
 
+  return { status: 'ok', app };
+}
+
+export async function requireSupport(): Promise<AdminGateResult> {
+  const app = await requireAppUser();
+  if (!app) return { status: 'unauthorized' };
+  if (app.user.role !== 'admin' && app.user.role !== 'support') {
+    return { status: 'forbidden' };
+  }
+  return { status: 'ok', app };
+}
+
+export async function requireCoach(): Promise<AdminGateResult> {
+  const app = await requireAppUser();
+  if (!app) return { status: 'unauthorized' };
+  if (app.user.role !== 'admin' && app.user.role !== 'coach') {
+    return { status: 'forbidden' };
+  }
+  return { status: 'ok', app };
+}
+
+export async function requireStaff(): Promise<AdminGateResult> {
+  const app = await requireAppUser();
+  if (!app) return { status: 'unauthorized' };
+  if (!['admin', 'support', 'coach'].includes(app.user.role)) {
+    return { status: 'forbidden' };
+  }
   return { status: 'ok', app };
 }
 

@@ -9,8 +9,10 @@ import {
   FREE_PLAN_LIMITS,
   PLAN_LABELS,
   PRO_PLAN_LIMITS,
+  TEAM_PLAN_LIMITS,
   freePlanFeatures,
   proPlanFeatures,
+  teamPlanFeatures,
   type PlanId,
 } from '@/lib/plan-features';
 import type { BillingProvider } from '@jobmatch/types';
@@ -86,7 +88,10 @@ export function PlanUpgradePanel() {
   const planId = status?.planId ?? 'free';
   const freeFeatures = freePlanFeatures();
   const proFeatures = proPlanFeatures();
+  const teamFeatures = teamPlanFeatures();
   const isPro = planId === 'pro';
+  const isTeam = planId === 'team';
+  const isPaid = isPro || isTeam;
 
   return (
     <div className="max-w-xl space-y-4">
@@ -104,13 +109,15 @@ export function PlanUpgradePanel() {
           {PLAN_LABELS[planId]}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
-          {isPro
-            ? status?.subscription?.provider === 'paystack'
-              ? 'Billed via Paystack (NGN).'
-              : status?.subscription?.provider === 'lemon_squeezy'
-                ? 'Billed via Lemon Squeezy.'
-                : 'Pro is active on your account.'
-            : 'Included with every account. Upgrade when you need higher limits.'}
+          {isTeam
+            ? `Team plan includes up to ${TEAM_PLAN_LIMITS.maxTeamSeats} seats for coaches and members. Contact sales for billing changes.`
+            : isPro
+              ? status?.subscription?.provider === 'paystack'
+                ? 'Billed via Paystack (NGN).'
+                : status?.subscription?.provider === 'lemon_squeezy'
+                  ? 'Billed via Lemon Squeezy.'
+                  : 'Pro is active on your account.'
+              : 'Included with every account. Upgrade when you need higher limits.'}
         </p>
         {status?.subscription?.currentPeriodEnd && (
           <p className="mt-2 text-xs text-muted-foreground">
@@ -120,7 +127,7 @@ export function PlanUpgradePanel() {
         )}
 
         <ul className="mt-5 space-y-2.5">
-          {(isPro ? proFeatures : freeFeatures).map((feature) => (
+          {(isTeam ? teamFeatures : isPro ? proFeatures : freeFeatures).map((feature) => (
             <li key={feature.key} className="flex gap-2 text-sm leading-relaxed text-foreground">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/70" />
               <span>{feature.label}</span>
@@ -129,7 +136,7 @@ export function PlanUpgradePanel() {
         </ul>
       </section>
 
-      {!isPro && (
+      {!isPaid && (
         <section className="surface-panel p-5 sm:p-6">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Upgrade to Pro

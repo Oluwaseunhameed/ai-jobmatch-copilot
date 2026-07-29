@@ -8,6 +8,7 @@ import {
   Compass,
   FileText,
   FolderKanban,
+  Headphones,
   KanbanSquare,
   LayoutDashboard,
   Menu,
@@ -17,12 +18,14 @@ import {
   Settings,
   Shield,
   UserRound,
+  Users,
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { SignOutButton } from '@/components/auth/sign-out-button';
 import { BrandMark } from '@/components/brand/brand-mark';
+import { NotificationBell } from '@/components/layout/notification-bell';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -118,24 +121,31 @@ function SidebarNav({
   pathname,
   onNavigate,
   showAdmin,
+  showCoach,
+  showSupport,
 }: {
   pathname: string;
   onNavigate?: () => void;
   showAdmin?: boolean;
+  showCoach?: boolean;
+  showSupport?: boolean;
 }) {
-  const sections = showAdmin
-    ? NAV_SECTIONS.map((section) =>
-        section.label === 'Account'
-          ? {
-              ...section,
-              items: [
-                ...section.items,
-                { href: '/admin', label: 'Admin', icon: Shield },
-              ],
-            }
-          : section,
-      )
-    : NAV_SECTIONS;
+  const extraAccount: NavItem[] = [];
+  if (showCoach) {
+    extraAccount.push({ href: '/coach-desk', label: 'Coach desk', icon: Users });
+  }
+  if (showSupport) {
+    extraAccount.push({ href: '/support', label: 'Support', icon: Headphones });
+  }
+
+  const sections = NAV_SECTIONS.map((section) => {
+    if (section.label !== 'Account') return section;
+    const items = [...section.items, ...extraAccount];
+    if (showAdmin) {
+      items.push({ href: '/admin', label: 'Admin', icon: Shield });
+    }
+    return { ...section, items };
+  });
 
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
@@ -165,11 +175,15 @@ function SidebarChrome({
   onNavigate,
   className,
   showAdmin,
+  showCoach,
+  showSupport,
 }: {
   pathname: string;
   onNavigate?: () => void;
   className?: string;
   showAdmin?: boolean;
+  showCoach?: boolean;
+  showSupport?: boolean;
 }) {
   return (
     <aside
@@ -178,11 +192,18 @@ function SidebarChrome({
         className,
       )}
     >
-      <div className="flex h-16 shrink-0 items-center border-b border-border/80 px-4">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-border/80 px-4">
         <BrandMark href="/dashboard" size="sm" compact className="min-w-0" />
+        <NotificationBell className="hidden md:block" />
       </div>
 
-      <SidebarNav pathname={pathname} onNavigate={onNavigate} showAdmin={showAdmin} />
+      <SidebarNav
+        pathname={pathname}
+        onNavigate={onNavigate}
+        showAdmin={showAdmin}
+        showCoach={showCoach}
+        showSupport={showSupport}
+      />
 
       <div className="mt-auto shrink-0 space-y-2 border-t border-border/80 p-3">
         <div className="flex items-center justify-between gap-2 rounded-md px-1">
@@ -201,10 +222,14 @@ export function AppShell({
   children,
   title,
   showAdmin,
+  showCoach,
+  showSupport,
 }: {
   children: React.ReactNode;
   title?: string;
   showAdmin?: boolean;
+  showCoach?: boolean;
+  showSupport?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -226,7 +251,12 @@ export function AppShell({
     <div className="relative min-h-screen md:flex">
       {/* Desktop sidebar */}
       <div className="sticky top-0 hidden h-screen w-60 shrink-0 md:block lg:w-64">
-        <SidebarChrome pathname={pathname} showAdmin={showAdmin} />
+        <SidebarChrome
+          pathname={pathname}
+          showAdmin={showAdmin}
+          showCoach={showCoach}
+          showSupport={showSupport}
+        />
       </div>
 
       {/* Mobile drawer */}
@@ -243,6 +273,8 @@ export function AppShell({
               pathname={pathname}
               onNavigate={() => setOpen(false)}
               showAdmin={showAdmin}
+              showCoach={showCoach}
+              showSupport={showSupport}
             />
           </div>
         </div>
@@ -252,15 +284,18 @@ export function AppShell({
         {/* Mobile top bar only */}
         <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border/80 bg-background/90 px-4 backdrop-blur-md md:hidden">
           <BrandMark href="/dashboard" size="sm" compact />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">

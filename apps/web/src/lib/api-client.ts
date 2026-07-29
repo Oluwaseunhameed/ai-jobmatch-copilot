@@ -57,6 +57,30 @@ export interface ProfileSkill {
   years?: number | null;
 }
 
+export interface ProfileEducation {
+  id?: string;
+  school: string;
+  degree?: string | null;
+  field?: string | null;
+  startYear?: number | null;
+  endYear?: number | null;
+  description?: string | null;
+  sortOrder?: number;
+}
+
+export interface ProfileWorkExperience {
+  id?: string;
+  title: string;
+  company: string;
+  location?: string | null;
+  startMonth?: string | null;
+  endMonth?: string | null;
+  isCurrent?: boolean;
+  description?: string | null;
+  highlights?: string[];
+  sortOrder?: number;
+}
+
 export interface CareerProfile {
   id: string;
   userId: string;
@@ -83,6 +107,8 @@ export interface CareerProfile {
   workLocationPreference: string | null;
   completenessScore: number;
   skills: ProfileSkill[];
+  education: ProfileEducation[];
+  workExperience: ProfileWorkExperience[];
   createdAt: string;
   updatedAt: string;
 }
@@ -91,7 +117,13 @@ export function getProfile() {
   return apiFetch<CareerProfile>('/api/users/me/profile');
 }
 
-export function updateProfile(data: Partial<CareerProfile> & { skills?: ProfileSkill[] }) {
+export function updateProfile(
+  data: Partial<CareerProfile> & {
+    skills?: ProfileSkill[];
+    education?: ProfileEducation[];
+    workExperience?: ProfileWorkExperience[];
+  },
+) {
   return apiFetch<CareerProfile>('/api/users/me/profile', {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -1390,6 +1422,138 @@ export const NETWORKING_STATUS_LABELS: Record<NetworkingContactStatus, string> =
 
 export function getNetworkingHub() {
   return apiFetch<NetworkingHub>('/api/users/me/network');
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 — Notifications, Team, Referrals, Coach desk, Support
+// ---------------------------------------------------------------------------
+
+export type NotificationLog = {
+  id: string;
+  userId: string;
+  type: string;
+  channel: string;
+  title: string;
+  body: string;
+  href: string | null;
+  status: string;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationsResponse = {
+  notifications: NotificationLog[];
+  unreadCount: number;
+};
+
+export function listNotifications(params?: { unreadOnly?: boolean; limit?: number }) {
+  const qs = new URLSearchParams();
+  if (params?.unreadOnly) qs.set('unread', 'true');
+  if (params?.limit) qs.set('limit', String(params.limit));
+  const suffix = qs.size ? `?${qs.toString()}` : '';
+  return apiFetch<NotificationsResponse>(`/api/users/me/notifications${suffix}`);
+}
+
+export function markNotificationRead(id: string) {
+  return apiFetch<NotificationLog>(`/api/users/me/notifications/${id}`, { method: 'PATCH' });
+}
+
+export function markAllNotificationsRead() {
+  return apiFetch<{ ok: boolean; count: number }>('/api/users/me/notifications', {
+    method: 'PATCH',
+    body: JSON.stringify({ all: true }),
+  });
+}
+
+export type TeamMembership = {
+  id: string;
+  teamId: string;
+  userId: string;
+  role: string;
+  user?: { id: string; name: string; email: string; role: string };
+  createdAt: string;
+};
+
+export type Team = {
+  id: string;
+  name: string;
+  ownerUserId: string;
+  seatLimit: number;
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
+  memberships?: TeamMembership[];
+};
+
+export function listTeams() {
+  return apiFetch<{ teams: Team[] }>('/api/users/me/team');
+}
+
+export function createTeam(name?: string) {
+  return apiFetch<Team>('/api/users/me/team', {
+    method: 'POST',
+    body: JSON.stringify(name ? { name } : {}),
+  });
+}
+
+export function addTeamMember(email: string, role?: string) {
+  return apiFetch<TeamMembership>('/api/users/me/team/members', {
+    method: 'POST',
+    body: JSON.stringify({ email, role }),
+  });
+}
+
+export type ReferralSummary = {
+  code: string;
+  sharePath: string;
+  redemptionCount: number;
+  rewardedCount: number;
+  rewardDays: number;
+};
+
+export function getReferralSummary() {
+  return apiFetch<ReferralSummary>('/api/users/me/referral');
+}
+
+export type CoachDeskMember = {
+  userId: string;
+  name: string;
+  email: string;
+  headline: string | null;
+  completenessScore: number | null;
+  applicationCount: number;
+  assignmentId: string | null;
+  source: 'assignment' | 'team';
+};
+
+export function listCoachDeskMembers() {
+  return apiFetch<{ members: CoachDeskMember[] }>('/api/coach-desk');
+}
+
+export function assignCoachMember(memberEmail: string, note?: string) {
+  return apiFetch<{ id: string }>('/api/coach-desk', {
+    method: 'POST',
+    body: JSON.stringify({ memberEmail, note }),
+  });
+}
+
+export type SupportUserLookup = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  planId: string;
+  subscriptionStatus: string | null;
+  onboardingCompleted: boolean;
+  headline: string | null;
+  completenessScore: number | null;
+  applicationCount: number;
+  resumeCount: number;
+  createdAt: string;
+};
+
+export function supportLookupUser(email: string) {
+  return apiFetch<SupportUserLookup>(`/api/support/lookup?email=${encodeURIComponent(email)}`);
 }
 
 // ---------------------------------------------------------------------------

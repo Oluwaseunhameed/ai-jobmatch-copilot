@@ -4,6 +4,8 @@ import {
   PLAN_LABELS,
   PRO_PLAN_ID,
   PRO_PLAN_LIMITS,
+  TEAM_PLAN_ID,
+  TEAM_PLAN_LIMITS,
   type PlanId,
   type PlanLimits,
 } from '@jobmatch/types';
@@ -14,6 +16,8 @@ export {
   PLAN_LABELS,
   PRO_PLAN_ID,
   PRO_PLAN_LIMITS,
+  TEAM_PLAN_ID,
+  TEAM_PLAN_LIMITS,
   type PlanId,
   type PlanLimits,
 };
@@ -59,11 +63,31 @@ export function proPlanFeatures(): PlanFeature[] {
   ];
 }
 
+export function teamPlanFeatures(): PlanFeature[] {
+  const limits = TEAM_PLAN_LIMITS;
+  return [
+    { key: 'seats', label: `Up to ${limits.maxTeamSeats} team seats (coaches + members)` },
+    { key: 'resumes', label: `Up to ${limits.maxResumes} resumes per seat` },
+    { key: 'saved', label: `Up to ${limits.maxSavedJobs} saved roles` },
+    {
+      key: 'optimize',
+      label: `${limits.aiOptimizePerMonth} AI resume optimisations / month`,
+    },
+    {
+      key: 'cover',
+      label: `${limits.aiCoverLettersPerMonth} cover letters / short answers / month`,
+    },
+    { key: 'coach', label: 'Coach desk for assigned members' },
+  ];
+}
+
 /** @deprecated use proPlanFeatures */
 export function proPlanTeasers(): PlanFeature[] {
   return proPlanFeatures();
 }
 
 export function getPlanLimits(planId: PlanId = FREE_PLAN_ID): PlanLimits {
-  return planId === 'pro' ? PRO_PLAN_LIMITS : FREE_PLAN_LIMITS;
+  if (planId === 'team') return TEAM_PLAN_LIMITS;
+  if (planId === 'pro') return PRO_PLAN_LIMITS;
+  return FREE_PLAN_LIMITS;
 }

@@ -13,7 +13,9 @@ import {
   getProfile,
   updateProfile,
   type CareerProfile,
+  type ProfileEducation,
   type ProfileSkill,
+  type ProfileWorkExperience,
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
@@ -22,8 +24,13 @@ const LOCATIONS = ['remote', 'hybrid', 'on-site'] as const;
 const SKILL_CATEGORIES = ['technical', 'soft', 'language', 'tool', 'domain', 'other'] as const;
 const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'] as const;
 
-type FormState = Omit<CareerProfile, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'skills'> & {
+type FormState = Omit<
+  CareerProfile,
+  'id' | 'userId' | 'createdAt' | 'updatedAt' | 'skills' | 'education' | 'workExperience'
+> & {
   skills: ProfileSkill[];
+  education: ProfileEducation[];
+  workExperience: ProfileWorkExperience[];
   desiredRolesText: string;
 };
 
@@ -55,6 +62,23 @@ function toForm(p: CareerProfile): FormState {
     skills: p.skills.length
       ? p.skills
       : [{ name: '', category: 'technical', level: 'intermediate', years: null }],
+    education: p.education?.length
+      ? p.education
+      : [{ school: '', degree: null, field: null, startYear: null, endYear: null, description: null }],
+    workExperience: p.workExperience?.length
+      ? p.workExperience
+      : [
+          {
+            title: '',
+            company: '',
+            location: null,
+            startMonth: null,
+            endMonth: null,
+            isCurrent: false,
+            description: null,
+            highlights: [],
+          },
+        ],
   };
 }
 
@@ -118,6 +142,8 @@ export function ProfileForm() {
         visaSponsorshipNeeded: form.visaSponsorshipNeeded,
         workLocationPreference: form.workLocationPreference,
         skills: form.skills.filter((s) => s.name.trim()),
+        education: form.education.filter((e) => e.school.trim()),
+        workExperience: form.workExperience.filter((e) => e.title.trim() && e.company.trim()),
       });
       setForm(toForm(saved));
       setMessage('Profile saved.');
@@ -329,6 +355,240 @@ export function ProfileForm() {
               />
             </Field>
           </div>
+        </Section>
+
+        <Section title="Work experience" description="Roles that power matching and resume tailoring.">
+          <div className="space-y-3">
+            {form.workExperience.map((exp, index) => (
+              <div
+                key={index}
+                className="space-y-2 rounded-xl border border-border/80 bg-card/50 p-3"
+              >
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input
+                    placeholder="Job title"
+                    value={exp.title}
+                    onChange={(e) => {
+                      const workExperience = [...form.workExperience];
+                      workExperience[index] = { ...exp, title: e.target.value };
+                      setField('workExperience', workExperience);
+                    }}
+                  />
+                  <Input
+                    placeholder="Company"
+                    value={exp.company}
+                    onChange={(e) => {
+                      const workExperience = [...form.workExperience];
+                      workExperience[index] = { ...exp, company: e.target.value };
+                      setField('workExperience', workExperience);
+                    }}
+                  />
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <Input
+                    placeholder="Location"
+                    value={exp.location ?? ''}
+                    onChange={(e) => {
+                      const workExperience = [...form.workExperience];
+                      workExperience[index] = { ...exp, location: e.target.value || null };
+                      setField('workExperience', workExperience);
+                    }}
+                  />
+                  <Input
+                    placeholder="Start (YYYY-MM)"
+                    value={exp.startMonth ?? ''}
+                    onChange={(e) => {
+                      const workExperience = [...form.workExperience];
+                      workExperience[index] = { ...exp, startMonth: e.target.value || null };
+                      setField('workExperience', workExperience);
+                    }}
+                  />
+                  <Input
+                    placeholder="End (YYYY-MM)"
+                    value={exp.isCurrent ? '' : (exp.endMonth ?? '')}
+                    disabled={exp.isCurrent}
+                    onChange={(e) => {
+                      const workExperience = [...form.workExperience];
+                      workExperience[index] = { ...exp, endMonth: e.target.value || null };
+                      setField('workExperience', workExperience);
+                    }}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-border"
+                    checked={Boolean(exp.isCurrent)}
+                    onChange={(e) => {
+                      const workExperience = [...form.workExperience];
+                      workExperience[index] = {
+                        ...exp,
+                        isCurrent: e.target.checked,
+                        endMonth: e.target.checked ? null : exp.endMonth,
+                      };
+                      setField('workExperience', workExperience);
+                    }}
+                  />
+                  Current role
+                </label>
+                <Textarea
+                  placeholder="Summary"
+                  value={exp.description ?? ''}
+                  rows={2}
+                  onChange={(e) => {
+                    const workExperience = [...form.workExperience];
+                    workExperience[index] = { ...exp, description: e.target.value || null };
+                    setField('workExperience', workExperience);
+                  }}
+                />
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove experience"
+                    onClick={() =>
+                      setField(
+                        'workExperience',
+                        form.workExperience.filter((_, i) => i !== index),
+                      )
+                    }
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setField('workExperience', [
+                ...form.workExperience,
+                {
+                  title: '',
+                  company: '',
+                  location: null,
+                  startMonth: null,
+                  endMonth: null,
+                  isCurrent: false,
+                  description: null,
+                  highlights: [],
+                },
+              ])
+            }
+          >
+            <Plus className="h-4 w-4" />
+            Add experience
+          </Button>
+        </Section>
+
+        <Section title="Education" description="Degrees and programs on your profile.">
+          <div className="space-y-3">
+            {form.education.map((edu, index) => (
+              <div
+                key={index}
+                className="space-y-2 rounded-xl border border-border/80 bg-card/50 p-3"
+              >
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input
+                    placeholder="School"
+                    value={edu.school}
+                    onChange={(e) => {
+                      const education = [...form.education];
+                      education[index] = { ...edu, school: e.target.value };
+                      setField('education', education);
+                    }}
+                  />
+                  <Input
+                    placeholder="Degree"
+                    value={edu.degree ?? ''}
+                    onChange={(e) => {
+                      const education = [...form.education];
+                      education[index] = { ...edu, degree: e.target.value || null };
+                      setField('education', education);
+                    }}
+                  />
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <Input
+                    placeholder="Field of study"
+                    value={edu.field ?? ''}
+                    onChange={(e) => {
+                      const education = [...form.education];
+                      education[index] = { ...edu, field: e.target.value || null };
+                      setField('education', education);
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Start year"
+                    value={edu.startYear ?? ''}
+                    onChange={(e) => {
+                      const education = [...form.education];
+                      education[index] = {
+                        ...edu,
+                        startYear: e.target.value === '' ? null : Number(e.target.value),
+                      };
+                      setField('education', education);
+                    }}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="End year"
+                    value={edu.endYear ?? ''}
+                    onChange={(e) => {
+                      const education = [...form.education];
+                      education[index] = {
+                        ...edu,
+                        endYear: e.target.value === '' ? null : Number(e.target.value),
+                      };
+                      setField('education', education);
+                    }}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove education"
+                    onClick={() =>
+                      setField(
+                        'education',
+                        form.education.filter((_, i) => i !== index),
+                      )
+                    }
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setField('education', [
+                ...form.education,
+                {
+                  school: '',
+                  degree: null,
+                  field: null,
+                  startYear: null,
+                  endYear: null,
+                  description: null,
+                },
+              ])
+            }
+          >
+            <Plus className="h-4 w-4" />
+            Add education
+          </Button>
         </Section>
 
         <Section title="Skills" description="Add at least three skills for stronger matching.">

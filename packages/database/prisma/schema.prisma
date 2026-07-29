@@ -42,6 +42,13 @@ model User {
   applyAssistSessions ApplyAssistSession[]
   adminActionLogs     AdminActionLog[]
   coachMemory         CoachMemory?
+  notificationLogs    NotificationLog[]
+  teamsOwned          Team[]              @relation("TeamOwner")
+  teamMemberships     TeamMembership[]
+  coachAssignmentsAsCoach  CoachAssignment[] @relation("CoachAssignments")
+  coachAssignmentsAsMember CoachAssignment[] @relation("MemberAssignments")
+  referralCode        ReferralCode?
+  referralRedemptions ReferralRedemption[] @relation("ReferredUser")
 
   @@unique([email])
   @@map("user")
@@ -117,8 +124,52 @@ model CareerProfile {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   skills Skill[]
+  education Education[]
+  workExperience WorkExperience[]
 
   @@map("career_profiles")
+}
+
+model Education {
+  id        String        @id @default(cuid())
+  profileId String        @map("profile_id")
+  profile   CareerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  school      String
+  degree      String?
+  field       String?
+  startYear   Int?    @map("start_year")
+  endYear     Int?    @map("end_year")
+  description String? @db.Text
+  sortOrder   Int     @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([profileId, sortOrder])
+  @@map("education")
+}
+
+model WorkExperience {
+  id        String        @id @default(cuid())
+  profileId String        @map("profile_id")
+  profile   CareerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  title       String
+  company     String
+  location    String?
+  startMonth  String?  @map("start_month")
+  endMonth    String?  @map("end_month")
+  isCurrent   Boolean  @default(false) @map("is_current")
+  description String?  @db.Text
+  highlights  String[] @default([])
+  sortOrder   Int      @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([profileId, sortOrder])
+  @@map("work_experience")
 }
 
 model Skill {
@@ -736,5 +787,113 @@ model AdminActionLog {
   @@index([actorUserId, createdAt])
   @@index([action, createdAt])
   @@map("admin_action_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Wave 5 — Notifications, Team, Coach desk, Referrals
+// ---------------------------------------------------------------------------
+model NotificationLog {
+  id     String @id @default(cuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// e.g. optimization_complete | application_stage | job_alert | weekly_digest | system
+  type    String
+  /// email | in_app
+  channel String  @default("in_app")
+  title   String
+  body    String  @db.Text
+  href    String?
+  meta    Json?
+  /// queued | sent | skipped | failed | delivered
+  status  String  @default("delivered")
+
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@map("notification_logs")
+}
+
+model Team {
+  id          String @id @default(cuid())
+  name        String
+  ownerUserId String @map("owner_user_id")
+  owner       User   @relation("TeamOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  seatLimit   Int    @default(5) @map("seat_limit")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships TeamMembership[]
+
+  @@index([ownerUserId])
+  @@map("teams")
+}
+
+model TeamMembership {
+  id     String @id @default(cuid())
+  teamId String @map("team_id")
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// owner | coach | member
+  role String @default("member")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_memberships")
+}
+
+model CoachAssignment {
+  id           String @id @default(cuid())
+  coachUserId  String @map("coach_user_id")
+  coach        User   @relation("CoachAssignments", fields: [coachUserId], references: [id], onDelete: Cascade)
+  memberUserId String @map("member_user_id")
+  member       User   @relation("MemberAssignments", fields: [memberUserId], references: [id], onDelete: Cascade)
+  note         String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([coachUserId, memberUserId])
+  @@index([memberUserId])
+  @@map("coach_assignments")
+}
+
+model ReferralCode {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code   String @unique
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  redemptions ReferralRedemption[]
+
+  @@map("referral_codes")
+}
+
+model ReferralRedemption {
+  id             String       @id @default(cuid())
+  codeId         String       @map("code_id")
+  code           ReferralCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  referredUserId String       @unique @map("referred_user_id")
+  referredUser   User         @relation("ReferredUser", fields: [referredUserId], references: [id], onDelete: Cascade)
+
+  /// pending | rewarded | rejected
+  status          String    @default("pending")
+  rewardGrantedAt DateTime? @map("reward_granted_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([codeId])
+  @@map("referral_redemptions")
 }
 
