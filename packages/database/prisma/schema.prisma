@@ -41,6 +41,7 @@ model User {
   networkingContacts  NetworkingContact[]
   applyAssistSessions ApplyAssistSession[]
   adminActionLogs     AdminActionLog[]
+  coachMemory         CoachMemory?
 
   @@unique([email])
   @@map("user")
@@ -96,6 +97,8 @@ model CareerProfile {
   githubUrl    String? @map("github_url")
   linkedinUrl  String? @map("linkedin_url")
   websiteUrl   String? @map("website_url")
+  /// Public hosted portfolio path segment `/p/{slug}`
+  publicSlug   String? @unique @map("public_slug")
 
   currentJobTitle        String?  @map("current_job_title")
   yearsOfExperience      Int?     @map("years_of_experience")
@@ -561,6 +564,22 @@ model CareerCoachSession {
   @@map("career_coach_sessions")
 }
 
+// Cross-session coach memory (Wave 4)
+model CoachMemory {
+  id     String @id @default(cuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  summary  String? @db.Text
+  /// string[] durable facts
+  factsJson Json? @map("facts_json")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("coach_memories")
+}
+
 // ---------------------------------------------------------------------------
 // Portfolio & Project Builder — Module 14
 // ---------------------------------------------------------------------------
@@ -592,7 +611,7 @@ model PortfolioProject {
   isFeatured Boolean @default(false) @map("is_featured")
   sortOrder  Int     @default(0) @map("sort_order")
 
-  /// manual | suggested
+  /// manual | suggested | github
   source         String  @default("manual")
   suggestedSkill String? @map("suggested_skill")
 

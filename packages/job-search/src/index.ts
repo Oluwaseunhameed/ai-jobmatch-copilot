@@ -53,6 +53,7 @@ export {
   getInterviewPrep,
   getLatestInterviewPrepForJob,
   listInterviewPreps,
+  runInterviewMockTurn,
   updateInterviewPractice,
 } from './interview-service';
 
@@ -71,6 +72,7 @@ export {
   getCodingSession,
   getLatestCodingSessionForJob,
   listCodingSessions,
+  runCodingReview,
   updateCodingAttempts,
 } from './coding-service';
 
@@ -109,7 +111,10 @@ export {
   deletePortfolioProject,
   getPortfolioBrief,
   getPortfolioProject,
+  getPublicPortfolio,
+  importGithubRepo,
   listPortfolioProjects,
+  publishPortfolio,
   updatePortfolioProject,
 } from './portfolio-service';
 

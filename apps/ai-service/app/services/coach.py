@@ -57,6 +57,8 @@ class CoachContext(BaseModel):
     salaryDetail: str | None = None
     promotion: CoachPromotion = Field(default_factory=CoachPromotion)
     market: CoachMarket = Field(default_factory=CoachMarket)
+    memorySummary: str = ""
+    memoryFacts: list[str] = Field(default_factory=list)
 
 
 class CoachHistoryMessage(BaseModel):
@@ -195,6 +197,7 @@ def _stream_complete(
     system = (
         "You are a concise career coach for AI JobMatch Copilot. "
         "Ground every recommendation in the provided Growth Hub context. "
+        "Honor durable memorySummary/memoryFacts when present. "
         "Do not invent employers, salaries, or credentials not present in context. "
         "Keep replies under 220 words. Use short paragraphs or simple bullets. "
         "You may use light Markdown only (**bold** for short labels, - for lists). "
@@ -322,6 +325,7 @@ def _complete(litellm: Any, model: str, payload: CoachChatInput, user_message: s
     system = (
         "You are a concise career coach for AI JobMatch Copilot. "
         "Ground every recommendation in the provided Growth Hub context. "
+        "Honor durable memorySummary/memoryFacts when present. "
         "Do not invent employers, salaries, or credentials not present in context. "
         "Keep replies under 220 words. Use short paragraphs or simple bullets. "
         "You may use light Markdown only (**bold** for short labels, - for lists). "

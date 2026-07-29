@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
   INTERVIEW_CATEGORY_LABELS,
+  runInterviewMockTurn,
   updateInterviewPractice,
   type InterviewPrep,
 } from '@/lib/api-client';
@@ -24,10 +25,15 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
   const [pendingQuestionId, setPendingQuestionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
+  const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const ratings = useMemo(() => {
     const map = new Map(prep.practice.map((p) => [p.questionId, p.selfRating]));
     return map;
+  }, [prep.practice]);
+
+  const practiceById = useMemo(() => {
+    return new Map(prep.practice.map((p) => [p.questionId, p]));
   }, [prep.practice]);
 
   const questions =
@@ -39,9 +45,18 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
     if (pendingQuestionId) return;
     setPendingQuestionId(questionId);
     setError(null);
+    const prior = practiceById.get(questionId);
     const nextPractice = [
       ...prep.practice.filter((p) => p.questionId !== questionId),
-      { questionId, selfRating },
+      {
+        questionId,
+        selfRating,
+        notes: prior?.notes ?? null,
+        answer: prior?.answer ?? null,
+        feedback: prior?.feedback ?? null,
+        followUp: prior?.followUp ?? null,
+        feedbackSource: prior?.feedbackSource ?? null,
+      },
     ];
     try {
       const updated = await updateInterviewPractice(prep.id, nextPractice);
@@ -51,6 +66,87 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
     } finally {
       setPendingQuestionId(null);
     }
+  }
+
+  async function submitMock(questionId: string) {
+    if (pendingQuestionId) return;
+    const answer = (answers[questionId] ?? practiceById.get(questionId)?.answer ?? '').trim();
+    if (!answer) {
+      setError('Write an answer before running mock feedback');
+      return;
+    }
+    setPendingQuestionId(questionId);
+    setError(null);
+    try {
+      const updated = await runInterviewMockTurn(prep.id, {
+        questionId,
+        answer,
+        selfRating: ratings.get(questionId) ?? 3,
+      });
+      setPrep(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Mock turn failed');
+    } finally {
+      setPendingQuestionId(null);
+    }
+  }
+
+  function startVoice(questionId: string) {
+    const SpeechRecognition =
+      typeof window !== 'undefined'
+        ? (
+            window as unknown as {
+              SpeechRecognition?: new () => {
+                continuous: boolean;
+                interimResults: boolean;
+                onresult: ((ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+                onerror: (() => void) | null;
+                start: () => void;
+              };
+              webkitSpeechRecognition?: new () => {
+                continuous: boolean;
+                interimResults: boolean;
+                onresult: ((ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+                onerror: (() => void) | null;
+                start: () => void;
+              };
+            }
+          ).SpeechRecognition ||
+          (
+            window as unknown as {
+              webkitSpeechRecognition?: new () => {
+                continuous: boolean;
+                interimResults: boolean;
+                onresult: ((ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+                onerror: (() => void) | null;
+                start: () => void;
+              };
+            }
+          ).webkitSpeechRecognition
+        : undefined;
+    if (!SpeechRecognition) {
+      setError('Voice input is not supported in this browser — type your answer instead.');
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((r) => r[0]?.transcript ?? '')
+        .join(' ')
+        .trim();
+      if (transcript) {
+        setAnswers((prev) => ({
+          ...prev,
+          [questionId]: [prev[questionId], transcript].filter(Boolean).join(' ').trim(),
+        }));
+      }
+    };
+    recognition.onerror = () => {
+      setError('Voice capture failed — try typing instead.');
+    };
+    recognition.start();
   }
 
   return (
@@ -148,6 +244,56 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
                 ))}
                 {pendingQuestionId === question.id && <Spinner size="sm" />}
               </div>
+
+              <label className="mt-4 block space-y-1 text-sm">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Mock answer
+                </span>
+                <textarea
+                  value={answers[question.id] ?? practiceById.get(question.id)?.answer ?? ''}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({ ...prev, [question.id]: e.target.value }))
+                  }
+                  rows={4}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="Type or dictate your answer…"
+                />
+              </label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={pendingQuestionId === question.id}
+                  onClick={() => startVoice(question.id)}
+                >
+                  Voice input
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={pendingQuestionId === question.id}
+                  onClick={() => void submitMock(question.id)}
+                >
+                  Get mock feedback
+                </Button>
+              </div>
+              {practiceById.get(question.id)?.feedback ? (
+                <div className="mt-3 rounded-lg border border-border bg-muted/20 px-3 py-2 text-sm">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Feedback
+                    {practiceById.get(question.id)?.feedbackSource
+                      ? ` · ${practiceById.get(question.id)?.feedbackSource}`
+                      : ''}
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
+                    {practiceById.get(question.id)?.feedback}
+                  </p>
+                  {practiceById.get(question.id)?.followUp ? (
+                    <p className="mt-2 text-foreground">
+                      {practiceById.get(question.id)?.followUp}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </li>
           );
         })}

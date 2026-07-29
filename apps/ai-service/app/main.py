@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import applications, coach, embeddings, health, resumes
+from app.routers import applications, coach, coding, embeddings, health, insights, interview, memory, resumes
 
 app = FastAPI(
     title="AI JobMatch Copilot — AI Service",
@@ -33,6 +33,10 @@ app.include_router(resumes.router)
 app.include_router(applications.router)
 app.include_router(embeddings.router)
 app.include_router(coach.router)
+app.include_router(memory.router)
+app.include_router(insights.router)
+app.include_router(interview.router)
+app.include_router(coding.router)
 
 
 @app.get("/")

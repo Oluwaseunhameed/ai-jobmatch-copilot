@@ -57,7 +57,19 @@ export function JobInsightsPanel({ slug }: { slug: string }) {
     <div className="space-y-4">
       <div className="surface-panel p-5">
         <h2 className="font-display text-lg font-semibold tracking-tight">Job insights</h2>
+        {insights.source ? (
+          <p className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
+            {insights.source === 'llm' ? 'AI narrative' : 'Template summary'}
+          </p>
+        ) : null}
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{insights.summary}</p>
+        {insights.themes && insights.themes.length > 0 ? (
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {insights.themes.map((theme) => (
+              <li key={theme}>{theme}</li>
+            ))}
+          </ul>
+        ) : null}
 
         {typeof insights.matchScore === 'number' ? (
           <>

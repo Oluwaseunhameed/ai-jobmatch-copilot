@@ -133,13 +133,15 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 | Playwright fill-only ATS adapters (Greenhouse, Lever, Ashby, Workable + fixture) | ✅ |
 | Apply-assist hardening (`run_fill`, observability, `/apply-fixture`, env/flag gates) | ✅ |
 
-### Wave 4 — AI depth
+### Wave 4 — AI depth ✅
 
-- LLM job-description narrative insights
-- Voice + conversational mock interview
-- Coding sandbox / AI code review
-- Coach long-term memory / tool agents
-- Hosted portfolio / GitHub project sync
+| Item | Status |
+|------|--------|
+| LLM JD narrative insights | ✅ |
+| Conversational mock interview (+ browser voice input) | ✅ |
+| Coding AI review (sandbox deferred) | ✅ |
+| Coach long-term memory + light application tool | ✅ |
+| Public portfolio page + GitHub import | ✅ |
 
 ### Wave 5 — Platform & enterprise (Phase 6 core)
 

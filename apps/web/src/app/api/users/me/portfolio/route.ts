@@ -3,6 +3,8 @@ import {
   createPortfolioProject,
   createProjectFromSuggestion,
   getPortfolioBrief,
+  importGithubRepo,
+  publishPortfolio,
 } from '@jobmatch/job-search';
 
 import { requireAppUser } from '@/lib/auth';
@@ -33,6 +35,23 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (body.action === 'publish') {
+      const brief = await publishPortfolio({
+        userId: app.user.id,
+        slug: typeof body.slug === 'string' ? body.slug : null,
+      });
+      return NextResponse.json(brief);
+    }
+
+    if (body.action === 'import_github' || body.repoUrl) {
+      const repoUrl = typeof body.repoUrl === 'string' ? body.repoUrl : '';
+      const project = await importGithubRepo({
+        userId: app.user.id,
+        repoUrl,
+      });
+      return NextResponse.json(project, { status: 201 });
+    }
+
     if (body.fromSuggestion === true || body.suggestionId || body.skill) {
       const project = await createProjectFromSuggestion({
         userId: app.user.id,

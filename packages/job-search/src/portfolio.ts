@@ -249,6 +249,7 @@ export function buildPortfolioBrief(input: {
   projects: PortfolioProjectDto[];
   suggestions: PortfolioProjectSuggestionDto[];
   profileLinks: PortfolioBriefDto['profileLinks'];
+  publicSlug?: string | null;
 }): PortfolioBriefDto {
   const { score, missing, featuredCount, shippedCount } = computePortfolioReadiness(
     input.projects,
@@ -258,6 +259,7 @@ export function buildPortfolioBrief(input: {
     count === 0
       ? 'Start a project library employers can scan quickly — or accept a suggested build from your skill gaps.'
       : `You have ${count} portfolio project${count === 1 ? '' : 's'} (${shippedCount} shipped, ${featuredCount} featured). Readiness ${score}%.`;
+  const publicSlug = input.publicSlug?.trim() || null;
 
   return {
     summary,
@@ -269,6 +271,8 @@ export function buildPortfolioBrief(input: {
     suggestions: input.suggestions,
     projects: input.projects,
     profileLinks: input.profileLinks,
+    publicSlug,
+    publicPath: publicSlug ? `/p/${publicSlug}` : null,
   };
 }
 

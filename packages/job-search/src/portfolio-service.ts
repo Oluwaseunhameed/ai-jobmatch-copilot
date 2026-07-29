@@ -2,6 +2,7 @@ import { prisma } from '@jobmatch/database';
 import type {
   PortfolioBriefDto,
   PortfolioProjectDto,
+  PublicPortfolioDto,
 } from '@jobmatch/types';
 
 import { getCareerGrowthHub } from './growth-service';
@@ -48,7 +49,12 @@ export async function getPortfolioBrief(userId: string): Promise<PortfolioBriefD
     getCareerGrowthHub(userId),
     prisma.careerProfile.findUnique({
       where: { userId },
-      select: { portfolioUrl: true, githubUrl: true, websiteUrl: true },
+      select: {
+        portfolioUrl: true,
+        githubUrl: true,
+        websiteUrl: true,
+        publicSlug: true,
+      },
     }),
   ]);
 
@@ -66,7 +72,154 @@ export async function getPortfolioBrief(userId: string): Promise<PortfolioBriefD
       githubUrl: profile?.githubUrl ?? null,
       websiteUrl: profile?.websiteUrl ?? null,
     },
+    publicSlug: profile?.publicSlug ?? null,
   });
+}
+
+function slugifyPortfolio(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+}
+
+export async function publishPortfolio(input: {
+  userId: string;
+  slug?: string | null;
+}): Promise<PortfolioBriefDto> {
+  const user = await prisma.user.findUnique({
+    where: { id: input.userId },
+    select: { name: true },
+  });
+  const base =
+    slugifyPortfolio(input.slug?.trim() || user?.name || 'portfolio') || 'portfolio';
+  let slug = base;
+  for (let i = 0; i < 8; i += 1) {
+    const clash = await prisma.careerProfile.findFirst({
+      where: {
+        publicSlug: slug,
+        NOT: { userId: input.userId },
+      },
+      select: { id: true },
+    });
+    if (!clash) break;
+    slug = `${base}-${i + 2}`;
+  }
+
+  await prisma.careerProfile.upsert({
+    where: { userId: input.userId },
+    create: { userId: input.userId, publicSlug: slug },
+    update: { publicSlug: slug },
+  });
+
+  return getPortfolioBrief(input.userId);
+}
+
+export async function getPublicPortfolio(slug: string): Promise<PublicPortfolioDto | null> {
+  const profile = await prisma.careerProfile.findFirst({
+    where: { publicSlug: slug },
+    include: { user: { select: { name: true } } },
+  });
+  if (!profile) return null;
+
+  const projects = await prisma.portfolioProject.findMany({
+    where: {
+      userId: profile.userId,
+      status: { in: ['shipped', 'in_progress'] },
+      OR: [{ isFeatured: true }, { status: 'shipped' }],
+    },
+    orderBy: [{ isFeatured: 'desc' }, { sortOrder: 'asc' }, { updatedAt: 'desc' }],
+    take: 24,
+  });
+
+  return {
+    slug,
+    displayName: profile.user.name,
+    headline: profile.headline,
+    about: profile.summary,
+    githubUrl: profile.githubUrl,
+    websiteUrl: profile.websiteUrl ?? profile.portfolioUrl,
+    projects: projects.map(toPortfolioProjectDto),
+  };
+}
+
+export async function importGithubRepo(input: {
+  userId: string;
+  repoUrl: string;
+}): Promise<PortfolioProjectDto> {
+  const parsed = parseGithubRepo(input.repoUrl);
+  if (!parsed) {
+    throw new Error('Use a GitHub repo URL like https://github.com/owner/repo');
+  }
+
+  const response = await fetch(
+    `https://api.github.com/repos/${parsed.owner}/${parsed.repo}`,
+    {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'ai-jobmatch-copilot',
+        ...(process.env.GITHUB_TOKEN
+          ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+          : {}),
+      },
+    },
+  );
+  if (!response.ok) {
+    throw new Error(
+      response.status === 404
+        ? 'GitHub repo not found (or private without GITHUB_TOKEN)'
+        : `GitHub API error (${response.status})`,
+    );
+  }
+
+  const repo = (await response.json()) as {
+    name?: string;
+    description?: string | null;
+    html_url?: string;
+    homepage?: string | null;
+    language?: string | null;
+    topics?: string[];
+    stargazers_count?: number;
+  };
+
+  const tech = [
+    ...(repo.language ? [repo.language] : []),
+    ...((repo.topics ?? []).slice(0, 6)),
+  ];
+
+  return createPortfolioProject({
+    userId: input.userId,
+    data: {
+      title: repo.name || parsed.repo,
+      summary: repo.description || `Imported from GitHub (${parsed.owner}/${parsed.repo}).`,
+      role: 'Builder',
+      status: 'shipped',
+      techStack: tech,
+      highlights: [
+        repo.stargazers_count
+          ? `${repo.stargazers_count} GitHub stars`
+          : 'Synced from public GitHub repository',
+        `Repository: ${parsed.owner}/${parsed.repo}`,
+      ],
+      repoUrl: repo.html_url || `https://github.com/${parsed.owner}/${parsed.repo}`,
+      demoUrl: repo.homepage || null,
+      source: 'github',
+      isFeatured: false,
+    },
+  });
+}
+
+function parseGithubRepo(raw: string): { owner: string; repo: string } | null {
+  const trimmed = raw.trim();
+  const match = trimmed.match(
+    /^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/\s]+)\/([^/\s#?]+)(?:\.git)?\/?/i,
+  );
+  if (!match) return null;
+  return {
+    owner: match[1]!,
+    repo: match[2]!.replace(/\.git$/i, ''),
+  };
 }
 
 export async function createPortfolioProject(input: {

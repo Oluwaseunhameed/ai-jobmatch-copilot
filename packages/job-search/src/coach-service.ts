@@ -39,6 +39,92 @@ type AiCoachChatResponse = {
   };
 };
 
+async function loadCoachMemory(userId: string): Promise<{
+  summary: string | null;
+  facts: string[];
+}> {
+  const row = await prisma.coachMemory.findUnique({ where: { userId } });
+  const facts = Array.isArray(row?.factsJson) ? (row!.factsJson as string[]) : [];
+  return { summary: row?.summary ?? null, facts };
+}
+
+/** Read-only tool: recent applications for coach context (Wave 4 light agent). */
+async function listRecentApplicationsTool(userId: string): Promise<string[]> {
+  const rows = await prisma.application.findMany({
+    where: { userId },
+    include: { job: { include: { company: { select: { name: true } } } } },
+    orderBy: { updatedAt: 'desc' },
+    take: 5,
+  });
+  return rows.map(
+    (a) => `${a.stage}: ${a.job.title} @ ${a.job.company.name}`,
+  );
+}
+
+async function enrichContextWithMemory(
+  userId: string,
+  context: CoachContextDto,
+): Promise<CoachContextDto> {
+  const memory = await loadCoachMemory(userId);
+  const apps = await listRecentApplicationsTool(userId);
+  return {
+    ...context,
+    memorySummary: memory.summary ?? context.memorySummary ?? '',
+    memoryFacts: [
+      ...(memory.facts ?? []),
+      ...(apps.length ? [`Recent applications: ${apps.join('; ')}`] : []),
+    ].slice(0, 12),
+  };
+}
+
+async function refreshCoachMemory(input: {
+  userId: string;
+  focus: CoachFocus;
+  messages: CoachMessageDto[];
+}): Promise<void> {
+  const prior = await loadCoachMemory(input.userId);
+  const timeout = Number(process.env.AI_SERVICE_COACH_MEMORY_TIMEOUT_MS) || 45_000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(`${aiServiceUrl()}/v1/coach/memory/summarize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        focus: input.focus,
+        prior_summary: prior.summary ?? '',
+        prior_facts: prior.facts,
+        messages: input.messages.slice(-16).map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+      }),
+      signal: controller.signal,
+    });
+    if (!response.ok) return;
+    const data = (await response.json()) as {
+      summary?: string;
+      facts?: string[];
+    };
+    await prisma.coachMemory.upsert({
+      where: { userId: input.userId },
+      create: {
+        userId: input.userId,
+        summary: data.summary?.trim() || prior.summary,
+        factsJson: (data.facts ?? prior.facts).slice(0, 12) as unknown as Prisma.InputJsonValue,
+      },
+      update: {
+        summary: data.summary?.trim() || prior.summary,
+        factsJson: (data.facts ?? prior.facts).slice(0, 12) as unknown as Prisma.InputJsonValue,
+      },
+    });
+  } catch {
+    // best-effort
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function coachTimeoutMs() {
   const raw = Number(process.env.AI_SERVICE_COACH_TIMEOUT_MS);
   if (Number.isFinite(raw) && raw > 0) return raw;
@@ -240,6 +326,7 @@ export async function* streamAppendCoachMessage(input: {
     const hub = await getCareerGrowthHub(input.userId);
     context = snapCoachContext(hub);
   }
+  context = await enrichContextWithMemory(input.userId, context);
 
   const userMessage = makeMessage('user', text);
   messages.push(userMessage);
@@ -331,6 +418,7 @@ export async function* streamAppendCoachMessage(input: {
     },
   });
 
+  void refreshCoachMemory({ userId: input.userId, focus, messages });
   yield { type: 'done', session: toCareerCoachSessionDto(row) };
 }
 
@@ -360,7 +448,8 @@ export async function createCoachSession(input: {
 }): Promise<CareerCoachSessionDto> {
   const focus = normalizeFocus(input.focus);
   const hub = await getCareerGrowthHub(input.userId);
-  const context = snapCoachContext(hub);
+  let context = snapCoachContext(hub);
+  context = await enrichContextWithMemory(input.userId, context);
   const welcome = buildWelcomeReply(context, focus);
   const messages: CoachMessageDto[] = [makeMessage('assistant', welcome.content, welcome.source)];
 
@@ -391,6 +480,10 @@ export async function createCoachSession(input: {
       source,
     },
   });
+
+  if (userText) {
+    void refreshCoachMemory({ userId: input.userId, focus, messages });
+  }
 
   return toCareerCoachSessionDto(row);
 }
@@ -426,6 +519,7 @@ export async function appendCoachMessage(input: {
     const hub = await getCareerGrowthHub(input.userId);
     context = snapCoachContext(hub);
   }
+  context = await enrichContextWithMemory(input.userId, context);
 
   messages.push(makeMessage('user', text));
   const reply = await generateAssistantReply({
@@ -452,6 +546,7 @@ export async function appendCoachMessage(input: {
     },
   });
 
+  void refreshCoachMemory({ userId: input.userId, focus, messages });
   return toCareerCoachSessionDto(row);
 }
 

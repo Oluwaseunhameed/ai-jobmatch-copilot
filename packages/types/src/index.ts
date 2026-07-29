@@ -129,6 +129,17 @@ export interface JobInsightsDto {
   fitSignals: FitSignal[];
   learningRecommendations: LearningRecommendation[];
   summary: string;
+  /** LLM narrative themes (must-haves, culture, red flags, etc.) */
+  themes?: string[];
+  /** template | llm */
+  source?: string;
+  llm?: {
+    enabled?: boolean;
+    used?: boolean;
+    model?: string | null;
+    error?: string | null;
+    durationMs?: number | null;
+  };
 }
 
 export interface CompanyDto {
@@ -642,6 +653,14 @@ export interface InterviewPracticeEntryDto {
   /** 1–5 self-rating of answer confidence */
   selfRating: number;
   notes?: string | null;
+  /** Optional full answer text for mock / LLM feedback */
+  answer?: string | null;
+  /** LLM or template feedback on the answer */
+  feedback?: string | null;
+  /** Suggested follow-up question from mock interviewer */
+  followUp?: string | null;
+  /** template | llm for this turn's feedback */
+  feedbackSource?: string | null;
 }
 
 export interface InterviewPrepDto {
@@ -721,6 +740,12 @@ export interface CodingAttemptDto {
   /** 1–5 confidence after attempting */
   selfRating: number | null;
   notes?: string | null;
+  /** Optional pasted solution for AI review */
+  code?: string | null;
+  /** AI or template code review notes */
+  review?: string | null;
+  /** template | llm */
+  reviewSource?: string | null;
 }
 
 export interface CodingPerformanceDto {
@@ -820,6 +845,9 @@ export interface CoachContextDto {
     checklistOpen: string[];
   };
   market: { activeJobs: number; skillsAnalyzed: number };
+  /** Wave 4 durable memory injected into coach prompts */
+  memorySummary?: string;
+  memoryFacts?: string[];
 }
 
 export interface CareerCoachSessionDto {
@@ -833,6 +861,14 @@ export interface CareerCoachSessionDto {
   summary: string | null;
   source: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+/** Cross-session coach memory (Wave 4). */
+export interface CoachMemoryDto {
+  userId: string;
+  summary: string | null;
+  facts: string[];
   updatedAt: string;
 }
 
@@ -911,6 +947,19 @@ export interface PortfolioBriefDto {
     githubUrl: string | null;
     websiteUrl: string | null;
   };
+  /** Public hosted page slug when published */
+  publicSlug: string | null;
+  publicPath: string | null;
+}
+
+export interface PublicPortfolioDto {
+  slug: string;
+  displayName: string;
+  headline: string | null;
+  about: string | null;
+  githubUrl: string | null;
+  websiteUrl: string | null;
+  projects: PortfolioProjectDto[];
 }
 
 // ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
   CODING_STYLE_LABELS,
+  runCodingReview,
   updateCodingAttempts,
   type CodingAttempt,
   type CodingPracticeSession,
@@ -23,6 +24,7 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
   const [pendingProblemId, setPendingProblemId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string | 'all'>('all');
+  const [codeByProblem, setCodeByProblem] = useState<Record<string, string>>({});
 
   const attemptsById = useMemo(() => {
     return new Map(session.attempts.map((a) => [a.problemId, a]));
@@ -44,6 +46,31 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
       setSession(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save attempt');
+    } finally {
+      setPendingProblemId(null);
+    }
+  }
+
+  async function review(problemId: string) {
+    if (pendingProblemId) return;
+    const code = (codeByProblem[problemId] ?? attemptsById.get(problemId)?.code ?? '').trim();
+    if (!code) {
+      setError('Paste a solution before requesting AI review');
+      return;
+    }
+    setPendingProblemId(problemId);
+    setError(null);
+    try {
+      const updated = await runCodingReview(session.id, {
+        problemId,
+        code,
+        status: attemptsById.get(problemId)?.status ?? 'attempted',
+        selfRating: attemptsById.get(problemId)?.selfRating ?? null,
+        minutesSpent: attemptsById.get(problemId)?.minutesSpent ?? null,
+      });
+      setSession(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Review failed');
     } finally {
       setPendingProblemId(null);
     }
@@ -188,6 +215,39 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
                   ))}
                 </ul>
               </div>
+
+              <label className="mt-4 block space-y-1 text-sm">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Paste solution (AI review — no execution)
+                </span>
+                <textarea
+                  value={codeByProblem[problem.id] ?? attempt?.code ?? ''}
+                  onChange={(e) =>
+                    setCodeByProblem((prev) => ({ ...prev, [problem.id]: e.target.value }))
+                  }
+                  rows={6}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs"
+                  placeholder="Paste your code here…"
+                />
+              </label>
+              <div className="mt-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => void review(problem.id)}
+                >
+                  AI code review
+                </Button>
+              </div>
+              {attempt?.review ? (
+                <div className="mt-3 rounded-lg border border-border bg-muted/20 px-3 py-2 text-sm whitespace-pre-wrap text-muted-foreground">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Review{attempt.reviewSource ? ` · ${attempt.reviewSource}` : ''}
+                  </p>
+                  <p className="mt-1">{attempt.review}</p>
+                </div>
+              ) : null}
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
                 {(['solved', 'attempted', 'skipped'] as const).map((status) => (

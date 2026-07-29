@@ -10,15 +10,19 @@ import { Spinner } from '@/components/ui/spinner';
 import {
   PORTFOLIO_STATUS_LABELS,
   createPortfolioProjectFromSuggestion,
+  importGithubRepo,
+  publishPortfolio,
   type PortfolioBrief,
   type PortfolioProjectStatus,
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
-export function PortfolioHubView({ brief }: { brief: PortfolioBrief }) {
+export function PortfolioHubView({ brief: initial }: { brief: PortfolioBrief }) {
   const router = useRouter();
+  const [brief, setBrief] = useState(initial);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [repoUrl, setRepoUrl] = useState('');
 
   async function acceptSuggestion(suggestionId: string) {
     setPendingId(suggestionId);
@@ -28,6 +32,32 @@ export function PortfolioHubView({ brief }: { brief: PortfolioBrief }) {
       router.push(`/portfolio/${project.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not create project');
+    } finally {
+      setPendingId(null);
+    }
+  }
+
+  async function onPublish() {
+    setPendingId('publish');
+    setError(null);
+    try {
+      const next = await publishPortfolio();
+      setBrief(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not publish');
+    } finally {
+      setPendingId(null);
+    }
+  }
+
+  async function onImportGithub() {
+    setPendingId('github');
+    setError(null);
+    try {
+      const project = await importGithubRepo(repoUrl);
+      router.push(`/portfolio/${project.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'GitHub import failed');
     } finally {
       setPendingId(null);
     }
@@ -85,6 +115,46 @@ export function PortfolioHubView({ brief }: { brief: PortfolioBrief }) {
           <Link href="/portfolio/new">New project</Link>
         </Button>
       </div>
+
+      <div className="surface-panel flex flex-col gap-3 p-5 sm:flex-row sm:items-end">
+        <label className="block flex-1 space-y-1 text-sm">
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Import GitHub repo
+          </span>
+          <input
+            value={repoUrl}
+            onChange={(e) => setRepoUrl(e.target.value)}
+            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+            placeholder="https://github.com/owner/repo"
+          />
+        </label>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={pendingId === 'github' || !repoUrl.trim()}
+          onClick={() => void onImportGithub()}
+        >
+          {pendingId === 'github' ? <Spinner size="sm" /> : null}
+          Import
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={pendingId === 'publish'}
+          onClick={() => void onPublish()}
+        >
+          {pendingId === 'publish' ? <Spinner size="sm" /> : null}
+          {brief.publicPath ? 'Refresh public page' : 'Publish public page'}
+        </Button>
+      </div>
+      {brief.publicPath ? (
+        <p className="text-sm text-muted-foreground">
+          Public portfolio:{' '}
+          <Link href={brief.publicPath} className="font-medium text-foreground hover:underline">
+            {brief.publicPath}
+          </Link>
+        </p>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-3">
         <StatCard label="Readiness" value={`${brief.readinessScore}%`} />

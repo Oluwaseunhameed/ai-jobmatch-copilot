@@ -1,8 +1,8 @@
 # Tasks — AI JobMatch Copilot
 
-## Current Sprint: Full Program — Wave 4 (AI depth)
+## Current Sprint: Full Program — Wave 5 (Platform & enterprise)
 
-### Phases 0–5 — Complete ✅ · Wave 1 — Complete ✅ · Wave 2 — Complete ✅ · Wave 3 — Complete ✅
+### Phases 0–5 — Complete ✅ · Waves 1–4 — Complete ✅
 
 ### Wave 2 — Data & discovery ✅
 
@@ -25,13 +25,13 @@
 - [x] Production Playwright ATS adapters (Greenhouse / Lever / Ashby / Workable + `/apply-fixture`) — **fill-only**, never unsupervised submit (ADR-028 / ADR-033)
 - [x] Apply-assist hardening — `run_fill`, fill attempt observability, fixture page, env/flag gates
 
-### Wave 4 — AI depth
+### Wave 4 — AI depth ✅
 
-- [ ] LLM JD narrative insights
-- [ ] Voice + conversational mock interview
-- [ ] Coding sandbox / AI code review
-- [ ] Coach long-term memory / tool agents
-- [ ] Hosted portfolio / GitHub sync
+- [x] LLM JD narrative insights (`POST /v1/jobs/insights/narrative` + themes/source on insights)
+- [x] Voice + conversational mock interview (text mock turn + browser Voice input; TTS/sandbox deferred)
+- [x] Coding AI review (paste solution → `/v1/coding/review`; execution sandbox deferred)
+- [x] Coach long-term memory + light tools (`CoachMemory`, recent applications in context)
+- [x] Hosted portfolio `/p/[slug]` + GitHub repo import
 
 ### Wave 5 — Platform & enterprise
 

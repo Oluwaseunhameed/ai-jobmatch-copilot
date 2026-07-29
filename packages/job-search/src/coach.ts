@@ -12,7 +12,10 @@ export type CoachReply = {
   source: 'template' | 'llm';
 };
 
-export function snapCoachContext(hub: CareerGrowthHubDto): CoachContextDto {
+export function snapCoachContext(
+  hub: CareerGrowthHubDto,
+  memory?: { summary?: string | null; facts?: string[] } | null,
+): CoachContextDto {
   return {
     summary: hub.summary,
     topGaps: hub.skillGaps.slice(0, 6).map((g) => ({
@@ -46,6 +49,8 @@ export function snapCoachContext(hub: CareerGrowthHubDto): CoachContextDto {
         .map((item) => item.label),
     },
     market: hub.market,
+    memorySummary: memory?.summary?.trim() || '',
+    memoryFacts: memory?.facts?.slice(0, 12) ?? [],
   };
 }
 

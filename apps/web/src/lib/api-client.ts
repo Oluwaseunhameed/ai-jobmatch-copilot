@@ -603,6 +603,15 @@ export type JobInsights = {
     estimatedHours?: number;
   }>;
   summary: string;
+  themes?: string[];
+  source?: string;
+  llm?: {
+    enabled?: boolean;
+    used?: boolean;
+    model?: string | null;
+    error?: string | null;
+    durationMs?: number | null;
+  };
 };
 
 export function getJobInsights(slug: string) {
@@ -754,7 +763,15 @@ export type InterviewPrep = {
   status: string;
   categories: string[];
   questions: InterviewQuestion[];
-  practice: Array<{ questionId: string; selfRating: number; notes?: string | null }>;
+  practice: Array<{
+    questionId: string;
+    selfRating: number;
+    notes?: string | null;
+    answer?: string | null;
+    feedback?: string | null;
+    followUp?: string | null;
+    feedbackSource?: string | null;
+  }>;
   confidenceScore: number | null;
   summary: string | null;
   source: string;
@@ -805,6 +822,16 @@ export function updateInterviewPractice(
   });
 }
 
+export function runInterviewMockTurn(
+  id: string,
+  input: { questionId: string; answer: string; selfRating?: number },
+) {
+  return apiFetch<InterviewPrep>(`/api/users/me/interview-preps/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ action: 'mock_turn', ...input }),
+  });
+}
+
 export function deleteInterviewPrep(id: string) {
   return apiFetch<{ ok: boolean }>(`/api/users/me/interview-preps/${encodeURIComponent(id)}`, {
     method: 'DELETE',
@@ -832,6 +859,9 @@ export type CodingAttempt = {
   minutesSpent: number | null;
   selfRating: number | null;
   notes?: string | null;
+  code?: string | null;
+  review?: string | null;
+  reviewSource?: string | null;
 };
 
 export type CodingPracticeSession = {
@@ -905,6 +935,26 @@ export function updateCodingAttempts(id: string, attempts: CodingAttempt[]) {
     {
       method: 'PATCH',
       body: JSON.stringify({ attempts }),
+    },
+  );
+}
+
+export function runCodingReview(
+  id: string,
+  input: {
+    problemId: string;
+    code: string;
+    language?: string | null;
+    status?: CodingAttempt['status'];
+    selfRating?: number | null;
+    minutesSpent?: number | null;
+  },
+) {
+  return apiFetch<CodingPracticeSession>(
+    `/api/users/me/coding-sessions/${encodeURIComponent(id)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'review', ...input }),
     },
   );
 }
@@ -1126,6 +1176,8 @@ export type PortfolioBrief = {
     githubUrl: string | null;
     websiteUrl: string | null;
   };
+  publicSlug?: string | null;
+  publicPath?: string | null;
 };
 
 export const PORTFOLIO_PROJECT_STATUSES: PortfolioProjectStatus[] = [
@@ -1178,6 +1230,20 @@ export function createPortfolioProjectFromSuggestion(input: {
   return apiFetch<PortfolioProject>('/api/users/me/portfolio', {
     method: 'POST',
     body: JSON.stringify({ fromSuggestion: true, ...input }),
+  });
+}
+
+export function publishPortfolio(slug?: string | null) {
+  return apiFetch<PortfolioBrief>('/api/users/me/portfolio', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'publish', slug: slug ?? null }),
+  });
+}
+
+export function importGithubRepo(repoUrl: string) {
+  return apiFetch<PortfolioProject>('/api/users/me/portfolio', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'import_github', repoUrl }),
   });
 }
 

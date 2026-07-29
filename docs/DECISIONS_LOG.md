@@ -361,3 +361,25 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Reuses the existing CLI, works before API hosting is finalized, and matches alert/digest worker patterns without coupling heavy provider IO to request latency.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-29
+
+---
+
+## ADR-035: Wave 4 — AI depth overlays (LLM + degrade, no unsupervised automation)
+
+**Context:** Wave 4 needed LLM narratives, mock interview feedback, coding review, coach memory, and portfolio hosting without breaking deterministic MVPs or inventing sandbox/voice infra.
+**Options:** Replace template modules with LLM-only; full voice+sandbox agents; additive AI overlays with template fallback.
+**Outcome:** **Accepted** — Deterministic bases stay; ai-service adds `/v1/jobs/insights/narrative`, `/v1/interview/mock-turn`, `/v1/coding/review`, `/v1/coach/memory/summarize`. Coach injects `CoachMemory` + recent applications. Interview supports browser SpeechRecognition for capture only. Portfolio adds `/p/[slug]` publish + public GitHub import (`GITHUB_TOKEN` optional). Code execution sandbox and full TTS remain deferred.
+**Rationale:** Ships Wave 4 depth on the existing LiteLLM degrade pattern; keeps product usable when models are offline.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-29
+
+---
+
+## ADR-035: Wave 4 — AI depth overlays (LLM + degrade, no unsupervised automation)
+
+**Context:** Wave 4 needed LLM narratives, mock interview feedback, coding review, coach memory, and portfolio hosting without breaking deterministic MVPs or inventing sandbox/voice infra.
+**Options:** Replace template modules with LLM-only; full voice+sandbox agents; additive AI overlays with template fallback.
+**Outcome:** **Accepted** — Deterministic bases stay; ai-service adds `/v1/jobs/insights/narrative`, `/v1/interview/mock-turn`, `/v1/coding/review`, `/v1/coach/memory/summarize`. Coach injects `CoachMemory` + recent applications. Interview supports browser SpeechRecognition for capture only. Portfolio adds `/p/[slug]` publish + public GitHub import (`GITHUB_TOKEN` optional). Code execution sandbox and full TTS remain deferred.
+**Rationale:** Ships Wave 4 depth on the existing LiteLLM degrade pattern; keeps product usable when models are offline.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-29

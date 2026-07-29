@@ -57,6 +57,26 @@ class Settings(BaseSettings):
     llm_application_timeout_seconds: int = 180
     llm_application_model: str = ""
 
+    # Wave 4 — JD narrative insights (deterministic base always returned).
+    llm_insights_enabled: bool = True
+    llm_insights_timeout_seconds: int = 60
+    llm_insights_model: str = ""
+
+    # Wave 4 — interview mock turn feedback.
+    llm_interview_enabled: bool = True
+    llm_interview_timeout_seconds: int = 90
+    llm_interview_model: str = ""
+
+    # Wave 4 — coding AI review (no sandbox execution).
+    llm_coding_review_enabled: bool = True
+    llm_coding_review_timeout_seconds: int = 90
+    llm_coding_review_model: str = ""
+
+    # Wave 4 — coach memory summarization.
+    llm_coach_memory_enabled: bool = True
+    llm_coach_memory_timeout_seconds: int = 60
+    llm_coach_memory_model: str = ""
+
     # Embeddings power semantic job search. Unlike chat completion, a local model
     # is genuinely competitive here, so this defaults on.
     # embedding_dimensions must match the vector(n) column in the jobs table;
