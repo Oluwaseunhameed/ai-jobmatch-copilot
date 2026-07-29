@@ -155,7 +155,7 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 
 - Multi-region deployment
 - Feature flags / A/B at scale (rollout % bucketing via admin-controlled feature flags)
-- Upload CDN (UploadThing / Cloudinary) when needed
+- Upload CDN (resume downloads via `RESUME_CDN_BASE_URL`; UploadThing/Cloudinary later)
 - External company enrichment (funding / interview data)
 
 ### Explicitly out of scope

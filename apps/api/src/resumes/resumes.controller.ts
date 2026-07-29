@@ -9,6 +9,7 @@ import {
   Post,
   Req,
   Res,
+  NotFoundException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -24,6 +25,7 @@ import {
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 import type { Request, Response } from 'express';
 import { memoryStorage } from 'multer';
+import { Readable } from 'node:stream';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { ResumesService } from './resumes.service';
@@ -125,7 +127,40 @@ export class ResumesController {
     @Param('id') id: string,
     @Res() res: Response,
   ) {
-    const { resume, buffer } = await this.resumesService.download(req.user.id, id);
+    const resume = await this.resumesService.get(req.user.id, id);
+
+    const cdnBase = process.env.RESUME_CDN_BASE_URL?.trim();
+    const canStreamFromCdn = cdnBase && resume.storageProvider === 's3';
+
+    if (canStreamFromCdn) {
+      const url = buildCdnUrl(cdnBase!, resume.storageKey);
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new NotFoundException('Resume not found');
+      }
+
+      res.setHeader('Content-Type', resume.mimeType);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${encodeURIComponent(resume.originalFileName)}"`,
+      );
+
+      const len = response.headers.get('content-length');
+      if (len) res.setHeader('Content-Length', len);
+
+      // Node fetch uses web streams; convert to Node stream for Express.
+      if (response.body) {
+        Readable.fromWeb(response.body as unknown as ReadableStream).pipe(res);
+        return;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      res.send(Buffer.from(arrayBuffer));
+      return;
+    }
+
+    const { buffer } = await this.resumesService.download(req.user.id, id);
     res.setHeader('Content-Type', resume.mimeType);
     res.setHeader(
       'Content-Disposition',
@@ -133,4 +168,10 @@ export class ResumesController {
     );
     res.send(buffer);
   }
+}
+
+function buildCdnUrl(base: string, key: string) {
+  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+  // `key` is already a relative path (e.g. resumes/<userId>/<uuid>.pdf)
+  return new URL(key, normalizedBase).toString();
 }

@@ -51,7 +51,7 @@
 
 - [ ] Multi-region deployment
 - [x] Flags / A/B at scale (rollout % bucketing via admin-controlled feature flags)
-- [ ] Upload CDN when needed
+- [x] Upload CDN (resume downloads via `RESUME_CDN_BASE_URL` streaming)
 - [ ] External company enrichment
 
 ### Explicitly out of scope
