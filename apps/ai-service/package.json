@@ -5,6 +5,7 @@
   "description": "Python FastAPI service for resume parsing and AI features. Registered as a workspace package so `turbo dev` starts it alongside web and api.",
   "scripts": {
     "dev": "./scripts/dev.sh",
+    "start": "./scripts/start.sh",
     "bootstrap": "./scripts/setup.sh",
     "py:test": "./scripts/test.sh",
     "py:eval": "./scripts/eval.sh"

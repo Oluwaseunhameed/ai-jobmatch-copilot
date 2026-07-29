@@ -1,0 +1,25 @@
+# Context: monorepo root (docker build -f apps/api/Dockerfile .)
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.venv
+**/__pycache__
+**/*.pyc
+.git
+.github
+uploads
+apps/web/.env.local
+apps/api/.env
+apps/ai-service/.env
+**/.env
+**/.env.*
+!**/.env.example
+docs
+**/*.md
+!README.md
+apps/web
+playwright-report
+test-results
+coverage

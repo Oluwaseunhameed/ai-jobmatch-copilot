@@ -394,3 +394,14 @@ Format: **Decision · Context · Options · Outcome · Date**
 **Rationale:** Reuses Pro billing plumbing; prevents free Team abuse; closes webhook/ensure race without Clerk custom metadata.
 **Status:** ✅ Accepted  
 **Date:** 2026-07-29
+
+---
+
+## ADR-038: Single-region production cut scaffolding
+
+**Context:** ADR-007 chose Vercel + Railway/Fly but the repo only had local `docker-compose` infra and no production migrate/readiness path. Multi-region is still open Wave 6 work and must not block the first production cut.
+**Options:** Wait for full multi-region; ship AWS/ECS first; add minimal single-region deploy artifacts aligned to ADR-007.
+**Outcome:** **Accepted** — In-repo scaffolding: `apps/api/Dockerfile`, `apps/ai-service/Dockerfile`, `railway.toml`, `apps/web/vercel.json` (region `iad1`), `docker-compose.prod.yml`, `pnpm db:migrate:deploy`, `/health/ready` probes, `docs/DEPLOY.md`, `.env.production.example`, `scripts/deploy-check.sh`. Multi-region remains a separate Wave 6 item.
+**Rationale:** Unblocks the single-region production cut without committing to a second cloud or global traffic management yet.
+**Status:** ✅ Accepted  
+**Date:** 2026-07-29

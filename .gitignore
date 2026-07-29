@@ -48,8 +48,7 @@ venv/
 *.egg-info/
 .pytest_cache/
 
-# Prisma
-packages/database/prisma/migrations/**/migration_lock.toml
+# Prisma — keep migration_lock.toml tracked (required for migrate deploy)
 
 # Uploads (local dev)
 uploads/

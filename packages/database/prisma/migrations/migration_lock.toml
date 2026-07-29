@@ -1,0 +1,2 @@
+# Prisma provider lock — required for `prisma migrate deploy` in production.
+provider = "postgresql"

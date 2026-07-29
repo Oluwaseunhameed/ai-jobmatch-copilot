@@ -49,7 +49,8 @@
 
 ### Wave 6 — Scale & infra
 
-- [ ] Multi-region deployment
+- [x] Single-region production cut scaffolding (Dockerfiles, Railway/Vercel `iad1`, migrate deploy, readiness probes, `docs/DEPLOY.md`) — ADR-038
+- [ ] Multi-region deployment (still open; not part of the first production cut)
 - [x] Flags / A/B at scale (rollout % bucketing via admin-controlled feature flags)
 - [x] Upload CDN (resume downloads via `RESUME_CDN_BASE_URL` streaming)
 - [ ] External company enrichment
@@ -114,4 +115,4 @@
 | LaunchDarkly / A/B at scale                  | Module 20  | Low      | Wave 6                                                |
 | Coach / support admin workflows              | Module 20  | —        | ✅ Wave 5                                             |
 | Production Playwright ATS adapters           | Module 10  | Medium   | Wave 3 ✅                                              |
-| Team tier / referral / multi-region          | Phase 6    | Medium   | Team + referral + Team checkout ✅; multi-region Wave 6 |
+| Team tier / referral / multi-region          | Phase 6    | Medium   | Team + referral ✅; single-region deploy scaffolding ✅; multi-region still open |

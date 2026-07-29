@@ -1,0 +1,14 @@
+# Nest API on Railway (or any Docker host).
+# Set Root Directory / Dockerfile path to apps/api/Dockerfile with build context = repo root.
+# Or in Railway: Dockerfile Path = apps/api/Dockerfile, Watch Paths = apps/api,packages
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/api/Dockerfile"
+watchPatterns = ["apps/api/**", "packages/**", "pnpm-lock.yaml", "package.json"]
+
+[deploy]
+healthcheckPath = "/api/v1/health/ready"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

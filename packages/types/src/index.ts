@@ -408,6 +408,8 @@ export interface HealthCheckResponse {
   service: string;
   version: string;
   timestamp: string;
+  /** Optional dependency probes (used by `/ready`). */
+  checks?: Record<string, 'ok' | 'error' | 'skipped'>;
 }
 
 /** Subscription & billing (Module 19). Lemon Squeezy (global) + Paystack (Nigeria). */

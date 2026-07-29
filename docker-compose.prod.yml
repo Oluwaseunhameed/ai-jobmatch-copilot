@@ -1,0 +1,74 @@
+# Optional: run API + AI against compose infra with production-like images.
+# Usage (from repo root):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+#
+# Expects production-ish env files (do not commit secrets):
+#   apps/api/.env
+#   apps/ai-service/.env
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: jobmatch-api
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    env_file:
+      - apps/api/.env
+    environment:
+      DATABASE_URL: postgresql://jobmatch:jobmatch_dev@postgres:5432/jobmatch?schema=public
+      REDIS_URL: redis://redis:6379
+      AI_SERVICE_URL: http://ai-service:8000
+      CORS_ORIGIN: http://localhost:3000
+      NODE_ENV: production
+      PORT: '4000'
+      JOB_INGEST_ENABLED: 'false'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:4000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: apps/ai-service/Dockerfile
+      args:
+        INSTALL_LLM: '0'
+    container_name: jobmatch-ai
+    restart: unless-stopped
+    ports:
+      - '8000:8000'
+    env_file:
+      - apps/ai-service/.env
+    environment:
+      PORT: '8000'
+      CORS_ORIGINS: http://localhost:3000,http://localhost:4000
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

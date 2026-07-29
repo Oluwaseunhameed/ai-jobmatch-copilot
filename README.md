@@ -153,6 +153,32 @@ A run prints a per-case score. Use it before and after prompt or heuristic chang
 | [docs/ROADMAP.md](./docs/ROADMAP.md)             | Phased delivery plan        |
 | [docs/DECISIONS_LOG.md](./docs/DECISIONS_LOG.md) | Architecture decisions      |
 | [docs/TASKS.md](./docs/TASKS.md)                 | Current tasks and backlog   |
+| [docs/DEPLOY.md](./docs/DEPLOY.md)               | Production deploy runbook   |
+
+## Production deploy (summary)
+
+Single-region cut: **Vercel (web, `iad1`)** + **Railway/Fly (API + AI)** — see [docs/DEPLOY.md](./docs/DEPLOY.md). Multi-region remains Wave 6 backlog.
+
+```bash
+# Apply Prisma migrations (production)
+pnpm db:migrate:deploy
+
+# Build container images (from repo root)
+docker build -f apps/api/Dockerfile -t jobmatch-api .
+docker build -f apps/ai-service/Dockerfile -t jobmatch-ai .
+
+# Validate required secrets are present in the current shell
+./scripts/deploy-check.sh web
+./scripts/deploy-check.sh api
+```
+
+Health checks:
+
+| Service | Liveness | Readiness |
+| ------- | -------- | --------- |
+| Web | `/api/health` | — |
+| API | `/api/v1/health` | `/api/v1/health/ready` |
+| AI | `/health` | `/ready` |
 
 ## Tech Stack
 

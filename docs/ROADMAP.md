@@ -154,6 +154,7 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 ### Wave 6 — Scale & infra
 
 - Multi-region deployment
+- Deployment scaffolding (Docker / Vercel / Railway, migrate deploy, readiness probes) — ADR-038
 - Feature flags / A/B at scale (rollout % bucketing via admin-controlled feature flags)
 - Upload CDN (resume downloads via `RESUME_CDN_BASE_URL`; UploadThing/Cloudinary later)
 - External company enrichment (funding / interview data)
