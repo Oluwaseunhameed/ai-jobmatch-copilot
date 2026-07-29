@@ -4,6 +4,8 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
+  // native = local macOS/Linux; rhel-openssl-3.0.x = Vercel Node serverless
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

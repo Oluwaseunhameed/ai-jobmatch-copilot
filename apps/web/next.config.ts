@@ -13,11 +13,21 @@ const nextConfig: NextConfig = {
   // does not traverse BullMQ's unused optional Valkey transport.
   serverExternalPackages: [
     '@prisma/client',
+    'prisma',
     '@jobmatch/queue',
     'bullmq',
     'playwright',
     'playwright-core',
   ],
+  // Ensure Prisma query engines are included in the Vercel serverless bundle
+  // (monorepo pnpm layout otherwise omits libquery_engine-rhel-openssl-3.0.x).
+  outputFileTracingIncludes: {
+    '/*': [
+      '../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**',
+      '../../node_modules/.prisma/client/**',
+      './node_modules/.prisma/client/**',
+    ],
+  },
   webpack(config, { webpack }) {
     // BullMQ exports its optional Valkey adapter from the package root. Webpack
     // attempts to resolve that adapter even though this app uses Redis/ioredis,
