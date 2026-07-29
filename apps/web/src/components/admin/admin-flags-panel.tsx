@@ -15,16 +15,33 @@ export function AdminFlagsPanel({ flags: initial }: { flags: AdminFeatureFlag[] 
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  async function toggle(key: string, enabled: boolean) {
+  async function updateFlag(
+    key: string,
+    input: { enabled: boolean; rolloutPercent?: number | null },
+  ) {
     setError(null);
     setPendingKey(key);
     const previous = flags;
-    setFlags((rows) => rows.map((f) => (f.key === key ? { ...f, enabled } : f)));
+    setFlags((rows) =>
+      rows.map((f) =>
+        f.key === key
+          ? {
+              ...f,
+              enabled: input.enabled,
+              ...(input.rolloutPercent === undefined
+                ? {}
+                : { rolloutPercent: input.rolloutPercent }),
+            }
+          : f,
+      ),
+    );
     try {
+      const body: Record<string, unknown> = { key, enabled: input.enabled };
+      if (input.rolloutPercent !== undefined) body.rolloutPercent = input.rolloutPercent;
       const res = await fetch('/api/admin/flags', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, enabled }),
+        body: JSON.stringify(body),
       });
       const data = (await res.json()) as AdminFeatureFlag & { error?: { message?: string } };
       if (!res.ok) {
@@ -64,6 +81,37 @@ export function AdminFlagsPanel({ flags: initial }: { flags: AdminFeatureFlag[] 
                 {flag.description ? (
                   <p className="mt-1 text-sm text-muted-foreground">{flag.description}</p>
                 ) : null}
+
+                <div className="mt-3 flex items-center gap-2">
+                  <Label htmlFor={`${switchId}-rollout`} className="text-xs text-muted-foreground">
+                    Rollout %
+                  </Label>
+                  <input
+                    id={`${switchId}-rollout`}
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={flag.rolloutPercent ?? ''}
+                    className="h-8 w-20 rounded-md border border-border/80 bg-background px-2 text-sm"
+                    disabled={busy}
+                    placeholder="—"
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw.trim() === '') {
+                        void updateFlag(flag.key, { enabled: flag.enabled, rolloutPercent: null });
+                        return;
+                      }
+                      const num = Number(raw);
+                      if (!Number.isFinite(num)) return;
+                      if (num < 0 || num > 100) return;
+                      void updateFlag(flag.key, { enabled: flag.enabled, rolloutPercent: num });
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {flag.rolloutPercent == null ? 'All' : `${flag.rolloutPercent}%`}
+                  </p>
+                </div>
               </div>
 
               <div className="flex shrink-0 items-center gap-3 pt-0.5">
@@ -80,7 +128,7 @@ export function AdminFlagsPanel({ flags: initial }: { flags: AdminFeatureFlag[] 
                   checked={flag.enabled}
                   disabled={busy}
                   aria-label={`Toggle ${flag.key}`}
-                  onCheckedChange={(enabled) => void toggle(flag.key, enabled)}
+                  onCheckedChange={(enabled) => void updateFlag(flag.key, { enabled })}
                 />
               </div>
             </div>

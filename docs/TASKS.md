@@ -50,7 +50,7 @@
 ### Wave 6 — Scale & infra
 
 - [ ] Multi-region deployment
-- [ ] Flags / A/B at scale
+- [x] Flags / A/B at scale (rollout % bucketing via admin-controlled feature flags)
 - [ ] Upload CDN when needed
 - [ ] External company enrichment
 

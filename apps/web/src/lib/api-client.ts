@@ -1580,6 +1580,7 @@ export type AdminUserRow = {
 export type AdminFeatureFlag = {
   key: string;
   enabled: boolean;
+  rolloutPercent: number | null;
   description: string | null;
   updatedAt: string | null;
   updatedBy: string | null;

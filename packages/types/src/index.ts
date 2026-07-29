@@ -1271,6 +1271,7 @@ export interface AdminSubscriptionRowDto {
 export interface AdminFeatureFlagDto {
   key: string;
   enabled: boolean;
+  rolloutPercent: number | null;
   description: string | null;
   updatedAt: string | null;
   updatedBy: string | null;

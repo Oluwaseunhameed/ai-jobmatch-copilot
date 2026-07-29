@@ -11,6 +11,7 @@ import {
 } from './apply-assist';
 import { atsVendorLabel, detectAts, isFixtureApplyUrl } from './apply/ats-detect';
 import { runAtsFill } from './apply/run-fill';
+import { isAppFeatureFlagEnabledForUser } from './feature-flags';
 
 export {
   buildApplyChecklist,
@@ -32,12 +33,9 @@ const assistInclude = {
   },
 } satisfies Prisma.ApplyAssistSessionInclude;
 
-async function isFixtureFlagEnabled(): Promise<boolean> {
+async function isFixtureFlagEnabled(userId: string): Promise<boolean> {
   if (process.env.APPLY_AUTOMATION_FIXTURE === '1') return true;
-  const row = await prisma.appFeatureFlag.findUnique({
-    where: { key: 'apply_automation_fixture' },
-  });
-  return Boolean(row?.enabled);
+  return isAppFeatureFlagEnabledForUser({ key: 'apply_automation_fixture', userId });
 }
 
 async function loadContext(userId: string, applicationId: string): Promise<{
@@ -212,7 +210,7 @@ export async function approveApplyFillPlan(
     );
   }
 
-  const allowFixture = await isFixtureFlagEnabled();
+  const allowFixture = await isFixtureFlagEnabled(userId);
   const gate = evaluatePlaywrightGate({
     fillApproved: true,
     applyUrl: loaded.ctx.applyUrl,
@@ -262,7 +260,7 @@ export async function runApplyAssistFill(input: {
   }
 
   const vendor = detectAts(applyUrl, loaded.ctx.jobSource);
-  const allowFixture = await isFixtureFlagEnabled();
+  const allowFixture = await isFixtureFlagEnabled(input.userId);
   const liveEnabled = process.env.APPLY_AUTOMATION_LIVE === '1';
 
   if (vendor === 'unknown') {

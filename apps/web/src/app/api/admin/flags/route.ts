@@ -42,10 +42,21 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: { message: 'enabled must be a boolean' } }, { status: 400 });
   }
 
+  const rolloutPercentRaw = body.rolloutPercent;
+  const rolloutPercent: number | null | undefined =
+    rolloutPercentRaw === undefined
+      ? undefined
+      : rolloutPercentRaw === null
+        ? null
+        : typeof rolloutPercentRaw === 'number'
+          ? rolloutPercentRaw
+          : null;
+
   try {
     const flag = await setAdminFeatureFlag({
       key,
       enabled: body.enabled,
+      rolloutPercent,
       actorUserId: gate.app.userId,
     });
     return NextResponse.json(flag);

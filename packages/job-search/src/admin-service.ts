@@ -30,9 +30,9 @@ async function ensureDefaultFlags(): Promise<void> {
           enabled: flag.enabled,
           description: flag.description,
         },
-        update: {
-          description: flag.description,
-        },
+        // Do not overwrite existing description. We store rollout metadata as a
+        // tagged suffix in `description` for forward-compatibility without migrations.
+        update: {},
       }),
     ),
   );
@@ -67,18 +67,33 @@ export async function listAdminFeatureFlags(): Promise<AdminFeatureFlagDto[]> {
 export async function setAdminFeatureFlag(input: {
   key: string;
   enabled: boolean;
+  rolloutPercent?: number | null;
   actorUserId: string;
 }): Promise<AdminFeatureFlagDto> {
   await ensureDefaultFlags();
-  const existing = await prisma.appFeatureFlag.findUnique({ where: { key: input.key } });
+  const existing = await prisma.appFeatureFlag.findUnique({
+    where: { key: input.key },
+    select: { key: true, enabled: true, description: true },
+  });
   if (!existing) {
     throw new Error('Feature flag not found');
   }
+
+  const currentRollout = parseRolloutPercent(existing.description);
+  const desiredRollout =
+    input.rolloutPercent === undefined
+      ? currentRollout
+      : input.rolloutPercent === null
+        ? null
+        : Math.max(0, Math.min(100, Math.trunc(input.rolloutPercent)));
+
+  const nextDescription = upsertRolloutTag(existing.description, desiredRollout);
 
   const row = await prisma.appFeatureFlag.update({
     where: { key: input.key },
     data: {
       enabled: input.enabled,
+      description: nextDescription,
       updatedBy: input.actorUserId,
     },
   });
@@ -92,6 +107,24 @@ export async function setAdminFeatureFlag(input: {
   });
 
   return toAdminFeatureFlag(row);
+}
+
+function parseRolloutPercent(description: string | null): number | null {
+  if (!description) return null;
+  const match = description.match(/\[rollout_percent=(\d{1,3})\]/i);
+  if (!match) return null;
+  const n = Number(match[1]);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(100, Math.trunc(n)));
+}
+
+function upsertRolloutTag(description: string | null, rolloutPercent: number | null) {
+  const base = (description ?? '').replace(/\s*\[rollout_percent=\d{1,3}\]\s*/gi, ' ').trim();
+  if (rolloutPercent == null) {
+    return base ? base : null;
+  }
+  const tag = `[rollout_percent=${rolloutPercent}]`;
+  return base ? `${base} ${tag}` : tag;
 }
 
 export async function getAdminOverview(): Promise<AdminOverviewDto> {

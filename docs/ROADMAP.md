@@ -154,7 +154,7 @@ Closes deferred depth + Phase 6 enterprise. Ship and verify each wave before sta
 ### Wave 6 — Scale & infra
 
 - Multi-region deployment
-- Feature flags / A/B at scale (beyond Postgres flags-lite)
+- Feature flags / A/B at scale (rollout % bucketing via admin-controlled feature flags)
 - Upload CDN (UploadThing / Cloudinary) when needed
 - External company enrichment (funding / interview data)
 

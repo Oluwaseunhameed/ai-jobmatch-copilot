@@ -166,10 +166,20 @@ export function toAdminFeatureFlag(row: {
   return {
     key: row.key,
     enabled: row.enabled,
+    rolloutPercent: parseRolloutPercent(row.description),
     description: row.description,
     updatedAt: row.updatedAt.toISOString(),
     updatedBy: row.updatedBy,
   };
+}
+
+function parseRolloutPercent(description: string | null): number | null {
+  if (!description) return null;
+  const match = description.match(/\[rollout_percent=(\d{1,3})\]/i);
+  if (!match) return null;
+  const n = Number(match[1]);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(100, Math.trunc(n)));
 }
 
 export function emptyAdminOverview(flags: AdminFeatureFlagDto[] = []): AdminOverviewDto {
