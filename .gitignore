@@ -55,3 +55,6 @@ uploads/
 
 # Docker volumes (if mapped locally)
 .docker-data/
+
+# Vercel CLI link metadata
+.vercel
