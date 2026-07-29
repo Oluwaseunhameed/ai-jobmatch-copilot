@@ -1,0 +1,13 @@
+# AI service on Railway. Create a second Railway service pointing here.
+# Dockerfile Path = apps/ai-service/Dockerfile, build context = repo root.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "apps/ai-service/Dockerfile"
+watchPatterns = ["apps/ai-service/**"]
+
+[deploy]
+healthcheckPath = "/ready"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

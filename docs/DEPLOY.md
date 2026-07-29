@@ -7,10 +7,10 @@ Target topology:
 | Service | Host | Notes |
 |---|---|---|
 | **Web** (Next.js BFF) | **Vercel** (`iad1`) | Clerk, billing webhooks, most user APIs |
-| **API** (Nest + BullMQ workers) | **Railway** or **Fly.io** | Resume workers, health, optional Nest routes |
-| **AI service** (FastAPI) | **Railway** / **Fly** | Parsing + LLM features |
-| **Postgres** (pgvector) | Supabase / Neon / Railway | Use `pnpm db:migrate:deploy` |
-| **Redis** | Upstash / Railway Redis | Required for reliable queues |
+| **API** (Nest + BullMQ workers) | **Render** (or Railway / Fly) | Resume workers, health, optional Nest routes — see `render.yaml` |
+| **AI service** (FastAPI) | **Render** (or Railway / Fly) | Parsing + LLM features |
+| **Postgres** (pgvector) | Supabase / Neon | Use `pnpm db:migrate:deploy` |
+| **Redis** | Render Key Value / Upstash | Required for reliable queues |
 | **Object storage** | S3-compatible (Supabase Storage / R2 / AWS) | ADR-010 — do not use ephemeral disk |
 | **Meilisearch** | Optional hosted | Falls back to Postgres FTS |
 
@@ -71,7 +71,27 @@ Health: `GET https://<web-domain>/api/health`
 
 ---
 
-## 4. Deploy API + AI (Railway / Fly / Docker)
+## 4. Deploy API + AI (Render / Railway / Fly / Docker)
+
+### Render (preferred free path)
+
+Blueprint: root [`render.yaml`](../render.yaml) — `jobmatch-api`, `jobmatch-ai`, `jobmatch-redis` (Key Value) on the **free** plan in `oregon`.
+
+1. Push `main` (Blueprint must be on the default branch).
+2. Open [New Blueprint Instance](https://dashboard.render.com/select-repo?type=blueprint) → connect this GitHub repo → confirm `render.yaml`.
+3. When prompted, set secrets (`sync: false` vars), for example:
+   - **API:** `DATABASE_URL`, `CLERK_SECRET_KEY`, `CORS_ORIGIN=https://ai-jobmatch-web.vercel.app`, `APP_URL=https://ai-jobmatch-web.vercel.app`, S3_*, then after AI is live set `AI_SERVICE_URL=https://jobmatch-ai.onrender.com`
+   - **AI:** `CORS_ORIGINS=https://ai-jobmatch-web.vercel.app,https://jobmatch-api.onrender.com`
+4. Wait for both web services to deploy. Free instances **spin down after ~15 min idle** (~1 min cold start).
+5. Copy the **external** Redis URL from Key Value into Vercel `REDIS_URL` (internal `connectionString` is already wired to the API service).
+6. On Vercel, set:
+   - `NEXT_PUBLIC_API_URL=https://jobmatch-api.onrender.com/api/v1`
+   - `AI_SERVICE_URL=https://jobmatch-ai.onrender.com`
+   - Redeploy web so `NEXT_PUBLIC_*` picks up.
+
+Health: `GET https://jobmatch-api.onrender.com/api/v1/health` and `GET https://jobmatch-ai.onrender.com/health`
+
+If the Nest image OOMs on free (512 MB), upgrade **jobmatch-api** to Starter ($7).
 
 ### Docker images (repo root context)
 
@@ -82,18 +102,11 @@ docker build -f apps/ai-service/Dockerfile -t jobmatch-ai .
 docker build -f apps/ai-service/Dockerfile --build-arg INSTALL_LLM=1 -t jobmatch-ai .
 ```
 
-### Railway
+### Railway / Fly (paid / trial)
 
-- Use root `railway.toml` (Dockerfile builder for the API).
-- Create a second service for AI using `apps/ai-service/Dockerfile`.
-- Health check path for API: `/api/v1/health/ready`
-- Release / deploy command suggestion:
-
-```bash
-pnpm db:migrate:deploy && node apps/api/dist/main.js
-```
-
-(Or run migrate in a one-off job, then start the container CMD.)
+- Railway: root `railway.toml` + `apps/ai-service/railway.toml` (trial may block new deploys).
+- Fly: pay-as-you-go after a short trial — no ongoing free tier for new orgs.
+- Health check path for API readiness: `/api/v1/health/ready`
 
 ### Local production-like stack
 

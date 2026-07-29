@@ -157,7 +157,7 @@ A run prints a per-case score. Use it before and after prompt or heuristic chang
 
 ## Production deploy (summary)
 
-Single-region cut: **Vercel (web, `iad1`)** + **Railway/Fly (API + AI)** — see [docs/DEPLOY.md](./docs/DEPLOY.md). Multi-region remains Wave 6 backlog.
+Single-region cut: **Vercel (web, `iad1`)** + **Render (API + AI + Redis)** — see [docs/DEPLOY.md](./docs/DEPLOY.md). Railway/Fly remain alternatives; multi-region remains Wave 6 backlog.
 
 ```bash
 # Apply Prisma migrations (production)
