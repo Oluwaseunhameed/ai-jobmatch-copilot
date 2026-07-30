@@ -195,7 +195,7 @@ function SidebarChrome({
     >
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-border/80 px-4">
         <BrandMark href="/dashboard" size="sm" compact className="min-w-0" />
-        <NotificationBell className="hidden md:block" />
+        <NotificationBell className="hidden md:block" align="start" />
       </div>
 
       <SidebarNav

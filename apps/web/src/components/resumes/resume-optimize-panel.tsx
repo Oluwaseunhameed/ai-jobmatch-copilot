@@ -15,6 +15,7 @@ import {
   type ResumeOptimization,
 } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
+import { formatLlmUserMessage } from '@/lib/llm-user-message';
 
 const POLL_MS = 2_500;
 /** ~5 minutes — covers cold Ollama starts behind the 180s LLM timeout. */
@@ -217,7 +218,8 @@ export function ResumeOptimizePanel({ jobId }: { jobId: string }) {
 
           {result.llm?.enabled && !result.llm.used && result.llm.error && (
             <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-foreground">
-              AI rewrite unavailable ({result.llm.error}). Showing heuristic keyword tips instead.
+              AI rewrite unavailable ({formatLlmUserMessage(result.llm.error)}). Showing heuristic
+              keyword tips instead.
             </p>
           )}
 

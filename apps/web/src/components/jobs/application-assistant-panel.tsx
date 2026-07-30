@@ -14,6 +14,7 @@ import {
   type ApplicationDraft,
   type Resume,
 } from '@/lib/api-client';
+import { formatLlmUserMessage } from '@/lib/llm-user-message';
 
 const POLL_MS = 2_500;
 /** ~5 minutes — covers cold Ollama starts behind the 180s LLM timeout. */
@@ -218,7 +219,8 @@ export function ApplicationAssistantPanel({ jobId }: { jobId: string }) {
         <div className="mt-5 space-y-4 border-t border-border pt-4">
           {result.llm?.enabled && !result.llm.used && result.llm.error && (
             <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-foreground">
-              AI rewrite unavailable ({result.llm.error}). Showing a template draft instead.
+              AI rewrite unavailable ({formatLlmUserMessage(result.llm.error)}). Showing a template
+              draft instead.
             </p>
           )}
 

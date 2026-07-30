@@ -16,7 +16,14 @@ import { cn } from '@/lib/utils';
 
 const POLL_MS = 60_000;
 
-export function NotificationBell({ className }: { className?: string }) {
+export function NotificationBell({
+  className,
+  /** Prefer `start` in the left sidebar so the panel opens into the main content. */
+  align = 'end',
+}: {
+  className?: string;
+  align?: 'start' | 'end';
+}) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationLog[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -87,7 +94,12 @@ export function NotificationBell({ className }: { className?: string }) {
       </Tooltip>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-border/80 bg-card shadow-lift">
+        <div
+          className={cn(
+            'absolute z-50 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-border/80 bg-card shadow-lift',
+            align === 'start' ? 'left-0' : 'right-0',
+          )}
+        >
           <div className="flex items-center justify-between border-b border-border/80 px-3 py-2">
             <p className="text-sm font-medium">Notifications</p>
             {unreadCount > 0 && (
