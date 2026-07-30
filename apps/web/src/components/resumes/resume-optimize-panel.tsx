@@ -43,6 +43,8 @@ export function ResumeOptimizePanel({ jobId }: { jobId: string }) {
       .finally(() => setLoadingList(false));
   }, []);
 
+  const authFailed = /unauthorized|unauthenticated|sign.?in/i.test(error ?? '');
+
   const poll = useCallback(async (optimization: ResumeOptimization) => {
     let current = optimization;
     for (let i = 0; i < MAX_POLLS; i += 1) {
@@ -128,6 +130,19 @@ export function ResumeOptimizePanel({ jobId }: { jobId: string }) {
 
       {loadingList ? (
         <p className="mt-4 text-sm text-muted-foreground">Loading resumes…</p>
+      ) : authFailed ? (
+        <div className="mt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Your session could not be verified for this panel. Refresh the page, or continue from
+            the dashboard if sign-in is still syncing.
+          </p>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/dashboard">
+              Open dashboard
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       ) : resumes.length === 0 ? (
         <div className="mt-4 space-y-3">
           <p className="text-sm text-muted-foreground">

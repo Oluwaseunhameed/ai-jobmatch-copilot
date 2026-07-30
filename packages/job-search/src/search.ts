@@ -253,7 +253,15 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
   let vector: number[] | null = null;
 
   if (query && input.semantic !== false) {
-    vector = await embedQuery(query);
+    // Keep this short — serverless routes often die at ~10–15s if the AI
+    // service is cold. Keyword search is a good fallback within a few seconds.
+    const QUERY_EMBED_BUDGET_MS = 2_500;
+    vector = await Promise.race([
+      embedQuery(query),
+      new Promise<null>((resolve) => {
+        setTimeout(() => resolve(null), QUERY_EMBED_BUDGET_MS);
+      }),
+    ]);
 
     if (vector) {
       const withVectors = await prisma.job.count({
@@ -352,10 +360,10 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
     sql = `
       WITH matched AS (
         SELECT j."id",
-               ts_rank(${SEARCH_DOC('j')}, websearch_to_tsquery('english', ${q})) AS score
+               ts_rank(${SEARCH_DOC('j')}, plainto_tsquery('english', ${q})) AS score
         FROM "jobs" j
         WHERE ${where}
-          AND ${SEARCH_DOC('j')} @@ websearch_to_tsquery('english', ${q})
+          AND ${SEARCH_DOC('j')} @@ plainto_tsquery('english', ${q})
       )
       SELECT ${JOB_COLUMNS},
              ${savedSelect} AS is_saved,
@@ -382,10 +390,10 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
       keyword AS (
         SELECT k."id",
                ROW_NUMBER() OVER (
-                 ORDER BY ts_rank(${SEARCH_DOC('k')}, websearch_to_tsquery('english', ${q})) DESC, k."id"
+                 ORDER BY ts_rank(${SEARCH_DOC('k')}, plainto_tsquery('english', ${q})) DESC, k."id"
                ) AS rnk
         FROM candidates k
-        WHERE ${SEARCH_DOC('k')} @@ websearch_to_tsquery('english', ${q})
+        WHERE ${SEARCH_DOC('k')} @@ plainto_tsquery('english', ${q})
       ),
       semantic AS (
         SELECT s."id",
@@ -452,7 +460,7 @@ async function loadFacets(
   const params = new Params();
   const where = buildWhere(input, params);
   const textFilter = query
-    ? ` AND ${SEARCH_DOC('j')} @@ websearch_to_tsquery('english', ${params.add(query)})`
+    ? ` AND ${SEARCH_DOC('j')} @@ plainto_tsquery('english', ${params.add(query)})`
     : '';
 
   const dimension = (label: string, column: string) => `

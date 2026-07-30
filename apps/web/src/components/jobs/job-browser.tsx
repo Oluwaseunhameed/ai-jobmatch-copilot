@@ -103,6 +103,8 @@ export function JobBrowser() {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [savingSearch, setSavingSearch] = useState(false);
   const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
+  /** Bumped on Search/Enter so an unchanged query still re-runs. */
+  const [searchNonce, setSearchNonce] = useState(0);
 
   const salaryMinNumber = (() => {
     const value = Number(salaryMin);
@@ -130,7 +132,7 @@ export function JobBrowser() {
     } finally {
       setLoading(false);
     }
-  }, [query, workMode, employmentType, seniority, country, salaryMinNumber, sort, page]);
+  }, [query, workMode, employmentType, seniority, country, salaryMinNumber, sort, page, searchNonce]);
 
   useEffect(() => {
     void load();
@@ -180,6 +182,7 @@ export function JobBrowser() {
   );
 
   async function toggleSave(job: Job) {
+    if (loading) return;
     setPendingSlug(job.slug);
     try {
       if (job.isSaved) {
@@ -209,6 +212,7 @@ export function JobBrowser() {
     setPage(1);
     setActiveSearchId(null);
     setQuery(draft.trim());
+    setSearchNonce((n) => n + 1);
   }
 
   function applySavedSearch(search: SavedSearch) {
@@ -282,9 +286,10 @@ export function JobBrowser() {
           placeholder="Search roles, skills, companies…"
           className="h-11"
           aria-label="Search jobs"
+          disabled={loading}
         />
-        <Button type="submit" className="h-11 sm:w-28">
-          Search
+        <Button type="submit" className="h-11 sm:w-28" disabled={loading}>
+          {loading ? <Spinner size="sm" /> : 'Search'}
         </Button>
       </form>
 
@@ -537,12 +542,22 @@ export function JobBrowser() {
           </p>
         </div>
       ) : (
-        <div className={cn('grid gap-4', loading && 'opacity-60')}>
+        <div
+          className={cn('relative grid gap-4', loading && 'opacity-60')}
+          aria-busy={loading}
+        >
+          {loading ? (
+            <div
+              className="absolute inset-0 z-10 cursor-wait"
+              aria-hidden
+            />
+          ) : null}
           {result?.jobs.map((job) => (
             <JobCard
               key={job.id}
               job={job}
               pending={pendingSlug === job.slug}
+              disabled={loading}
               onToggleSave={() => void toggleSave(job)}
             />
           ))}
@@ -607,14 +622,17 @@ function FilterChip({
 function JobCard({
   job,
   pending,
+  disabled,
   onToggleSave,
 }: {
   job: Job;
   pending: boolean;
+  disabled?: boolean;
   onToggleSave: () => void;
 }) {
   const salary = formatSalary(job);
   const matched = new Set(job.matchedSkills ?? []);
+  const busy = Boolean(disabled || pending);
 
   return (
     <article className="surface-panel p-5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift sm:p-6">
@@ -641,12 +659,18 @@ function JobCard({
               </>
             )}
           </div>
-          <Link
-            href={`/jobs/${job.slug}`}
-            className="font-display text-xl font-semibold tracking-tight text-foreground hover:text-primary"
-          >
-            {job.title}
-          </Link>
+          {busy ? (
+            <p className="font-display text-xl font-semibold tracking-tight text-foreground">
+              {job.title}
+            </p>
+          ) : (
+            <Link
+              href={`/jobs/${job.slug}`}
+              className="font-display text-xl font-semibold tracking-tight text-foreground hover:text-primary"
+            >
+              {job.title}
+            </Link>
+          )}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
             {job.location && (
               <span className="inline-flex items-center gap-1.5">
@@ -684,13 +708,19 @@ function JobCard({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-stretch">
-          <Button asChild size="sm">
-            <Link href={`/jobs/${job.slug}`}>View</Link>
-          </Button>
+          {busy ? (
+            <Button size="sm" disabled>
+              View
+            </Button>
+          ) : (
+            <Button asChild size="sm">
+              <Link href={`/jobs/${job.slug}`}>View</Link>
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
-            disabled={pending}
+            disabled={busy}
             onClick={onToggleSave}
             aria-label={job.isSaved ? 'Remove from saved' : 'Save job'}
           >

@@ -29,7 +29,12 @@ async function getJson<T>(key: string): Promise<T | null> {
   if (!conn) return null;
 
   try {
-    const raw = await conn.get(key);
+    const raw = await Promise.race([
+      conn.get(key),
+      new Promise<null>((resolve) => {
+        setTimeout(() => resolve(null), 1_500);
+      }),
+    ]);
     if (!raw) return null;
     return JSON.parse(raw) as T;
   } catch {

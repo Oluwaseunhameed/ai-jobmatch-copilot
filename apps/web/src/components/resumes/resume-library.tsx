@@ -34,7 +34,7 @@ import { ResumeLibrarySkeleton } from './resume-library-skeleton';
 
 type PendingAction = {
   resumeId: string;
-  type: 'title' | 'primary' | 'delete' | 'parse' | 'apply';
+  type: 'title' | 'primary' | 'delete' | 'parse' | 'apply' | 'download';
 };
 
 const PARSE_POLL_INTERVAL_MS = 2_500;
@@ -269,6 +269,34 @@ export function ResumeLibrary() {
     }
   };
 
+  const downloadResume = async (resume: Resume) => {
+    setPending({ resumeId: resume.id, type: 'download' });
+    setError(null);
+    try {
+      const res = await fetch(resumeDownloadUrl(resume.id), { cache: 'no-store' });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error?.message ?? `Download failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get('Content-Disposition') ?? '';
+      const matched = disposition.match(/filename="([^"]+)"/i);
+      const filename = matched?.[1] || resume.originalFileName || 'resume';
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not download resume');
+    } finally {
+      setPending(null);
+    }
+  };
+
   const remove = async (id: string) => {
     if (!window.confirm('Delete this resume? This cannot be undone.')) return;
     setPending({ resumeId: id, type: 'delete' });
@@ -394,8 +422,15 @@ export function ResumeLibrary() {
                 pending?.resumeId === resume.id && pending.type === 'parse';
               const applying =
                 pending?.resumeId === resume.id && pending.type === 'apply';
+              const downloading =
+                pending?.resumeId === resume.id && pending.type === 'download';
               const rowBusy =
-                savingTitle || settingPrimary || deleting || parsing || applying;
+                savingTitle ||
+                settingPrimary ||
+                deleting ||
+                parsing ||
+                applying ||
+                downloading;
               const badge = parseBadge(resume.parseStatus);
               const parsed = getParsedJson(resume);
               const isParsing =
@@ -555,11 +590,22 @@ export function ResumeLibrary() {
                           )}
                         </Button>
                       )}
-                      <Button asChild variant="outline" size="sm">
-                        <a href={resumeDownloadUrl(resume.id)}>
-                          <Download className="h-4 w-4" />
-                          Download
-                        </a>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="min-w-[110px]"
+                        disabled={rowBusy}
+                        onClick={() => void downloadResume(resume)}
+                      >
+                        {downloading ? (
+                          <Spinner label="Downloading resume" />
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4" />
+                            Download
+                          </>
+                        )}
                       </Button>
                       <Tooltip content="Delete resume">
                         <Button

@@ -107,12 +107,12 @@ export function PortfolioProjectEditor({ project }: { project: PortfolioProject 
     try {
       if (project) {
         await updatePortfolioProject(project.id, payload);
-        router.refresh();
       } else {
-        const created = await createPortfolioProject(payload);
-        router.push(`/portfolio/${created.id}`);
-        return;
+        await createPortfolioProject(payload);
       }
+      router.push('/portfolio');
+      router.refresh();
+      return;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save project');
     } finally {
