@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY apps/ai-service/requirements.txt apps/ai-service/requirements-llm.txt ./
 # Install core deps; LLM extras are optional via build-arg.
-ARG INSTALL_LLM=0
+ARG INSTALL_LLM=1
 RUN pip install -r requirements.txt \
   && if [ "$INSTALL_LLM" = "1" ]; then pip install -r requirements-llm.txt; fi
 

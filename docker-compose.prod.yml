@@ -50,7 +50,7 @@ services:
       context: .
       dockerfile: apps/ai-service/Dockerfile
       args:
-        INSTALL_LLM: '0'
+        INSTALL_LLM: '1'
     container_name: jobmatch-ai
     restart: unless-stopped
     ports:

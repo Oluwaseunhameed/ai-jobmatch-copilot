@@ -425,9 +425,55 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
       ${paging}`;
   }
 
-  const rows = await prisma.$queryRawUnsafe<JobRow[]>(sql, ...params.values);
+  let rows: JobRow[] = [];
+  try {
+    rows = await prisma.$queryRawUnsafe<JobRow[]>(sql, ...params.values);
+  } catch (error) {
+    // FTS / pooler blips should not hard-fail the Jobs page.
+    if (!query) throw error;
+    const fallbackParams = new Params();
+    const savedJoinFb = input.userId
+      ? `LEFT JOIN "job_interactions" si
+           ON si."job_id" = j."id" AND si."user_id" = ${fallbackParams.add(input.userId)} AND si."type" = 'saved'`
+      : '';
+    const savedSelectFb = input.userId ? '(si."id" IS NOT NULL)' : 'FALSE';
+    const whereFb = buildWhere(input, fallbackParams);
+    const like = fallbackParams.add(`%${query}%`);
+    const fallbackSql = `
+      SELECT ${JOB_COLUMNS},
+             ${savedSelectFb} AS is_saved,
+             NULL::float8 AS score,
+             COUNT(*) OVER () AS total_count
+      FROM "jobs" j
+      JOIN "companies" c ON c."id" = j."company_id"
+      ${savedJoinFb}
+      WHERE ${whereFb}
+        AND (
+          j."title" ILIKE ${like}
+          OR c."name" ILIKE ${like}
+          OR COALESCE(j."location", '') ILIKE ${like}
+          OR array_to_string(j."skills", ' ') ILIKE ${like}
+        )
+      ORDER BY ${orderByClause('recent', false)}
+      ${paging}`;
+    rows = await prisma.$queryRawUnsafe<JobRow[]>(fallbackSql, ...fallbackParams.values);
+    degradedReason =
+      degradedReason ??
+      'Full-text search hit a temporary error; showing broader keyword matches instead.';
+    mode = 'keyword';
+  }
+
   const total = rows.length > 0 ? Number(rows[0].total_count) : 0;
-  const facets = await loadFacets(input, query);
+  let facets: JobSearchResponse['facets'] = {
+    workMode: [],
+    employmentType: [],
+    seniority: [],
+  };
+  try {
+    facets = await loadFacets(input, query);
+  } catch {
+    // Keep empty facets rather than failing the whole search.
+  }
 
   let jobs = enrichJobsWithMatch(rows.map(toDto), profileSkills);
 

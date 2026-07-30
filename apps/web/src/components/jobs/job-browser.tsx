@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Bell, BellOff, Bookmark, BookmarkCheck, Briefcase, MapPin, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,6 +105,7 @@ export function JobBrowser() {
   const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
   /** Bumped on Search/Enter so an unchanged query still re-runs. */
   const [searchNonce, setSearchNonce] = useState(0);
+  const loadGeneration = useRef(0);
 
   const salaryMinNumber = (() => {
     const value = Number(salaryMin);
@@ -112,6 +113,7 @@ export function JobBrowser() {
   })();
 
   const load = useCallback(async () => {
+    const generation = ++loadGeneration.current;
     setLoading(true);
     setError(null);
     try {
@@ -126,11 +128,16 @@ export function JobBrowser() {
         page,
         limit: 12,
       });
+      if (generation !== loadGeneration.current) return;
       setResult(next);
+      setError(null);
     } catch (err) {
+      if (generation !== loadGeneration.current) return;
       setError(err instanceof Error ? err.message : 'Search failed');
     } finally {
-      setLoading(false);
+      if (generation === loadGeneration.current) {
+        setLoading(false);
+      }
     }
   }, [query, workMode, employmentType, seniority, country, salaryMinNumber, sort, page, searchNonce]);
 

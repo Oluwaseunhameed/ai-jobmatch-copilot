@@ -23,6 +23,7 @@ function categoryLabel(category: string) {
 export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }) {
   const [prep, setPrep] = useState(initial);
   const [pendingQuestionId, setPendingQuestionId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<'rate' | 'mock' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -44,6 +45,7 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
   async function rate(questionId: string, selfRating: number) {
     if (pendingQuestionId) return;
     setPendingQuestionId(questionId);
+    setPendingAction('rate');
     setError(null);
     const prior = practiceById.get(questionId);
     const nextPractice = [
@@ -65,6 +67,7 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
       setError(err instanceof Error ? err.message : 'Could not save rating');
     } finally {
       setPendingQuestionId(null);
+      setPendingAction(null);
     }
   }
 
@@ -76,6 +79,7 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
       return;
     }
     setPendingQuestionId(questionId);
+    setPendingAction('mock');
     setError(null);
     try {
       const updated = await runInterviewMockTurn(prep.id, {
@@ -88,6 +92,7 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
       setError(err instanceof Error ? err.message : 'Mock turn failed');
     } finally {
       setPendingQuestionId(null);
+      setPendingAction(null);
     }
   }
 
@@ -242,7 +247,9 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
                     {value}
                   </Button>
                 ))}
-                {pendingQuestionId === question.id && <Spinner size="sm" />}
+                {pendingQuestionId === question.id && pendingAction === 'rate' ? (
+                  <Spinner size="sm" label="Saving rating" />
+                ) : null}
               </div>
 
               <label className="mt-4 block space-y-1 text-sm">
@@ -273,6 +280,9 @@ export function InterviewPracticeView({ prep: initial }: { prep: InterviewPrep }
                   disabled={pendingQuestionId === question.id}
                   onClick={() => void submitMock(question.id)}
                 >
+                  {pendingQuestionId === question.id && pendingAction === 'mock' ? (
+                    <Spinner size="sm" label="Getting mock feedback" />
+                  ) : null}
                   Get mock feedback
                 </Button>
               </div>

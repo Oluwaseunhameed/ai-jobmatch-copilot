@@ -80,11 +80,14 @@ services:
     region: oregon
     dockerfilePath: ./apps/ai-service/Dockerfile
     dockerContext: .
+    dockerBuildArgs:
+      INSTALL_LLM: "1"
     healthCheckPath: /health
     autoDeployTrigger: commit
     buildFilter:
       paths:
         - apps/ai-service/**
+        - render.yaml
     envVars:
       - key: APP_ENV
         value: production
@@ -93,4 +96,6 @@ services:
       - key: LITELLM_MODEL
         sync: false
       - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
         sync: false

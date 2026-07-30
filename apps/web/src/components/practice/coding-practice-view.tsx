@@ -22,6 +22,7 @@ function styleLabel(style: string) {
 export function CodingPracticeView({ session: initial }: { session: CodingPracticeSession }) {
   const [session, setSession] = useState(initial);
   const [pendingProblemId, setPendingProblemId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<'save' | 'review' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string | 'all'>('all');
   const [codeByProblem, setCodeByProblem] = useState<Record<string, string>>({});
@@ -36,6 +37,7 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
   async function saveAttempt(next: CodingAttempt) {
     if (pendingProblemId) return;
     setPendingProblemId(next.problemId);
+    setPendingAction('save');
     setError(null);
     const merged = [
       ...session.attempts.filter((a) => a.problemId !== next.problemId),
@@ -48,6 +50,7 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
       setError(err instanceof Error ? err.message : 'Could not save attempt');
     } finally {
       setPendingProblemId(null);
+      setPendingAction(null);
     }
   }
 
@@ -59,6 +62,7 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
       return;
     }
     setPendingProblemId(problemId);
+    setPendingAction('review');
     setError(null);
     try {
       const updated = await runCodingReview(session.id, {
@@ -73,6 +77,7 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
       setError(err instanceof Error ? err.message : 'Review failed');
     } finally {
       setPendingProblemId(null);
+      setPendingAction(null);
     }
   }
 
@@ -237,6 +242,9 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
                   disabled={pending}
                   onClick={() => void review(problem.id)}
                 >
+                  {pending && pendingAction === 'review' ? (
+                    <Spinner size="sm" label="Running AI code review" />
+                  ) : null}
                   AI code review
                 </Button>
               </div>
@@ -293,7 +301,9 @@ export function CodingPracticeView({ session: initial }: { session: CodingPracti
                     {value}
                   </Button>
                 ))}
-                {pending && <Spinner size="sm" />}
+                {pending && pendingAction === 'save' ? (
+                  <Spinner size="sm" label="Saving attempt" />
+                ) : null}
               </div>
             </li>
           );
