@@ -1,6 +1,10 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Monorepo: stop NFT from walking sibling apps (e.g. ai-service/.venv) into
+  // every serverless bundle — that blows past Hobby size/function limits.
+  outputFileTracingRoot: path.join(__dirname, '../..'),
   transpilePackages: [
     '@jobmatch/types',
     '@jobmatch/database',
@@ -22,10 +26,19 @@ const nextConfig: NextConfig = {
   // Ensure Prisma query engines are included in the Vercel serverless bundle
   // (monorepo pnpm layout otherwise omits libquery_engine-rhel-openssl-3.0.x).
   outputFileTracingIncludes: {
-    '/*': [
+    '/**': [
       '../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**',
       '../../node_modules/.prisma/client/**',
       './node_modules/.prisma/client/**',
+    ],
+  },
+  outputFileTracingExcludes: {
+    '/**': [
+      '../../apps/ai-service/**',
+      '../../apps/api/**',
+      '**/.venv/**',
+      '**/__pycache__/**',
+      '../../.docker-data/**',
     ],
   },
   webpack(config, { webpack }) {
