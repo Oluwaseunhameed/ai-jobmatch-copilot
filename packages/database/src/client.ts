@@ -29,9 +29,22 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
       url.searchParams.set('pgbouncer', 'true');
     }
 
-    if (isServerless && !url.searchParams.has('connection_limit')) {
-      url.searchParams.set('connection_limit', '1');
+    // Fail fast instead of hanging the whole page on a stuck pooler/DB.
+    if (!url.searchParams.has('connect_timeout')) {
+      url.searchParams.set('connect_timeout', '5');
     }
+    if (!url.searchParams.has('pool_timeout')) {
+      url.searchParams.set('pool_timeout', '10');
+    }
+
+    // Cap concurrent clients per isolate. 1 serializes Promise.all fan-outs into
+    // multi-second hangs; 5 is still safe with transaction-mode PgBouncer.
+    if (isServerless && !url.searchParams.has('connection_limit')) {
+      url.searchParams.set('connection_limit', '5');
+    }
+
+    // Note: do NOT set `options=statement_timeout` here — PgBouncer transaction
+    // mode can reject/ignore startup options and break connects.
 
     return url.toString();
   } catch {

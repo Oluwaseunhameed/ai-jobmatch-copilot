@@ -255,7 +255,8 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
   if (query && input.semantic !== false) {
     // Keep this short — serverless routes often die at ~10–15s if the AI
     // service is cold. Keyword search is a good fallback within a few seconds.
-    const QUERY_EMBED_BUDGET_MS = 2_500;
+    // Keep this tiny on serverless — cold AI + OpenAI can otherwise stall Jobs.
+    const QUERY_EMBED_BUDGET_MS = 1_500;
     vector = await Promise.race([
       embedQuery(query),
       new Promise<null>((resolve) => {

@@ -1,5 +1,6 @@
 export {
   closeConnection,
+  getCacheConnection,
   getConnection,
   isQueueEnabled,
   queueDriver,

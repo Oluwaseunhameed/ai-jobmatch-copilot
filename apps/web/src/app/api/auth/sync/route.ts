@@ -17,7 +17,8 @@ export async function POST() {
     return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
-  await invalidateAuthUserCache(session.userId);
+  // Never block sign-in on cache invalidation (Redis can hang).
+  void invalidateAuthUserCache(session.userId);
 
   let app = await requireAppUser();
   if (app) {
@@ -62,7 +63,7 @@ export async function POST() {
       image: clerkUser.imageUrl,
     });
 
-    await invalidateAuthUserCache(user.id);
+    void invalidateAuthUserCache(user.id);
     app = await requireAppUser();
 
     if (!app) {

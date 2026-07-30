@@ -4,6 +4,8 @@ import { requireAppUser } from '@/lib/auth';
 import { getCachedJobSearch, searchJobs } from '@/lib/cache/jobmatch-hubs-cache';
 
 export const dynamic = 'force-dynamic';
+/** Prevent Vercel from leaving the Jobs page spinner running until platform kill. */
+export const maxDuration = 20;
 
 function splitCsv(value: string | null): string[] | undefined {
   if (!value?.trim()) return undefined;
@@ -36,9 +38,20 @@ export async function GET(request: Request) {
   const queryKey = url.searchParams.toString() || 'default';
 
   try {
+    const q = url.searchParams.get('q') ?? undefined;
+    // Prefer keyword path while embedding coverage is partial — avoids cold AI
+    // round-trips that stall the Jobs spinner on every search.
+    const semanticParam = url.searchParams.get('semantic');
+    const semantic =
+      semanticParam === '1' || semanticParam === 'true'
+        ? true
+        : semanticParam === '0' || semanticParam === 'false'
+          ? false
+          : Boolean(q && q.trim().length >= 3);
+
     const result = await getCachedJobSearch(app.user.id, queryKey, () =>
       searchJobs({
-        q: url.searchParams.get('q') ?? undefined,
+        q,
         workMode: splitCsv(url.searchParams.get('workMode')),
         employmentType: splitCsv(url.searchParams.get('employmentType')),
         seniority: splitCsv(url.searchParams.get('seniority')),
@@ -48,6 +61,7 @@ export async function GET(request: Request) {
         page: pageRaw ? Number(pageRaw) : undefined,
         limit: limitRaw ? Number(limitRaw) : undefined,
         userId: app.user.id,
+        semantic,
       }),
     );
 

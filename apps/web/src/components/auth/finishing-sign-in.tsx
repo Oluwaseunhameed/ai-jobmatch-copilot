@@ -6,11 +6,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 
+const AUTO_TRY_KEY = 'jm_finishing_signin_tried';
+
 async function postSync(): Promise<{ ok: true } | { ok: false; message: string }> {
   const res = await fetch('/api/auth/sync', {
     method: 'POST',
     cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(12_000),
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -28,6 +31,10 @@ export function FinishingSignIn() {
   const [error, setError] = useState<string | null>(null);
   const autoTried = useRef(false);
 
+  const goDashboard = useCallback(() => {
+    window.location.assign('/dashboard');
+  }, []);
+
   const sync = useCallback(
     async (redirect: boolean) => {
       setPending(true);
@@ -39,28 +46,38 @@ export function FinishingSignIn() {
           return;
         }
         if (redirect) {
-          window.location.assign('/dashboard');
+          goDashboard();
           return;
         }
-        router.refresh();
+        // Prefer hard navigation — router.refresh() remounts this screen and
+        // can restart the auto-retry loop when the DB user is still settling.
+        goDashboard();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Could not finish sign-in');
       } finally {
         setPending(false);
       }
     },
-    [router],
+    [goDashboard],
   );
 
   useEffect(() => {
     if (autoTried.current) return;
+    if (typeof window !== 'undefined' && sessionStorage.getItem(AUTO_TRY_KEY) === '1') {
+      return;
+    }
     autoTried.current = true;
+    try {
+      sessionStorage.setItem(AUTO_TRY_KEY, '1');
+    } catch {
+      // ignore
+    }
 
     let cancelled = false;
 
     void (async () => {
-      for (let i = 0; i < 4; i += 1) {
-        await new Promise((resolve) => setTimeout(resolve, i === 0 ? 400 : 1_500));
+      for (let i = 0; i < 3; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, i === 0 ? 300 : 1_200));
         if (cancelled) return;
 
         setPending(true);
@@ -73,7 +90,12 @@ export function FinishingSignIn() {
 
         if (result.ok) {
           setPending(false);
-          router.refresh();
+          try {
+            sessionStorage.removeItem(AUTO_TRY_KEY);
+          } catch {
+            // ignore
+          }
+          goDashboard();
           return;
         }
 
@@ -85,7 +107,7 @@ export function FinishingSignIn() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [goDashboard, router]);
 
   return (
     <div className="mx-auto max-w-md space-y-3 rounded-xl border border-border/80 bg-card/40 p-6 text-center">
@@ -109,7 +131,14 @@ export function FinishingSignIn() {
           type="button"
           className="text-sm font-medium text-primary underline-offset-4 hover:underline disabled:opacity-50"
           disabled={pending}
-          onClick={() => void sync(false)}
+          onClick={() => {
+            try {
+              sessionStorage.removeItem(AUTO_TRY_KEY);
+            } catch {
+              // ignore
+            }
+            void sync(false);
+          }}
         >
           Retry sync
         </button>

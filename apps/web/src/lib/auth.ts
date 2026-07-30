@@ -137,6 +137,25 @@ async function maybeRedeemReferralCookie(userId: string) {
  * Backend API (rate-limited ~100/10s) and must not run on every poll/request.
  * Only call it when the local user is missing (first request / webhook lag).
  */
+const AUTH_LOOKUP_MS = 8_000;
+const CLERK_ENSURE_MS = 8_000;
+
+function withBudget<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 export async function requireAppUser(): Promise<AppAuthContext | null> {
   const session = await auth();
   if (!session.userId) {
@@ -146,30 +165,35 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
   const userId = session.userId;
   let cached: SerializedAppUser | null = null;
   try {
-    cached = await withRedisJsonCache<SerializedAppUser | null>({
-      key: cacheKeys.authUser(userId),
-      ttlSeconds: 60,
-      shouldCache: (value) => value !== null,
-      compute: async () => {
-        const existing = await prisma.user.findUnique({
-          where: { id: userId },
-          include: { preferences: true },
-        });
-        if (!existing) return null;
-
-        // Ensure preferences row exists so downstream layout doesn't hit the DB again.
-        if (!existing.preferences) {
-          await prisma.userPreference.create({ data: { userId: existing.id } });
-          const refreshed = await prisma.user.findUnique({
-            where: { id: existing.id },
+    cached = await withBudget(
+      withRedisJsonCache<SerializedAppUser | null>({
+        key: cacheKeys.authUser(userId),
+        ttlSeconds: 60,
+        computeTimeoutMs: AUTH_LOOKUP_MS,
+        shouldCache: (value) => value !== null,
+        compute: async () => {
+          const existing = await prisma.user.findUnique({
+            where: { id: userId },
             include: { preferences: true },
           });
-          return refreshed ? serializeAppUser(refreshed) : null;
-        }
+          if (!existing) return null;
 
-        return serializeAppUser(existing);
-      },
-    });
+          // Ensure preferences row exists so downstream layout doesn't hit the DB again.
+          if (!existing.preferences) {
+            await prisma.userPreference.create({ data: { userId: existing.id } });
+            const refreshed = await prisma.user.findUnique({
+              where: { id: existing.id },
+              include: { preferences: true },
+            });
+            return refreshed ? serializeAppUser(refreshed) : null;
+          }
+
+          return serializeAppUser(existing);
+        },
+      }),
+      AUTH_LOOKUP_MS + 1_500,
+      'requireAppUser.local',
+    );
   } catch (error) {
     console.error('[auth] local user lookup failed', {
       userId,
@@ -185,7 +209,7 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
   }
 
   try {
-    const clerkUser = await currentUser();
+    const clerkUser = await withBudget(currentUser(), CLERK_ENSURE_MS, 'requireAppUser.clerk');
     if (!clerkUser) {
       return null;
     }
@@ -198,15 +222,19 @@ export async function requireAppUser(): Promise<AppAuthContext | null> {
       return null;
     }
 
-    const user = await ensureUserFromClerk({
-      id: clerkUser.id,
-      email: primaryEmail.emailAddress,
-      emailVerified: primaryEmail.verification?.status === 'verified',
-      name:
-        [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') ||
-        clerkUser.username,
-      image: clerkUser.imageUrl,
-    });
+    const user = await withBudget(
+      ensureUserFromClerk({
+        id: clerkUser.id,
+        email: primaryEmail.emailAddress,
+        emailVerified: primaryEmail.verification?.status === 'verified',
+        name:
+          [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') ||
+          clerkUser.username,
+        image: clerkUser.imageUrl,
+      }),
+      CLERK_ENSURE_MS,
+      'requireAppUser.ensure',
+    );
 
     void maybeRedeemReferralCookie(user.id);
 

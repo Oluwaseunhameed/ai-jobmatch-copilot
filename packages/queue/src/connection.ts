@@ -37,6 +37,7 @@ export function isQueueEnabled(): boolean {
 }
 
 let connection: Redis | null = null;
+let cacheConnection: Redis | null = null;
 
 export function getConnection(): Redis {
   const url = redisUrl();
@@ -65,9 +66,41 @@ export function getConnection(): Redis {
   return connection;
 }
 
+/**
+ * Short-lived cache client for Next.js / serverless.
+ * Never reuse BullMQ's maxRetriesPerRequest:null — that can hang page renders.
+ */
+export function getCacheConnection(): Redis {
+  const url = redisUrl();
+  if (!url) {
+    throw new Error('REDIS_URL is not set — cannot create a Redis connection');
+  }
+
+  if (!cacheConnection) {
+    cacheConnection = new IORedis(url, {
+      maxRetriesPerRequest: 1,
+      enableReadyCheck: false,
+      enableOfflineQueue: false,
+      connectTimeout: 1_500,
+      retryStrategy() {
+        return null;
+      },
+    });
+    cacheConnection.on('error', () => {
+      /* swallowed — cache is best-effort */
+    });
+  }
+
+  return cacheConnection;
+}
+
 export async function closeConnection() {
   if (connection) {
     await connection.quit().catch(() => undefined);
     connection = null;
+  }
+  if (cacheConnection) {
+    await cacheConnection.quit().catch(() => undefined);
+    cacheConnection = null;
   }
 }
