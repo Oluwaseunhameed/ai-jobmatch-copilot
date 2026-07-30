@@ -66,7 +66,7 @@ def embed_texts(texts: list[str]) -> EmbeddingOutcome:
     if not cleaned or all(not text for text in cleaned):
         return EmbeddingOutcome(enabled=True, error="no text to embed")
 
-    model = settings.embedding_model
+    model = settings.resolved_embedding_model
     started = time.monotonic()
 
     try:
@@ -136,6 +136,11 @@ def _embed_via_litellm(litellm: Any, model: str, texts: list[str]) -> list[list[
     }
     if model.startswith("ollama/"):
         kwargs["api_base"] = settings.ollama_api_base
+    # Keep OpenAI vectors aligned with the pgvector(768) column (nomic width).
+    if model.startswith("openai/text-embedding-3") and settings.embedding_dimensions:
+        kwargs["dimensions"] = settings.embedding_dimensions
+    if settings.openai_api_key.strip() and model.startswith("openai/"):
+        kwargs["api_key"] = settings.openai_api_key.strip()
 
     response = litellm.embedding(**kwargs)
     data = getattr(response, "data", None)

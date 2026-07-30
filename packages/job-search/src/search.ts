@@ -270,11 +270,12 @@ export async function searchJobs(input: SearchJobsInput): Promise<JobSearchRespo
 
       if (withVectors === 0) {
         vector = null;
-        degradedReason = 'No job embeddings yet. Run "pnpm jobs:embed" to enable semantic search.';
+        degradedReason =
+          'Showing keyword matches — job embeddings are not generated yet.';
       }
     } else {
       degradedReason =
-        'Semantic search is unavailable, so these are keyword matches. Check that the AI service is running.';
+        'Showing keyword matches — semantic ranking is temporarily unavailable.';
     }
   }
 

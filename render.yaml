@@ -96,6 +96,11 @@ services:
       # Hosted chat model (requires OPENAI_API_KEY in the dashboard).
       - key: LITELLM_MODEL
         value: openai/gpt-4o-mini
+      # Hosted embeddings (768-d to match pgvector column). Requires OPENAI_API_KEY.
+      - key: EMBEDDING_MODEL
+        value: openai/text-embedding-3-small
+      - key: EMBEDDING_DIMENSIONS
+        value: "768"
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY

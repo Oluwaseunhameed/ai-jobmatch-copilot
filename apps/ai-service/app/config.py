@@ -97,5 +97,17 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         return self.app_env == "development"
 
+    @property
+    def resolved_embedding_model(self) -> str:
+        """Prefer a hosted embedding model in production when Ollama is not available."""
+        model = (self.embedding_model or "").strip() or "ollama/nomic-embed-text"
+        if (
+            not self.is_development
+            and self.openai_api_key.strip()
+            and model.startswith("ollama/")
+        ):
+            return "openai/text-embedding-3-small"
+        return model
+
 
 settings = Settings()
