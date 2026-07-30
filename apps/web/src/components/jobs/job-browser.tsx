@@ -139,11 +139,11 @@ export function JobBrowser() {
         setLoading(false);
       }
     }
-  }, [query, workMode, employmentType, seniority, country, salaryMinNumber, sort, page, searchNonce]);
+  }, [query, workMode, employmentType, seniority, country, salaryMinNumber, sort, page]);
 
   useEffect(() => {
     void load();
-  }, [load]);
+  }, [load, searchNonce]);
 
   useEffect(() => {
     void listSavedSearches()
