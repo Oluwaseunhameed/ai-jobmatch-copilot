@@ -93,8 +93,9 @@ services:
         value: production
       - key: CORS_ORIGINS
         sync: false
+      # Hosted chat model (requires OPENAI_API_KEY in the dashboard).
       - key: LITELLM_MODEL
-        sync: false
+        value: openai/gpt-4o-mini
       - key: OPENAI_API_KEY
         sync: false
       - key: ANTHROPIC_API_KEY
