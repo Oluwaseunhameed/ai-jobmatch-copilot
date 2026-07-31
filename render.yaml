@@ -154,8 +154,8 @@ services:
     region: oregon
     dockerfilePath: ./apps/ai-service/Dockerfile
     dockerContext: .
-    dockerBuildArgs:
-      INSTALL_LLM: "1"
+    # INSTALL_LLM defaults to 1 in the Dockerfile ARG — do not use
+    # dockerBuildArgs here; Blueprint rejects that field on free services.
     healthCheckPath: /health
     autoDeployTrigger: commit
     buildFilter:
