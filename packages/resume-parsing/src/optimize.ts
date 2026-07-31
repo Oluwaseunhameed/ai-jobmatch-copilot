@@ -206,6 +206,29 @@ export async function runResumeOptimization(input: RunOptimizeInput) {
   }
 }
 
+function summarizeAiErrorBody(detail: string): string {
+  const trimmed = detail.trim();
+  if (!trimmed) return '';
+  // Render/nginx free-tier 502 pages are HTML — keep the UI readable.
+  if (/<!DOCTYPE html|<html[\s>]/i.test(trimmed)) {
+    return 'AI service unavailable (gateway error). Check AI_SERVICE_URL and that the AI service is awake.';
+  }
+  return trimmed.slice(0, 200);
+}
+
+/** Best-effort wake for free-tier Render cold starts before a long optimize call. */
+async function wakeAiService(): Promise<void> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45_000);
+  try {
+    await fetch(`${aiServiceUrl()}/health`, { signal: controller.signal });
+  } catch {
+    // Optimize call will surface the real failure.
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function callOptimizeAi(body: {
   resume_text: string;
   headline: string | null;
@@ -218,28 +241,56 @@ async function callOptimizeAi(body: {
     requirements: string[];
   };
 }): Promise<AiOptimizeResponse> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), optimizeTimeoutMs());
+  await wakeAiService();
 
-  try {
-    const response = await fetch(`${aiServiceUrl()}/v1/resumes/optimize`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
+  const maxAttempts = 2;
+  let lastError: Error | null = null;
 
-    if (!response.ok) {
-      const detail = await response.text().catch(() => '');
-      throw new Error(
-        `AI optimize failed (${response.status})${detail ? `: ${detail.slice(0, 200)}` : ''}`,
-      );
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), optimizeTimeoutMs());
+
+    try {
+      const response = await fetch(`${aiServiceUrl()}/v1/resumes/optimize`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const detail = summarizeAiErrorBody(await response.text().catch(() => ''));
+        const error = new Error(
+          `AI optimize failed (${response.status})${detail ? `: ${detail}` : ''}`,
+        );
+        // Retry once on transient Render gateway failures (cold start / brief outage).
+        if (attempt < maxAttempts && [502, 503, 504].includes(response.status)) {
+          lastError = error;
+          await wakeAiService();
+          continue;
+        }
+        throw error;
+      }
+
+      return (await response.json()) as AiOptimizeResponse;
+    } catch (cause) {
+      if (cause instanceof Error && cause.name === 'AbortError') {
+        throw new Error(
+          `AI optimize timed out after ${optimizeTimeoutMs()}ms — check AI_SERVICE_URL and AI_SERVICE_OPTIMIZE_TIMEOUT_MS`,
+        );
+      }
+      if (attempt < maxAttempts && cause instanceof Error) {
+        lastError = cause;
+        await wakeAiService();
+        continue;
+      }
+      throw cause;
+    } finally {
+      clearTimeout(timer);
     }
-
-    return (await response.json()) as AiOptimizeResponse;
-  } finally {
-    clearTimeout(timer);
   }
+
+  throw lastError ?? new Error('AI optimize failed');
 }
 
 export function toOptimizationDto(
