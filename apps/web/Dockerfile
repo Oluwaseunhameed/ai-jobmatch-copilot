@@ -56,6 +56,7 @@ WORKDIR /app
 # Standalone server + static assets (monorepo layout).
 COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
+RUN mkdir -p ./apps/web/public
 COPY --from=build /app/apps/web/public ./apps/web/public
 
 EXPOSE 3000
