@@ -19,7 +19,7 @@ apps/ai-service/.env
 docs
 **/*.md
 !README.md
-apps/web
+# Do NOT ignore apps/web — jobmatch-web builds from apps/web/Dockerfile.
 playwright-report
 test-results
 coverage
