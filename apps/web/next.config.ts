@@ -1,6 +1,16 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 
+const isDocker = process.env.DOCKER_BUILD === '1';
+
 const nextConfig: NextConfig = {
+  // Smaller Docker images on Render; leave unset on Vercel.
+  ...(isDocker
+    ? {
+        output: 'standalone' as const,
+        outputFileTracingRoot: path.join(__dirname, '../..'),
+      }
+    : {}),
   transpilePackages: [
     '@jobmatch/types',
     '@jobmatch/database',

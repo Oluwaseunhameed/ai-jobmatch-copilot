@@ -1,11 +1,12 @@
-# Render Blueprint — API + AI + Redis (free tier)
+# Render Blueprint — Web + API + AI + Redis (free tier)
 # Apply: https://dashboard.render.com/blueprints → New Blueprint Instance
 # Repo: this monorepo, branch main, Blueprint path render.yaml
 #
 # After first sync, fill sync:false secrets in the Render dashboard
-# (DATABASE_URL, Clerk, CORS/APP URLs, S3, AI CORS). Then wire
-# Vercel NEXT_PUBLIC_API_URL / AI_SERVICE_URL / REDIS_URL to the
-# public Render hostnames (and Key Value external URL).
+# (DATABASE_URL, Clerk, CORS/APP URLs, S3, AI CORS). Point Clerk
+# allowed origins / redirect URLs at the jobmatch-web hostname.
+# Vercel Hobby cannot ship new builds of this app (12-function limit),
+# so production web runs on Render free.
 
 services:
   - type: keyvalue
@@ -16,6 +17,79 @@ services:
     ipAllowList:
       - source: 0.0.0.0/0
         description: vercel-and-external
+
+  - type: web
+    name: jobmatch-web
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - apps/web/**
+        - packages/**
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - turbo.json
+        - render.yaml
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DOCKER_BUILD
+        value: "1"
+      - key: QUEUE_DRIVER
+        value: inline
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_SIGN_IN_URL
+        value: /login
+      - key: NEXT_PUBLIC_CLERK_SIGN_UP_URL
+        value: /register
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL
+        value: /dashboard
+      - key: NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL
+        value: /onboarding
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: AI_SERVICE_URL
+        sync: false
+      - key: AI_SERVICE_TIMEOUT_MS
+        value: "60000"
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          name: jobmatch-redis
+          type: keyvalue
+          property: connectionString
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: "true"
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
 
   - type: web
     name: jobmatch-api
