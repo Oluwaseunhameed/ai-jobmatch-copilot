@@ -45,7 +45,8 @@ ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
     NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     DOCKER_BUILD=1
 RUN pnpm --filter @jobmatch/database db:generate \
-  && pnpm turbo build --filter=@jobmatch/web --force
+  && pnpm turbo build --filter=@jobmatch/web --force \
+  && mkdir -p /app/apps/web/public
 
 FROM node:22-bookworm-slim AS runner
 ENV NODE_ENV=production
@@ -56,7 +57,7 @@ WORKDIR /app
 # Standalone server + static assets (monorepo layout).
 COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
-RUN mkdir -p ./apps/web/public
+# public/ may be empty; build stage always creates the dir for this COPY.
 COPY --from=build /app/apps/web/public ./apps/web/public
 
 EXPOSE 3000
