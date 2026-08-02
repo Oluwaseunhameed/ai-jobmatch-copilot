@@ -14,6 +14,7 @@ import {
   Menu,
   MessageSquareQuote,
   Network,
+  Puzzle,
   Route,
   Settings,
   Shield,
@@ -66,7 +67,10 @@ const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'Account',
-    items: [{ href: '/settings/account', label: 'Settings', icon: Settings }],
+    items: [
+      { href: '/settings/account', label: 'Settings', icon: Settings },
+      { href: '/extension/connect', label: 'Browser extension', icon: Puzzle },
+    ],
   },
 ];
 

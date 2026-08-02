@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "JobMatch Copilot Autofill",
+  "description": "Path B — AutoFill drawer on employer apply pages, powered by your JobMatch profile.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "JobMatch Autofill",
+    "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "https://jobmatch-web.onrender.com/*",
+    "https://*/*",
+    "http://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:3000/*",
+        "https://jobmatch-web.onrender.com/*",
+        "https://*.onrender.com/*"
+      ],
+      "js": ["content/connect-bridge.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": [
+        "http://localhost:3000/*",
+        "https://jobmatch-web.onrender.com/*"
+      ],
+      "js": ["content/fill.js", "content/drawer.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

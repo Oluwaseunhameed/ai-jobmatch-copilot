@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>JobMatch Autofill</title>
+    <style>
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 14px;
+        font: 13px/1.45 ui-sans-serif, system-ui, sans-serif;
+        color: #111;
+        background: #fafafa;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 16px;
+      }
+      p {
+        margin: 0 0 12px;
+        color: #666;
+      }
+      label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #666;
+        margin-bottom: 4px;
+      }
+      input,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 8px;
+        margin-bottom: 10px;
+        font: inherit;
+      }
+      textarea {
+        min-height: 88px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+      }
+      button {
+        width: 100%;
+        height: 36px;
+        border: 0;
+        border-radius: 8px;
+        background: #0f766e;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+      }
+      .row button {
+        background: #fff;
+        color: #0f766e;
+        border: 1px solid #0f766e;
+      }
+      .ok {
+        color: #0f766e;
+        margin-top: 8px;
+      }
+      .err {
+        color: #b91c1c;
+        margin-top: 8px;
+      }
+      a {
+        color: #0f766e;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>JobMatch Autofill</h1>
+    <p>
+      Connect once, then open employer apply pages — the drawer appears on the right (Path B).
+    </p>
+    <label for="appUrl">JobMatch app URL</label>
+    <input id="appUrl" placeholder="https://jobmatch-web.onrender.com" />
+    <label for="token">Extension token</label>
+    <textarea id="token" placeholder="Paste token from /extension/connect"></textarea>
+    <button id="save" type="button">Save connection</button>
+    <div class="row" style="margin-top: 8px">
+      <button id="openConnect" type="button">Open connect page</button>
+    </div>
+    <div id="status"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>
