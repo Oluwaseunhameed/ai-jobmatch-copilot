@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { prisma } from '@jobmatch/database';
 import { getOrCreateApplyAssist } from '@jobmatch/job-search';
 
@@ -6,6 +5,10 @@ import {
   extensionTokenFromRequest,
   verifyExtensionToken,
 } from '@/lib/extension-auth';
+import {
+  extensionJsonResponse,
+  extensionOptionsResponse,
+} from '@/lib/extension-cors';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,6 +53,10 @@ async function loadProfile(userId: string) {
   });
 }
 
+export function OPTIONS(request: Request) {
+  return extensionOptionsResponse(request);
+}
+
 /**
  * Resolve autofill context for the active apply-tab URL.
  * Creates a pipeline application when the URL matches a known job.applyUrl.
@@ -57,12 +64,16 @@ async function loadProfile(userId: string) {
 export async function GET(request: Request) {
   const user = await requireExtensionUser(request);
   if (!user) {
-    return NextResponse.json({ error: { message: 'Unauthorized' } }, { status: 401 });
+    return extensionJsonResponse(request, { error: { message: 'Unauthorized' } }, { status: 401 });
   }
 
   const applyUrl = new URL(request.url).searchParams.get('applyUrl')?.trim();
   if (!applyUrl) {
-    return NextResponse.json({ error: { message: 'applyUrl is required' } }, { status: 400 });
+    return extensionJsonResponse(
+      request,
+      { error: { message: 'applyUrl is required' } },
+      { status: 400 },
+    );
   }
 
   const variants = applyUrlVariants(applyUrl);
@@ -78,7 +89,7 @@ export async function GET(request: Request) {
 
   if (!job) {
     const profile = await loadProfile(user.id);
-    return NextResponse.json({
+    return extensionJsonResponse(request, {
       matched: false,
       applyUrl,
       user: { id: user.id, email: user.email, name: user.name },
@@ -102,7 +113,7 @@ export async function GET(request: Request) {
   const session = await getOrCreateApplyAssist(user.id, application.id);
   const profile = await loadProfile(user.id);
 
-  return NextResponse.json({
+  return extensionJsonResponse(request, {
     matched: true,
     applyUrl,
     user: { id: user.id, email: user.email, name: user.name },
