@@ -16,11 +16,25 @@ export type RunAtsFillInput = {
   headless?: boolean;
 };
 
-const WORKER_CANDIDATES = [
-  process.env.PLAYWRIGHT_WORKER_PATH,
+const WORKER_DEFAULTS = [
   '/opt/playwright/ats-fill-worker.cjs',
   path.join(process.cwd(), 'packages', 'job-search', 'scripts', 'ats-fill-worker.cjs'),
-].filter((value): value is string => Boolean(value));
+];
+
+/** Resolve worker path; rewrite stale `.mjs` env values to `.cjs`. */
+function resolveWorkerPath(): string | null {
+  const fromEnv = process.env.PLAYWRIGHT_WORKER_PATH?.trim();
+  const candidates = [
+    fromEnv ? fromEnv.replace(/ats-fill-worker\.mjs$/i, 'ats-fill-worker.cjs') : null,
+    fromEnv && !fromEnv.endsWith('.mjs') ? fromEnv : null,
+    ...WORKER_DEFAULTS,
+  ].filter((value): value is string => Boolean(value));
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+  return null;
+}
 
 /**
  * Fill-only Playwright assist. Never clicks Submit / Apply.
@@ -65,7 +79,7 @@ export async function runAtsFill(input: RunAtsFillInput): Promise<ApplyFillAttem
   }
 
   try {
-    const workerPath = WORKER_CANDIDATES.find((candidate) => existsSync(candidate));
+    const workerPath = resolveWorkerPath();
     const result = workerPath
       ? await runFillViaWorker(workerPath, {
           applyUrl: input.applyUrl,

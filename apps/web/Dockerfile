@@ -69,6 +69,7 @@ COPY packages/job-search/scripts/ats-fill-worker.cjs /opt/playwright/ats-fill-wo
 # Next.js never imports playwright — it spawns this worker as a child process.
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates \
+  && rm -f /opt/playwright/ats-fill-worker.mjs \
   && cd /opt/playwright \
   && npm init -y \
   && npm install --omit=dev playwright@1.54.2 \
