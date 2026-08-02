@@ -1,6 +1,7 @@
 import type { ApplyFillAttemptDto, ApplyFillFieldDto, AtsVendor } from '@jobmatch/types';
+import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
+import path from 'node:path';
 
 import { atsVendorLabel } from './ats-detect';
 import { buildSelectorPlan } from './field-map';
@@ -23,44 +24,44 @@ type PlaywrightChromium = {
   }>;
 };
 
-async function loadPlaywright(): Promise<{ chromium: PlaywrightChromium }> {
+/**
+ * Load Playwright via createRequire from absolute on-disk paths only.
+ *
+ * Never use bare `import('playwright')` from Next server chunks — Node ESM
+ * resolves that relative to the chunk file and ignores NODE_PATH.
+ */
+function loadPlaywright(): { chromium: PlaywrightChromium } {
   const candidates = [
     process.env.PLAYWRIGHT_MODULE_PATH,
     '/opt/playwright/node_modules/playwright',
-    'playwright',
+    path.join(process.cwd(), 'node_modules', 'playwright'),
+    path.join(process.cwd(), 'apps', 'web', 'node_modules', 'playwright'),
   ].filter((value): value is string => Boolean(value));
 
-  const errors: string[] = [];
+  const tried: string[] = [];
 
-  for (const candidate of candidates) {
+  for (const root of candidates) {
+    const pkgJson = path.join(root, 'package.json');
+    tried.push(pkgJson);
+    if (!existsSync(pkgJson)) continue;
+
     try {
-      if (candidate.startsWith('/')) {
-        const mod = (await import(pathToFileURL(`${candidate}/index.js`).href)) as {
-          chromium: PlaywrightChromium;
-        };
-        return { chromium: mod.chromium };
+      const require = createRequire(pkgJson);
+      const mod = require(root) as { chromium?: PlaywrightChromium };
+      if (!mod?.chromium) {
+        throw new Error('package loaded but chromium export missing');
       }
-
-      // Avoid webpack static analysis of playwright (browser binaries).
-      const dynamicImport = new Function('specifier', 'return import(specifier)') as (
-        specifier: string,
-      ) => Promise<{ chromium: PlaywrightChromium }>;
-      try {
-        const mod = await dynamicImport(candidate);
-        return { chromium: mod.chromium };
-      } catch {
-        const require = createRequire(typeof __filename !== 'undefined' ? __filename : process.cwd());
-        const mod = require(candidate) as { chromium: PlaywrightChromium };
-        return { chromium: mod.chromium };
-      }
+      return { chromium: mod.chromium };
     } catch (error) {
-      errors.push(
-        `${candidate}: ${error instanceof Error ? error.message : String(error)}`,
+      tried.push(
+        `${root} → ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
 
-  throw new Error(`Cannot load playwright (${errors.join(' | ')})`);
+  throw new Error(
+    `Playwright not found on disk (absolute require only). Tried: ${tried.join(' | ')}`,
+  );
 }
 
 export type RunAtsFillInput = {
@@ -111,7 +112,7 @@ export async function runAtsFill(input: RunAtsFillInput): Promise<ApplyFillAttem
   }
 
   try {
-    const { chromium } = await loadPlaywright();
+    const { chromium } = loadPlaywright();
     const browser = await chromium.launch({
       headless: input.headless !== false,
       // Docker / free-tier containers need these; harmless locally.

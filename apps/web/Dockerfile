@@ -66,7 +66,7 @@ COPY --from=build /app/apps/web/public ./apps/web/public
 
 # Install Playwright in an isolated prefix so npm does not read the standalone
 # monorepo package.json (workspace:* is unsupported by npm).
-# Symlink into app node_modules — Node ESM ignores NODE_PATH.
+# Copy (not symlink) into app node_modules; runtime loads via absolute createRequire.
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates \
   && mkdir -p /opt/playwright \
@@ -74,13 +74,12 @@ RUN apt-get update \
   && npm init -y \
   && npm install --omit=dev playwright@1.54.2 \
   && npx playwright install --with-deps chromium \
-  && mkdir -p /app/node_modules /app/apps/web/node_modules /app/apps/web/.next/server/node_modules \
-  && ln -sfn /opt/playwright/node_modules/playwright /app/node_modules/playwright \
-  && ln -sfn /opt/playwright/node_modules/playwright-core /app/node_modules/playwright-core \
-  && ln -sfn /opt/playwright/node_modules/playwright /app/apps/web/node_modules/playwright \
-  && ln -sfn /opt/playwright/node_modules/playwright-core /app/apps/web/node_modules/playwright-core \
-  && ln -sfn /opt/playwright/node_modules/playwright /app/apps/web/.next/server/node_modules/playwright \
-  && ln -sfn /opt/playwright/node_modules/playwright-core /app/apps/web/.next/server/node_modules/playwright-core \
+  && mkdir -p /app/node_modules /app/apps/web/node_modules \
+  && cp -a /opt/playwright/node_modules/playwright /app/node_modules/playwright \
+  && cp -a /opt/playwright/node_modules/playwright-core /app/node_modules/playwright-core \
+  && cp -a /opt/playwright/node_modules/playwright /app/apps/web/node_modules/playwright \
+  && cp -a /opt/playwright/node_modules/playwright-core /app/apps/web/node_modules/playwright-core \
+  && node -e "require('/opt/playwright/node_modules/playwright'); require('/app/node_modules/playwright'); console.log('playwright ok')" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.npm
 
