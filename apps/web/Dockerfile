@@ -55,6 +55,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Fill-only ATS assist (ADR-033). Browsers installed below.
 ENV APPLY_AUTOMATION_LIVE=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV NODE_PATH=/opt/playwright/node_modules
 WORKDIR /app
 
 # Standalone server + static assets (monorepo layout).
@@ -63,14 +64,17 @@ COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 # public/ may be empty; build stage always creates the dir for this COPY.
 COPY --from=build /app/apps/web/public ./apps/web/public
 
-# Playwright is serverExternalPackages — install next to the standalone server so
-# dynamic import('playwright') resolves at runtime, plus Chromium + OS deps.
+# Install Playwright in an isolated prefix so npm does not read the standalone
+# monorepo package.json (workspace:* is unsupported by npm).
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates \
-  && npm install --omit=dev --no-package-lock playwright@1.54.2 \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates \
+  && mkdir -p /opt/playwright \
+  && cd /opt/playwright \
+  && npm init -y \
+  && npm install --omit=dev playwright@1.54.2 \
   && npx playwright install --with-deps chromium \
   && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* /root/.npm
 
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
