@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { ApplicationAssistantPanel } from '@/components/jobs/application-assistant-panel';
+import { ApplyAutofillDrawer } from '@/components/jobs/apply-autofill-drawer';
 import { CodingPrepPanel } from '@/components/jobs/coding-prep-panel';
 import { InterviewPrepPanel } from '@/components/jobs/interview-prep-panel';
 import { JobDescription } from '@/components/jobs/job-description';
@@ -19,7 +20,15 @@ export function JobDetail({ job: initial }: { job: Job }) {
   const [job, setJob] = useState(initial);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autofillOpen, setAutofillOpen] = useState(false);
   const salary = formatSalary(job);
+
+  function openAutofill() {
+    if (job.applyUrl) {
+      window.open(job.applyUrl, '_blank', 'noopener,noreferrer');
+    }
+    setAutofillOpen(true);
+  }
 
   async function toggleSave() {
     setPending(true);
@@ -88,15 +97,27 @@ export function JobDetail({ job: initial }: { job: Job }) {
               {job.isSaved ? 'Saved' : 'Save'}
             </Button>
             {job.applyUrl && (
-              <Button asChild>
-                <a href={job.applyUrl} target="_blank" rel="noreferrer">
-                  Apply
+              <>
+                <Button asChild>
+                  <a href={job.applyUrl} target="_blank" rel="noreferrer">
+                    Apply
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+                <Button variant="outline" onClick={openAutofill}>
+                  Apply with AutoFill
                   <ExternalLink className="h-4 w-4" />
-                </a>
-              </Button>
+                </Button>
+              </>
             )}
           </div>
         </div>
+
+        <ApplyAutofillDrawer
+          job={job}
+          open={autofillOpen}
+          onOpenChange={setAutofillOpen}
+        />
 
         {error && (
           <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
