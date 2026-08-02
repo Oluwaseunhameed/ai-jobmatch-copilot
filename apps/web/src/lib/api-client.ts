@@ -2,23 +2,34 @@ const API_BASE = '';
 
 const DEFAULT_FETCH_TIMEOUT_MS = 20_000;
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const timeoutMs = DEFAULT_FETCH_TIMEOUT_MS;
+type ApiFetchInit = RequestInit & { timeoutMs?: number };
+
+export async function apiFetch<T>(path: string, init?: ApiFetchInit): Promise<T> {
+  const { timeoutMs: customTimeout, signal: initSignal, ...rest } = init ?? {};
+  const timeoutMs = customTimeout ?? DEFAULT_FETCH_TIMEOUT_MS;
   const signal =
-    init?.signal ??
+    initSignal ??
     (typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal
       ? AbortSignal.timeout(timeoutMs)
       : undefined);
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    cache: 'no-store',
-    ...init,
-    signal,
-    headers: {
-      'Content-Type': 'application/json',
-      ...init?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      cache: 'no-store',
+      ...rest,
+      signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...rest.headers,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      throw new Error('The operation timed out.');
+    }
+    throw error;
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

@@ -133,23 +133,43 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
     if (!applicationId) return;
     setAutofilling(true);
     setError(null);
-    setNote(null);
+    setNote('Starting autofill…');
     try {
       if (!session?.fillApprovedAt) {
         await approveApplyFill(applicationId);
       }
-      const next = await runApplyFill(applicationId);
+      // Server returns 202 immediately; Chromium runs in after().
+      let next = await runApplyFill(applicationId);
       setSession(next);
+      setNote('Autofill running in the background…');
+
+      for (let i = 0; i < 60; i += 1) {
+        if (next.playwrightStatus !== 'running') break;
+        await new Promise((resolve) => setTimeout(resolve, 2_000));
+        next = await getApplyAssist(applicationId);
+        setSession(next);
+      }
+
+      if (next.playwrightStatus === 'running') {
+        setError('Autofill is still running. Keep this drawer open and try again in a moment.');
+        return;
+      }
+
       if (next.lastFillAttempt?.ok) {
         setNote(
           `Filled ${next.lastFillAttempt.filled.length} field(s) in the assist browser. Open the apply page to review and submit — we never auto-submit.`,
         );
-      } else if (next.lastFillAttempt) {
-        const detail = next.lastFillAttempt.errors[0] ?? next.playwrightDetail;
+      } else if (next.lastFillAttempt || next.playwrightStatus === 'adapter_failed') {
+        const detail =
+          next.lastFillAttempt?.errors[0] ?? next.playwrightDetail ?? null;
         setError(detail || 'Autofill completed with errors — copy fields manually if needed.');
+        setNote(null);
+      } else {
+        setNote(next.playwrightDetail || 'Autofill finished.');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Autofill failed');
+      setNote(null);
     } finally {
       setAutofilling(false);
     }

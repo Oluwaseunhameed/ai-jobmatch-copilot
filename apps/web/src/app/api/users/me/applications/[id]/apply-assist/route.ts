@@ -3,13 +3,18 @@ import {
   approveApplyFillPlan,
   confirmApplySubmitted,
   getOrCreateApplyAssist,
+  markApplyFillFailed,
+  markApplyFillRunning,
   markApplyOpened,
   runApplyAssistFill,
 } from '@jobmatch/job-search';
+import { after } from 'next/server';
 
 import { requireAppUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
+/** Chromium fill can exceed default serverless limits; Render Docker honors this. */
+export const maxDuration = 120;
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -77,15 +82,26 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     if (action === 'run_fill') {
-      const session = await runApplyAssistFill({
+      const session = await markApplyFillRunning({
         userId: app.user.id,
         applicationId: id,
-        dryRun: body.dryRun === true,
       });
       if (!session) {
         return NextResponse.json({ error: { message: 'Application not found' } }, { status: 404 });
       }
-      return NextResponse.json(session);
+
+      const userId = app.user.id;
+      const dryRun = body.dryRun === true;
+      after(async () => {
+        try {
+          await runApplyAssistFill({ userId, applicationId: id, dryRun });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Fill assist failed';
+          await markApplyFillFailed({ userId, applicationId: id, message }).catch(() => null);
+        }
+      });
+
+      return NextResponse.json(session, { status: 202 });
     }
 
     if (action === 'confirm_submitted') {

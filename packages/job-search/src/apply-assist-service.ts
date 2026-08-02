@@ -235,6 +235,78 @@ export async function approveApplyFillPlan(
 }
 
 /**
+ * Mark fill as in-progress and return immediately so the HTTP request does not
+ * wait on Chromium (client polls until playwrightStatus leaves "running").
+ */
+export async function markApplyFillRunning(input: {
+  userId: string;
+  applicationId: string;
+}): Promise<ApplyAssistSessionDto | null> {
+  const loaded = await loadContext(input.userId, input.applicationId);
+  if (!loaded) return null;
+
+  let session = await getOrCreateApplyAssist(input.userId, input.applicationId);
+  if (!session) return null;
+  if (session.status === 'submitted') return session;
+
+  if (session.status !== 'fill_approved' && !session.fillApprovedAt) {
+    session = await approveApplyFillPlan(input.userId, input.applicationId);
+    if (!session) return null;
+  }
+
+  const applyUrl = loaded.ctx.applyUrl;
+  if (!applyUrl) {
+    throw new Error('No apply URL on this job — cannot run fill assist.');
+  }
+
+  const vendor = detectAts(applyUrl, loaded.ctx.jobSource);
+  if (vendor === 'unknown') {
+    throw new Error(
+      'No usable apply URL for fill assist. Open the apply page and copy fields from the plan, or use a Greenhouse/Lever/Ashby/Workable link.',
+    );
+  }
+
+  const liveEnabled = process.env.APPLY_AUTOMATION_LIVE === '1';
+  if (vendor !== 'fixture' && !liveEnabled) {
+    throw new Error(
+      `${atsVendorLabel(vendor)} live fill requires APPLY_AUTOMATION_LIVE=1 (fill-only; never auto-submit).`,
+    );
+  }
+
+  const row = await prisma.applyAssistSession.update({
+    where: { id: session.id },
+    data: {
+      atsVendor: vendor,
+      playwrightStatus: 'running',
+      playwrightDetail: 'Autofill in progress — launching assist browser…',
+    },
+    include: assistInclude,
+  });
+
+  return toApplyAssistSessionDto(row);
+}
+
+export async function markApplyFillFailed(input: {
+  userId: string;
+  applicationId: string;
+  message: string;
+}): Promise<ApplyAssistSessionDto | null> {
+  const session = await getOrCreateApplyAssist(input.userId, input.applicationId);
+  if (!session) return null;
+
+  const row = await prisma.applyAssistSession.update({
+    where: { id: session.id },
+    data: {
+      playwrightStatus: 'adapter_failed',
+      playwrightDetail: input.message.slice(0, 500),
+    },
+    include: assistInclude,
+  });
+
+  return toApplyAssistSessionDto(row);
+}
+
+/**
  * Fill-only Playwright assist. Never submits. Requires prior fill-plan approval.
  */
 export async function runApplyAssistFill(input: {

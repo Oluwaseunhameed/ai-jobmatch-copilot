@@ -149,6 +149,8 @@ export {
   approveApplyFillPlan,
   confirmApplySubmitted,
   getOrCreateApplyAssist,
+  markApplyFillFailed,
+  markApplyFillRunning,
   markApplyOpened,
   runApplyAssistFill,
 } from './apply-assist-service';
