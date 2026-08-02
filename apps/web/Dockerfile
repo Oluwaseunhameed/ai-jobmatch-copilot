@@ -52,10 +52,10 @@ FROM node:22-bookworm-slim AS runner
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV NEXT_TELEMETRY_DISABLED=1
-# Fill-only ATS assist (ADR-033). Browsers installed below.
+# Fill-only ATS assist (ADR-033): standalone Playwright worker (not imported by Next).
 ENV APPLY_AUTOMATION_LIVE=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV PLAYWRIGHT_MODULE_PATH=/opt/playwright/node_modules/playwright
+ENV PLAYWRIGHT_WORKER_PATH=/opt/playwright/ats-fill-worker.mjs
 WORKDIR /app
 
 # Standalone server + static assets (monorepo layout).
@@ -63,23 +63,17 @@ COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 # public/ may be empty; build stage always creates the dir for this COPY.
 COPY --from=build /app/apps/web/public ./apps/web/public
+COPY packages/job-search/scripts/ats-fill-worker.mjs /opt/playwright/ats-fill-worker.mjs
 
-# Install Playwright in an isolated prefix so npm does not read the standalone
-# monorepo package.json (workspace:* is unsupported by npm).
-# Copy (not symlink) into app node_modules; runtime loads via absolute createRequire.
+# Install Playwright beside the worker so require('playwright') resolves there.
+# Next.js never imports playwright — it spawns this worker as a child process.
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates \
-  && mkdir -p /opt/playwright \
   && cd /opt/playwright \
   && npm init -y \
   && npm install --omit=dev playwright@1.54.2 \
   && npx playwright install --with-deps chromium \
-  && mkdir -p /app/node_modules /app/apps/web/node_modules \
-  && cp -a /opt/playwright/node_modules/playwright /app/node_modules/playwright \
-  && cp -a /opt/playwright/node_modules/playwright-core /app/node_modules/playwright-core \
-  && cp -a /opt/playwright/node_modules/playwright /app/apps/web/node_modules/playwright \
-  && cp -a /opt/playwright/node_modules/playwright-core /app/apps/web/node_modules/playwright-core \
-  && node -e "require('/opt/playwright/node_modules/playwright'); require('/app/node_modules/playwright'); console.log('playwright ok')" \
+  && node -e "require('/opt/playwright/node_modules/playwright'); console.log('playwright ok')" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.npm
 
