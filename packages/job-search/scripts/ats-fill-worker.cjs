@@ -2,8 +2,8 @@
 /**
  * Standalone fill-only Playwright worker for production Docker.
  *
- * Runs outside the Next.js module graph so bare `require('playwright')`
- * resolves from /opt/playwright/node_modules (sibling of this file).
+ * CommonJS (.cjs) on purpose — must use require(), and must not be treated as
+ * ESM (a sibling package.json from `npm init` may set "type": "module").
  *
  * Protocol: JSON on stdin → JSON on stdout
  *   in:  { applyUrl, plan: [{ fieldId, label, value, selectors }], headless? }

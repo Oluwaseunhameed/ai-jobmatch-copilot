@@ -18,8 +18,8 @@ export type RunAtsFillInput = {
 
 const WORKER_CANDIDATES = [
   process.env.PLAYWRIGHT_WORKER_PATH,
-  '/opt/playwright/ats-fill-worker.mjs',
-  path.join(process.cwd(), 'packages', 'job-search', 'scripts', 'ats-fill-worker.mjs'),
+  '/opt/playwright/ats-fill-worker.cjs',
+  path.join(process.cwd(), 'packages', 'job-search', 'scripts', 'ats-fill-worker.cjs'),
 ].filter((value): value is string => Boolean(value));
 
 /**

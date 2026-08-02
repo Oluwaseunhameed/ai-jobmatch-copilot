@@ -96,7 +96,7 @@ services:
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: /ms-playwright
       - key: PLAYWRIGHT_WORKER_PATH
-        value: /opt/playwright/ats-fill-worker.mjs
+        value: /opt/playwright/ats-fill-worker.cjs
 
   - type: web
     name: jobmatch-api

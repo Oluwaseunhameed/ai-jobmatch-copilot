@@ -55,7 +55,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Fill-only ATS assist (ADR-033): standalone Playwright worker (not imported by Next).
 ENV APPLY_AUTOMATION_LIVE=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV PLAYWRIGHT_WORKER_PATH=/opt/playwright/ats-fill-worker.mjs
+ENV PLAYWRIGHT_WORKER_PATH=/opt/playwright/ats-fill-worker.cjs
 WORKDIR /app
 
 # Standalone server + static assets (monorepo layout).
@@ -63,7 +63,7 @@ COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 # public/ may be empty; build stage always creates the dir for this COPY.
 COPY --from=build /app/apps/web/public ./apps/web/public
-COPY packages/job-search/scripts/ats-fill-worker.mjs /opt/playwright/ats-fill-worker.mjs
+COPY packages/job-search/scripts/ats-fill-worker.cjs /opt/playwright/ats-fill-worker.cjs
 
 # Install Playwright beside the worker so require('playwright') resolves there.
 # Next.js never imports playwright — it spawns this worker as a child process.
