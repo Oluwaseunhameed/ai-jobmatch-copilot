@@ -3,6 +3,12 @@
   "name": "JobMatch Copilot Autofill",
   "description": "Path B — AutoFill drawer on employer apply pages, powered by your JobMatch profile.",
   "version": "0.1.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "autofill@jobmatch.copilot",
+      "strict_min_version": "121.0"
+    }
+  },
   "action": {
     "default_title": "JobMatch Autofill",
     "default_popup": "popup/popup.html"

@@ -86,9 +86,17 @@ export default function ExtensionConnectPage() {
           <div className="space-y-1 text-sm">
             <p className="font-medium">1. Load the extension</p>
             <p className="text-muted-foreground">
-              Chrome → Extensions → Developer mode → Load unpacked → select{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">apps/extension</code> from this
-              repo.
+              <strong>Firefox:</strong> open{' '}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                about:debugging#/runtime/this-firefox
+              </code>
+              → Load Temporary Add-on → select{' '}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">apps/extension/manifest.json</code>
+              . Reload after each Firefox restart.
+            </p>
+            <p className="text-muted-foreground">
+              <strong>Chrome:</strong> Extensions → Developer mode → Load unpacked → select{' '}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">apps/extension</code>.
             </p>
           </div>
         </div>
