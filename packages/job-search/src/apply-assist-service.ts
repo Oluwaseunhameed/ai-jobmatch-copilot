@@ -265,7 +265,7 @@ export async function runApplyAssistFill(input: {
 
   if (vendor === 'unknown') {
     throw new Error(
-      'ATS vendor unknown — use a Greenhouse/Lever/Ashby/Workable URL, or /apply-fixture for local demo.',
+      'No usable apply URL for fill assist. Open the apply page and copy fields from the plan, or use a Greenhouse/Lever/Ashby/Workable link.',
     );
   }
 

@@ -13,7 +13,9 @@ describe('ATS detect', () => {
     assert.equal(detectAts('https://jobs.lever.co/acme/abc'), 'lever');
     assert.equal(detectAts('https://jobs.ashbyhq.com/acme'), 'ashby');
     assert.equal(detectAts(null, 'workable'), 'workable');
-    assert.equal(detectAts('https://careers.example.com/x'), 'unknown');
+    assert.equal(detectAts('https://careers.example.com/x'), 'generic');
+    assert.equal(detectAts('https://openai.com/careers/job/123'), 'generic');
+    assert.equal(detectAts('https://acme.wd5.myworkdayjobs.com/en-US/External/job/X'), 'generic');
   });
 });
 
@@ -37,5 +39,6 @@ describe('fill gate', () => {
     assert.equal(canRunAssistFill({ vendor: 'greenhouse', fillApproved: false }), false);
     assert.equal(canRunAssistFill({ vendor: 'greenhouse', fillApproved: true }), false);
     assert.equal(canRunAssistFill({ vendor: 'unknown', fillApproved: true }), false);
+    assert.equal(canRunAssistFill({ vendor: 'generic', fillApproved: true }), false);
   });
 });

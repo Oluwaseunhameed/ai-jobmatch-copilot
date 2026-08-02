@@ -237,8 +237,8 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
             </Button>
             <p className="text-xs leading-relaxed text-muted-foreground">
               Stay on JobMatch while you work. Autofill runs a secure fill-only assist browser for
-              supported ATS forms — it never submits. Use Open apply page to review and submit
-              yourself.
+              supported ATS and career pages — it never submits. Use Open apply page to review and
+              submit yourself. Copy any field below if the board needs a manual paste.
             </p>
           </div>
 

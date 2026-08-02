@@ -17,7 +17,20 @@ export function detectAts(
   if (isFixtureApplyUrl(applyUrl)) return 'fixture';
 
   const src = (source ?? '').toLowerCase().trim();
-  if (src === 'greenhouse' || src === 'lever' || src === 'ashby' || src === 'workable') {
+  if (
+    src === 'greenhouse' ||
+    src === 'lever' ||
+    src === 'ashby' ||
+    src === 'workable' ||
+    src === 'workday' ||
+    src === 'smartrecruiters' ||
+    src === 'icims' ||
+    src === 'bamboohr' ||
+    src === 'jobvite'
+  ) {
+    if (src === 'workday' || src === 'smartrecruiters' || src === 'icims' || src === 'bamboohr' || src === 'jobvite') {
+      return 'generic';
+    }
     return src;
   }
 
@@ -27,13 +40,54 @@ export function detectAts(
   if (
     url.includes('greenhouse.io') ||
     url.includes('boards.greenhouse') ||
-    url.includes('job-boards.greenhouse')
+    url.includes('job-boards.greenhouse') ||
+    url.includes('grnh.se')
   ) {
     return 'greenhouse';
   }
-  if (url.includes('lever.co') || url.includes('jobs.lever')) return 'lever';
-  if (url.includes('ashbyhq.com') || url.includes('jobs.ashby')) return 'ashby';
-  if (url.includes('workable.com') || url.includes('apply.workable')) return 'workable';
+  if (url.includes('lever.co') || url.includes('jobs.lever') || url.includes('jobs.eu.lever')) {
+    return 'lever';
+  }
+  if (
+    url.includes('ashbyhq.com') ||
+    url.includes('jobs.ashby') ||
+    url.includes('ashbyhq.') ||
+    url.includes('ashby.com')
+  ) {
+    return 'ashby';
+  }
+  if (url.includes('workable.com') || url.includes('apply.workable')) {
+    return 'workable';
+  }
+
+  // Other common hosted ATS / career hosts — use shared generic selectors.
+  if (
+    url.includes('myworkdayjobs.com') ||
+    url.includes('workdayjobs.com') ||
+    url.includes('wd1.myworkdayjobs') ||
+    url.includes('wd5.myworkdayjobs') ||
+    url.includes('smartrecruiters.com') ||
+    url.includes('icims.com') ||
+    url.includes('bamboohr.com') ||
+    url.includes('jobvite.com') ||
+    url.includes('breezy.hr') ||
+    url.includes('recruitee.com') ||
+    url.includes('teamtailor.com') ||
+    url.includes('greenhouse.io') ||
+    url.includes('lever.co') ||
+    url.includes('/careers') ||
+    url.includes('/career') ||
+    url.includes('/jobs/') ||
+    url.includes('/job/') ||
+    url.includes('apply.')
+  ) {
+    return 'generic';
+  }
+
+  // Any remaining http(s) apply URL: attempt generic fill-only (never submit).
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return 'generic';
+  }
 
   return 'unknown';
 }
@@ -48,6 +102,8 @@ export function atsVendorLabel(vendor: AtsVendor): string {
       return 'Ashby';
     case 'workable':
       return 'Workable';
+    case 'generic':
+      return 'Generic career page';
     case 'fixture':
       return 'Local fixture';
     default:

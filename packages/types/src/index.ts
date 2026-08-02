@@ -1326,6 +1326,7 @@ export type AtsVendor =
   | 'lever'
   | 'ashby'
   | 'workable'
+  | 'generic'
   | 'fixture'
   | 'unknown';
 
