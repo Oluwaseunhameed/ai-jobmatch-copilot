@@ -56,6 +56,8 @@ export async function runAtsFill(input: RunAtsFillInput): Promise<ApplyFillAttem
     const { chromium } = await import(/* webpackIgnore: true */ playwrightMod);
     const browser = await chromium.launch({
       headless: input.headless !== false,
+      // Docker / free-tier containers need these; harmless locally.
+      args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
     });
     const page = await browser.newPage();
     const filled: string[] = [];

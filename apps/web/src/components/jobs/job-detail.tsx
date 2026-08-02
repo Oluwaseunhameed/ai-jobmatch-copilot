@@ -24,9 +24,7 @@ export function JobDetail({ job: initial }: { job: Job }) {
   const salary = formatSalary(job);
 
   function openAutofill() {
-    if (job.applyUrl) {
-      window.open(job.applyUrl, '_blank', 'noopener,noreferrer');
-    }
+    // Path A: stay on JobMatch — drawer opens here; apply page is opened from the drawer.
     setAutofillOpen(true);
   }
 
@@ -106,7 +104,6 @@ export function JobDetail({ job: initial }: { job: Job }) {
                 </Button>
                 <Button variant="outline" onClick={openAutofill}>
                   Apply with AutoFill
-                  <ExternalLink className="h-4 w-4" />
                 </Button>
               </>
             )}

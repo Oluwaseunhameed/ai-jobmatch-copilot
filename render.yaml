@@ -90,6 +90,11 @@ services:
         sync: false
       - key: EMAIL_FROM
         sync: false
+      # Fill-only Playwright assist (never auto-submit). Requires Chromium in the web image.
+      - key: APPLY_AUTOMATION_LIVE
+        value: "1"
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /ms-playwright
 
   - type: web
     name: jobmatch-api

@@ -52,6 +52,9 @@ FROM node:22-bookworm-slim AS runner
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV NEXT_TELEMETRY_DISABLED=1
+# Fill-only ATS assist (ADR-033). Browsers installed below.
+ENV APPLY_AUTOMATION_LIVE=1
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 WORKDIR /app
 
 # Standalone server + static assets (monorepo layout).
@@ -59,6 +62,15 @@ COPY --from=build /app/apps/web/.next/standalone ./
 COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
 # public/ may be empty; build stage always creates the dir for this COPY.
 COPY --from=build /app/apps/web/public ./apps/web/public
+
+# Playwright is serverExternalPackages — install next to the standalone server so
+# dynamic import('playwright') resolves at runtime, plus Chromium + OS deps.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && npm install --omit=dev --no-package-lock playwright@1.54.2 \
+  && npx playwright install --with-deps chromium \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \

@@ -1,9 +1,18 @@
 'use client';
 
-import { CheckCircle2, ChevronRight, Circle, Sparkles, X } from 'lucide-react';
+import {
+  CheckCircle2,
+  ChevronRight,
+  Circle,
+  Copy,
+  ExternalLink,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { BrandMark } from '@/components/brand/brand-mark';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import {
@@ -32,12 +41,14 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [autofilling, setAutofilling] = useState(false);
+  const [openingApply, setOpeningApply] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [profile, setProfile] = useState<CareerProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [logoBroken, setLogoBroken] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -49,7 +60,7 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    setLogoBroken(false);
+    setNote(null);
 
     void (async () => {
       try {
@@ -62,9 +73,7 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
         if (cancelled) return;
         setApplicationId(app.id);
 
-        let next = await getApplyAssist(app.id);
-        if (cancelled) return;
-        next = await markApplyOpened(app.id);
+        const next = await getApplyAssist(app.id);
         if (cancelled) return;
         setSession(next);
       } catch (err) {
@@ -82,30 +91,60 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
   }, [open, job.id]);
 
   const filledIds = useMemo(() => {
-    const ids = new Set(session?.lastFillAttempt?.filled ?? []);
-    return ids;
+    return new Set(session?.lastFillAttempt?.filled ?? []);
   }, [session?.lastFillAttempt?.filled]);
 
   const fields = session?.fillPlan ?? [];
   const filledCount = fields.filter((field) => {
     if (filledIds.has(field.id)) return true;
-    // Before a fill attempt, count prepared non-empty plan values as ready.
     if (!session?.lastFillAttempt) return field.value.trim().length > 0;
     return false;
   }).length;
   const fillPct = fields.length === 0 ? 0 : Math.round((filledCount / fields.length) * 100);
 
+  const openApplyPage = useCallback(async () => {
+    const url = session?.applyUrl ?? job.applyUrl;
+    if (!url || !applicationId) return;
+
+    setOpeningApply(true);
+    setError(null);
+    try {
+      // Open the ATS tab, then immediately reclaim focus so the drawer stays visible.
+      const tab = window.open(url, '_blank');
+      try {
+        tab?.blur();
+      } catch {
+        // Cross-origin / noopener — ignore.
+      }
+      window.focus();
+      requestAnimationFrame(() => window.focus());
+
+      const next = await markApplyOpened(applicationId);
+      setSession(next);
+      setNote('Apply page opened in another tab — keep this drawer open while you finish there.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not open apply page');
+    } finally {
+      setOpeningApply(false);
+    }
+  }, [applicationId, job.applyUrl, session?.applyUrl]);
+
   const runAutofill = useCallback(async () => {
     if (!applicationId) return;
     setAutofilling(true);
     setError(null);
+    setNote(null);
     try {
       if (!session?.fillApprovedAt) {
         await approveApplyFill(applicationId);
       }
       const next = await runApplyFill(applicationId);
       setSession(next);
-      if (next.lastFillAttempt && !next.lastFillAttempt.ok) {
+      if (next.lastFillAttempt?.ok) {
+        setNote(
+          `Filled ${next.lastFillAttempt.filled.length} field(s) in the assist browser. Open the apply page to review and submit — we never auto-submit.`,
+        );
+      } else if (next.lastFillAttempt) {
         const detail = next.lastFillAttempt.errors[0] ?? next.playwrightDetail;
         setError(detail || 'Autofill completed with errors — copy fields manually if needed.');
       }
@@ -115,6 +154,12 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
       setAutofilling(false);
     }
   }, [applicationId, session?.fillApprovedAt]);
+
+  async function copyField(id: string, value: string) {
+    await navigator.clipboard.writeText(value);
+    setCopiedId(id);
+    window.setTimeout(() => setCopiedId(null), 1400);
+  }
 
   async function openProfileModal() {
     setProfileOpen(true);
@@ -131,9 +176,6 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
   }
 
   if (!mounted || !open) return null;
-
-  const company = job.company;
-  const initial = company.name.trim().charAt(0).toUpperCase() || '?';
 
   return createPortal(
     <>
@@ -154,26 +196,11 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
         )}
       >
         <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-          <div className="flex min-w-0 items-center gap-3">
-            {company.logoUrl && !logoBroken ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={company.logoUrl}
-                alt=""
-                className="h-10 w-10 rounded-lg border border-border object-cover"
-                onError={() => setLogoBroken(true)}
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted font-display text-sm font-semibold text-foreground">
-                {initial}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="truncate font-display text-base font-semibold tracking-tight">
-                {company.name}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">{job.title}</p>
-            </div>
+          <div className="min-w-0">
+            <BrandMark href="/dashboard" size="sm" compact className="min-w-0" />
+            <p className="mt-1 truncate pl-[calc(1.75rem+0.625rem)] text-xs text-muted-foreground">
+              {job.company.name} · {job.title}
+            </p>
           </div>
           <Button
             type="button"
@@ -187,7 +214,17 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
         </header>
 
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
-          <div>
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full"
+              disabled={loading || openingApply || !(session?.applyUrl ?? job.applyUrl)}
+              onClick={() => void openApplyPage()}
+            >
+              {openingApply ? <Spinner size="sm" /> : <ExternalLink className="h-4 w-4" />}
+              Open apply page
+            </Button>
             <Button
               type="button"
               size="lg"
@@ -198,9 +235,10 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
               {autofilling ? <Spinner size="sm" /> : <Sparkles className="h-4 w-4" />}
               {autofilling ? 'Autofilling…' : 'Autofill'}
             </Button>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              Opens the job apply page in another tab. Autofill runs fill-only assist for supported
-              ATS forms — it never submits for you.
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Stay on JobMatch while you work. Autofill runs a secure fill-only assist browser for
+              supported ATS forms — it never submits. Use Open apply page to review and submit
+              yourself.
             </p>
           </div>
 
@@ -259,12 +297,24 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
                         ) : (
                           <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                         )}
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium text-foreground">{field.label}</p>
                           <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                             {field.value || 'Empty — add this in your profile or draft'}
                           </p>
                         </div>
+                        {field.value ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="shrink-0"
+                            onClick={() => void copyField(field.id, field.value)}
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            {copiedId === field.id ? 'Copied' : 'Copy'}
+                          </Button>
+                        ) : null}
                       </li>
                     );
                   })}
@@ -276,6 +326,12 @@ export function ApplyAutofillDrawer({ job, open, onOpenChange }: Props) {
               ) : null}
             </>
           )}
+
+          {note ? (
+            <p className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-foreground">
+              {note}
+            </p>
+          ) : null}
 
           {error ? (
             <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
