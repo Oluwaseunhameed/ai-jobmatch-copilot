@@ -55,7 +55,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Fill-only ATS assist (ADR-033). Browsers installed below.
 ENV APPLY_AUTOMATION_LIVE=1
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-ENV NODE_PATH=/opt/playwright/node_modules
+ENV PLAYWRIGHT_MODULE_PATH=/opt/playwright/node_modules/playwright
 WORKDIR /app
 
 # Standalone server + static assets (monorepo layout).
@@ -66,6 +66,7 @@ COPY --from=build /app/apps/web/public ./apps/web/public
 
 # Install Playwright in an isolated prefix so npm does not read the standalone
 # monorepo package.json (workspace:* is unsupported by npm).
+# Symlink into app node_modules — Node ESM ignores NODE_PATH.
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates \
   && mkdir -p /opt/playwright \
@@ -73,6 +74,13 @@ RUN apt-get update \
   && npm init -y \
   && npm install --omit=dev playwright@1.54.2 \
   && npx playwright install --with-deps chromium \
+  && mkdir -p /app/node_modules /app/apps/web/node_modules /app/apps/web/.next/server/node_modules \
+  && ln -sfn /opt/playwright/node_modules/playwright /app/node_modules/playwright \
+  && ln -sfn /opt/playwright/node_modules/playwright-core /app/node_modules/playwright-core \
+  && ln -sfn /opt/playwright/node_modules/playwright /app/apps/web/node_modules/playwright \
+  && ln -sfn /opt/playwright/node_modules/playwright-core /app/apps/web/node_modules/playwright-core \
+  && ln -sfn /opt/playwright/node_modules/playwright /app/apps/web/.next/server/node_modules/playwright \
+  && ln -sfn /opt/playwright/node_modules/playwright-core /app/apps/web/.next/server/node_modules/playwright-core \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /root/.npm
 

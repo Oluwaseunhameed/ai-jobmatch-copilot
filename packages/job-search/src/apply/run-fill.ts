@@ -1,7 +1,67 @@
 import type { ApplyFillAttemptDto, ApplyFillFieldDto, AtsVendor } from '@jobmatch/types';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
 
 import { atsVendorLabel } from './ats-detect';
 import { buildSelectorPlan } from './field-map';
+
+type PlaywrightChromium = {
+  launch: (options?: {
+    headless?: boolean;
+    args?: string[];
+  }) => Promise<{
+    newPage: () => Promise<{
+      goto: (url: string, opts?: { waitUntil?: string; timeout?: number }) => Promise<unknown>;
+      locator: (selector: string) => {
+        first: () => {
+          count: () => Promise<number>;
+          fill: (value: string, opts?: { timeout?: number }) => Promise<void>;
+        };
+      };
+    }>;
+    close: () => Promise<void>;
+  }>;
+};
+
+async function loadPlaywright(): Promise<{ chromium: PlaywrightChromium }> {
+  const candidates = [
+    process.env.PLAYWRIGHT_MODULE_PATH,
+    '/opt/playwright/node_modules/playwright',
+    'playwright',
+  ].filter((value): value is string => Boolean(value));
+
+  const errors: string[] = [];
+
+  for (const candidate of candidates) {
+    try {
+      if (candidate.startsWith('/')) {
+        const mod = (await import(pathToFileURL(`${candidate}/index.js`).href)) as {
+          chromium: PlaywrightChromium;
+        };
+        return { chromium: mod.chromium };
+      }
+
+      // Avoid webpack static analysis of playwright (browser binaries).
+      const dynamicImport = new Function('specifier', 'return import(specifier)') as (
+        specifier: string,
+      ) => Promise<{ chromium: PlaywrightChromium }>;
+      try {
+        const mod = await dynamicImport(candidate);
+        return { chromium: mod.chromium };
+      } catch {
+        const require = createRequire(typeof __filename !== 'undefined' ? __filename : process.cwd());
+        const mod = require(candidate) as { chromium: PlaywrightChromium };
+        return { chromium: mod.chromium };
+      }
+    } catch (error) {
+      errors.push(
+        `${candidate}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  throw new Error(`Cannot load playwright (${errors.join(' | ')})`);
+}
 
 export type RunAtsFillInput = {
   applyUrl: string;
@@ -51,9 +111,7 @@ export async function runAtsFill(input: RunAtsFillInput): Promise<ApplyFillAttem
   }
 
   try {
-    // Avoid webpack static analysis of playwright (browser binaries).
-    const playwrightMod = 'playwright';
-    const { chromium } = await import(/* webpackIgnore: true */ playwrightMod);
+    const { chromium } = await loadPlaywright();
     const browser = await chromium.launch({
       headless: input.headless !== false,
       // Docker / free-tier containers need these; harmless locally.
