@@ -5,7 +5,7 @@
     <title>JobMatch Autofill</title>
     <style>
       body {
-        width: 320px;
+        width: 300px;
         margin: 0;
         padding: 14px;
         font: 13px/1.45 ui-sans-serif, system-ui, sans-serif;
@@ -16,8 +16,40 @@
         margin: 0 0 4px;
         font-size: 16px;
       }
-      p {
-        margin: 0 0 12px;
+      .lead {
+        margin: 0 0 14px;
+        color: #666;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        margin-bottom: 12px;
+      }
+      .status strong {
+        display: block;
+        font-size: 13px;
+      }
+      .status span {
+        font-size: 12px;
+        color: #666;
+      }
+      .badge {
+        flex-shrink: 0;
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-size: 11px;
+        font-weight: 700;
+        background: #ecfdf5;
+        color: #0f766e;
+      }
+      .badge.off {
+        background: #f4f4f5;
         color: #666;
       }
       label {
@@ -40,7 +72,7 @@
         font: inherit;
       }
       textarea {
-        min-height: 88px;
+        min-height: 72px;
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         font-size: 11px;
       }
@@ -54,14 +86,30 @@
         font-weight: 700;
         cursor: pointer;
       }
-      .row {
-        display: flex;
-        gap: 8px;
-      }
-      .row button {
+      button.secondary {
         background: #fff;
         color: #0f766e;
         border: 1px solid #0f766e;
+        margin-top: 8px;
+      }
+      button.linkish {
+        background: transparent;
+        color: #0f766e;
+        border: 0;
+        height: auto;
+        padding: 8px 0 0;
+        font-weight: 600;
+        text-decoration: underline;
+        font-size: 12px;
+      }
+      .advanced {
+        display: none;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #e8e8e8;
+      }
+      .advanced.open {
+        display: block;
       }
       .ok {
         color: #0f766e;
@@ -71,25 +119,45 @@
         color: #b91c1c;
         margin-top: 8px;
       }
-      a {
-        color: #0f766e;
+      .hidden {
+        display: none;
       }
     </style>
   </head>
   <body>
     <h1>JobMatch Autofill</h1>
-    <p>
-      Connect once, then open employer apply pages — the drawer appears on the right (Path B).
-    </p>
-    <label for="appUrl">JobMatch app URL</label>
-    <input id="appUrl" placeholder="https://jobmatch-web.onrender.com" />
-    <label for="token">Extension token</label>
-    <textarea id="token" placeholder="Paste token from /extension/connect"></textarea>
-    <button id="save" type="button">Save connection</button>
-    <div class="row" style="margin-top: 8px">
-      <button id="test" type="button">Test connection</button>
-      <button id="openConnect" type="button">Open connect page</button>
+    <p class="lead">Fill employer apply forms from your JobMatch profile.</p>
+
+    <div class="status" id="statusCard">
+      <div>
+        <strong id="statusTitle">Checking…</strong>
+        <span id="statusDetail">Loading connection</span>
+      </div>
+      <div class="badge off" id="statusBadge">…</div>
     </div>
+
+    <div id="disconnected">
+      <button id="openConnect" type="button">Connect in JobMatch</button>
+      <button class="secondary" id="pasteToggle" type="button">I have a connect code</button>
+      <div id="pasteBox" class="hidden" style="margin-top: 10px">
+        <label for="token">Connect code</label>
+        <textarea id="token" placeholder="Paste the code from JobMatch"></textarea>
+        <button id="save" type="button">Save</button>
+      </div>
+    </div>
+
+    <div id="connectedActions" class="hidden">
+      <button class="secondary" id="test" type="button">Test connection</button>
+      <button class="secondary" id="openConnectConnected" type="button">Manage in JobMatch</button>
+    </div>
+
+    <button class="linkish" id="advancedToggle" type="button">Advanced settings</button>
+    <div class="advanced" id="advanced">
+      <label for="appUrl">JobMatch website</label>
+      <input id="appUrl" placeholder="https://jobmatch-web.onrender.com" />
+      <button class="secondary" id="saveAdvanced" type="button">Save settings</button>
+    </div>
+
     <div id="status"></div>
     <script src="popup.js"></script>
   </body>

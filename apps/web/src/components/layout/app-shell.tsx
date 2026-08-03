@@ -69,7 +69,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Account',
     items: [
       { href: '/settings/account', label: 'Settings', icon: Settings },
-      { href: '/extension/connect', label: 'Browser extension', icon: Puzzle },
+      { href: '/extension/connect', label: 'Apply Autofill', icon: Puzzle },
     ],
   },
 ];

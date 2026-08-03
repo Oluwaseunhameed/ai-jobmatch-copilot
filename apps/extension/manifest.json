@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "JobMatch Copilot Autofill",
-  "description": "Path B — AutoFill drawer on employer apply pages, powered by your JobMatch profile.",
-  "version": "0.1.1",
+  "description": "Autofill employer job applications from your JobMatch profile. Never auto-submits.",
+  "version": "0.1.2",
   "browser_specific_settings": {
     "gecko": {
       "id": "autofill@jobmatch.copilot",
