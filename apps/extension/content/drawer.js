@@ -2,52 +2,374 @@
   if (window.__jobmatchDrawerInjected) return;
   window.__jobmatchDrawerInjected = true;
 
+  // Use only div/span/button — ATS pages (Ashby/Greenhouse) often zero line-height on
+  // semantic tags; inherited host styles can still leak into open shadow trees.
   const DRAWER_CSS = `
-    :host { all: initial; }
-    .jm-shell { position: fixed; inset: 0; pointer-events: none; z-index: 2147483646; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
-    .jm-tab { pointer-events: auto; position: fixed; top: 40%; right: 0; transform: translateY(-50%); border: 0; background: #0f766e; color: #fff; padding: 10px 8px; border-radius: 8px 0 0 8px; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: .02em; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-    .jm-drawer { pointer-events: auto; position: fixed; top: 0; right: 0; height: 100vh; width: min(380px, 100vw); background: #fafafa; color: #111; border-left: 1px solid #e5e5e5; box-shadow: -12px 0 40px rgba(0,0,0,.12); transform: translateX(105%); transition: transform .22s ease; display: flex; flex-direction: column; }
-    .jm-drawer.is-open { transform: translateX(0); }
-    .jm-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 14px; border-bottom: 1px solid #e8e8e8; background: #fff; }
-    .jm-brand { display: flex; gap: 10px; align-items: center; min-width: 0; }
-    .jm-mark { width: 28px; height: 28px; border-radius: 8px; background: #0f766e; flex-shrink: 0; }
-    .jm-title { font-size: 14px; font-weight: 700; }
-    .jm-title span { color: #0f766e; }
-    .jm-sub { font-size: 11px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
-    .jm-icon-btn { border: 0; background: transparent; font-size: 20px; cursor: pointer; color: #444; }
-    .jm-body { padding: 14px; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
-    .jm-primary { height: 44px; border: 0; border-radius: 10px; background: #0f766e; color: #fff; font-weight: 700; cursor: pointer; }
-    .jm-primary:disabled { opacity: .6; cursor: default; }
-    .jm-help, .jm-muted, .jm-note { font-size: 12px; color: #666; line-height: 1.45; margin: 0; }
-    .jm-link { border: 0; background: transparent; color: #0f766e; text-align: left; padding: 0; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: underline; }
-    .jm-progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
-    .jm-bar { height: 8px; background: #e8e8e8; border-radius: 99px; overflow: hidden; }
-    .jm-bar i { display: block; height: 100%; background: #0f766e; }
-    .jm-fields { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-    .jm-fields li { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; border: 1px solid #e8e8e8; background: #fff; border-radius: 10px; padding: 10px; }
-    .jm-fields strong { font-size: 13px; }
-    .jm-fields p { margin: 4px 0 0; font-size: 12px; color: #666; }
-    .jm-fields button { border: 1px solid #ddd; background: #fff; border-radius: 8px; padding: 6px 8px; font-size: 11px; cursor: pointer; }
-    .jm-error { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 10px; font-size: 12px; }
-    .jm-modal { pointer-events: auto; position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .jm-modal-card { width: min(560px, 100%); max-height: 85vh; overflow: auto; background: #fff; border-radius: 16px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
-    .jm-modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .jm-modal-head h2 { margin: 0; font-size: 18px; }
-    .jm-modal-head button { border: 0; background: transparent; font-size: 22px; cursor: pointer; }
-    .jm-modal-body dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 0; }
-    .jm-modal-body dl > div { border: 1px solid #eee; border-radius: 10px; padding: 8px 10px; }
-    .jm-modal-body dt { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #888; }
-    .jm-modal-body dd { margin: 4px 0 0; font-size: 13px; white-space: pre-wrap; }
+    :host {
+      all: initial !important;
+      display: block !important;
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none !important;
+      max-height: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+      overflow: visible !important;
+      pointer-events: none !important;
+      z-index: 2147483646 !important;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 400 !important;
+      font-style: normal !important;
+      line-height: 1.45 !important;
+      letter-spacing: normal !important;
+      color: #111111 !important;
+      background: transparent !important;
+      text-align: left !important;
+      text-transform: none !important;
+      text-decoration: none !important;
+      white-space: normal !important;
+      box-sizing: border-box !important;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box !important;
+      font-family: inherit !important;
+      line-height: inherit !important;
+      letter-spacing: normal !important;
+      text-transform: none !important;
+      float: none !important;
+      clear: none !important;
+    }
+    .jm-shell {
+      position: fixed !important;
+      inset: 0 !important;
+      pointer-events: none !important;
+      z-index: 2147483646 !important;
+    }
+    .jm-tab {
+      pointer-events: auto !important;
+      position: fixed !important;
+      top: 40% !important;
+      right: 0 !important;
+      transform: translateY(-50%) !important;
+      border: 0 !important;
+      background: #0f766e !important;
+      color: #ffffff !important;
+      padding: 10px 8px !important;
+      border-radius: 8px 0 0 8px !important;
+      cursor: pointer !important;
+      font-size: 12px !important;
+      font-weight: 700 !important;
+      line-height: 1.2 !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18) !important;
+    }
+    .jm-drawer {
+      pointer-events: auto !important;
+      position: fixed !important;
+      top: 0 !important;
+      right: 0 !important;
+      height: 100vh !important;
+      width: min(380px, 100vw) !important;
+      background: #fafafa !important;
+      color: #111111 !important;
+      border-left: 1px solid #e5e5e5 !important;
+      box-shadow: -12px 0 40px rgba(0,0,0,.12) !important;
+      transform: translateX(105%) !important;
+      transition: transform .22s ease !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+    }
+    .jm-drawer.is-open { transform: translateX(0) !important; }
+    .jm-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 12px !important;
+      padding: 14px !important;
+      border-bottom: 1px solid #e8e8e8 !important;
+      background: #ffffff !important;
+      flex-shrink: 0 !important;
+    }
+    .jm-brand {
+      display: flex !important;
+      gap: 10px !important;
+      align-items: center !important;
+      min-width: 0 !important;
+    }
+    .jm-mark {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 8px !important;
+      background: #0f766e !important;
+      flex-shrink: 0 !important;
+    }
+    .jm-brand-text {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 2px !important;
+      min-width: 0 !important;
+    }
+    .jm-title {
+      display: block !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      line-height: 1.3 !important;
+      color: #111111 !important;
+    }
+    .jm-title-accent { color: #0f766e !important; }
+    .jm-sub {
+      display: block !important;
+      font-size: 11px !important;
+      line-height: 1.3 !important;
+      color: #666666 !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 240px !important;
+    }
+    .jm-icon-btn {
+      border: 0 !important;
+      background: transparent !important;
+      font-size: 20px !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      color: #444444 !important;
+      padding: 4px !important;
+    }
+    .jm-body {
+      padding: 14px !important;
+      overflow: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      flex: 1 1 auto !important;
+    }
+    .jm-primary {
+      height: 44px !important;
+      border: 0 !important;
+      border-radius: 10px !important;
+      background: #0f766e !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      font-size: 14px !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      width: 100% !important;
+    }
+    .jm-primary:disabled { opacity: .6 !important; cursor: default !important; }
+    .jm-help, .jm-muted, .jm-note {
+      display: block !important;
+      font-size: 12px !important;
+      line-height: 1.45 !important;
+      color: #666666 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      position: static !important;
+    }
+    .jm-link {
+      border: 0 !important;
+      background: transparent !important;
+      color: #0f766e !important;
+      text-align: left !important;
+      padding: 0 !important;
+      cursor: pointer !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      line-height: 1.4 !important;
+      text-decoration: underline !important;
+      width: fit-content !important;
+    }
+    .jm-progress { display: block !important; width: 100% !important; }
+    .jm-progress-label {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+      margin: 0 0 6px !important;
+      color: #111111 !important;
+    }
+    .jm-progress-pct { font-weight: 700 !important; }
+    .jm-bar {
+      height: 8px !important;
+      background: #e8e8e8 !important;
+      border-radius: 99px !important;
+      overflow: hidden !important;
+      width: 100% !important;
+    }
+    .jm-bar-fill {
+      display: block !important;
+      height: 100% !important;
+      background: #0f766e !important;
+      width: 0%;
+    }
+    .jm-fields {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+    }
+    .jm-field {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 8px !important;
+      align-items: flex-start !important;
+      justify-content: space-between !important;
+      border: 1px solid #e8e8e8 !important;
+      background: #ffffff !important;
+      border-radius: 10px !important;
+      padding: 10px !important;
+      margin: 0 !important;
+      position: static !important;
+      width: 100% !important;
+    }
+    .jm-field-main {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 4px !important;
+      min-width: 0 !important;
+      flex: 1 1 auto !important;
+      position: static !important;
+    }
+    .jm-field-label {
+      display: block !important;
+      position: static !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      line-height: 1.35 !important;
+      color: #111111 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .jm-field-value {
+      display: block !important;
+      position: static !important;
+      font-size: 12px !important;
+      font-weight: 400 !important;
+      line-height: 1.45 !important;
+      color: #666666 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+    .jm-copy {
+      border: 1px solid #dddddd !important;
+      background: #ffffff !important;
+      border-radius: 8px !important;
+      padding: 6px 8px !important;
+      font-size: 11px !important;
+      line-height: 1.2 !important;
+      cursor: pointer !important;
+      color: #111111 !important;
+      flex-shrink: 0 !important;
+    }
+    .jm-error {
+      display: block !important;
+      color: #b91c1c !important;
+      background: #fef2f2 !important;
+      border: 1px solid #fecaca !important;
+      border-radius: 8px !important;
+      padding: 8px 10px !important;
+      font-size: 12px !important;
+      line-height: 1.45 !important;
+      margin: 0 !important;
+    }
+    .jm-modal {
+      pointer-events: auto !important;
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(0,0,0,.35) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      z-index: 2147483647 !important;
+    }
+    .jm-modal-card {
+      width: min(560px, 100%) !important;
+      max-height: 85vh !important;
+      overflow: auto !important;
+      background: #ffffff !important;
+      border-radius: 16px !important;
+      padding: 18px !important;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25) !important;
+      color: #111111 !important;
+    }
+    .jm-modal-head {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      gap: 12px !important;
+      margin: 0 0 8px !important;
+    }
+    .jm-modal-title {
+      display: block !important;
+      margin: 0 !important;
+      font-size: 18px !important;
+      font-weight: 700 !important;
+      line-height: 1.3 !important;
+      color: #111111 !important;
+    }
+    .jm-modal-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 10px !important;
+      margin: 14px 0 0 !important;
+    }
+    .jm-profile-item {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 4px !important;
+      border: 1px solid #eeeeee !important;
+      border-radius: 10px !important;
+      padding: 8px 10px !important;
+      margin: 0 !important;
+      position: static !important;
+      min-width: 0 !important;
+    }
+    .jm-profile-label {
+      display: block !important;
+      position: static !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      line-height: 1.3 !important;
+      letter-spacing: .06em !important;
+      text-transform: uppercase !important;
+      color: #888888 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .jm-profile-value {
+      display: block !important;
+      position: static !important;
+      font-size: 13px !important;
+      font-weight: 400 !important;
+      line-height: 1.45 !important;
+      color: #111111 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      white-space: pre-wrap !important;
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
   `;
 
-  // Skip JobMatch itself and obvious non-apply chrome pages.
   const host = location.hostname;
   if (
     host.includes('jobmatch') ||
     host === 'localhost' ||
     host === '127.0.0.1' ||
     location.protocol === 'chrome:' ||
-    location.protocol === 'chrome-extension:'
+    location.protocol === 'chrome-extension:' ||
+    location.protocol === 'moz-extension:'
   ) {
     return;
   }
@@ -65,9 +387,32 @@
 
   const root = document.createElement('div');
   root.id = 'jobmatch-autofill-root';
+  // Limit inheritable ATS resets before they reach the shadow tree.
+  root.setAttribute(
+    'style',
+    [
+      'all: initial',
+      'display: block',
+      'position: fixed',
+      'inset: 0',
+      'width: 100%',
+      'height: 100%',
+      'margin: 0',
+      'padding: 0',
+      'border: 0',
+      'overflow: visible',
+      'pointer-events: none',
+      'z-index: 2147483646',
+      'font-family: ui-sans-serif, system-ui, sans-serif',
+      'font-size: 14px',
+      'line-height: 1.45',
+      'color: #111',
+      'background: transparent',
+    ].join(';'),
+  );
   document.documentElement.appendChild(root);
 
-  const shadow = root.attachShadow({ mode: 'open' });
+  const shadow = root.attachShadow({ mode: 'closed' });
   const css = document.createElement('style');
   css.textContent = DRAWER_CSS;
   shadow.appendChild(css);
@@ -144,8 +489,7 @@
   }
 
   function fieldList() {
-    const plan = state.data?.session?.fillPlan || buildFallbackPlan(state.data);
-    return plan;
+    return state.data?.session?.fillPlan || buildFallbackPlan(state.data);
   }
 
   function render() {
@@ -159,56 +503,61 @@
 
     panel.innerHTML = `
       <button class="jm-tab" type="button" title="Toggle JobMatch Autofill">${open ? '›' : '‹'} JM</button>
-      <aside class="jm-drawer ${open ? 'is-open' : ''}">
-        <header class="jm-header">
+      <div class="jm-drawer ${open ? 'is-open' : ''}">
+        <div class="jm-header">
           <div class="jm-brand">
             <div class="jm-mark" aria-hidden="true"></div>
-            <div>
-              <div class="jm-title">JobMatch <span>Copilot</span></div>
+            <div class="jm-brand-text">
+              <div class="jm-title">JobMatch <span class="jm-title-accent">Copilot</span></div>
               <div class="jm-sub">${escapeHtml(companyName)} · ${escapeHtml(jobTitle)}</div>
             </div>
           </div>
           <button class="jm-icon-btn" type="button" data-action="close" aria-label="Collapse">›</button>
-        </header>
+        </div>
         <div class="jm-body">
           <button class="jm-primary" type="button" data-action="autofill" ${state.loading || state.autofilling ? 'disabled' : ''}>
             ${state.autofilling ? 'Autofilling…' : 'Autofill'}
           </button>
-          <p class="jm-help">Fills this page's form from your JobMatch profile / fill plan. Never submits.</p>
+          <div class="jm-help">Fills this page's form from your JobMatch profile / fill plan. Never submits.</div>
           <button class="jm-link" type="button" data-action="profile">Your Autofill Information</button>
-          ${state.loading ? '<p class="jm-muted">Loading fill plan…</p>' : ''}
+          ${state.loading ? '<div class="jm-muted">Loading fill plan…</div>' : ''}
           ${
             fields.length
-              ? `<div class="jm-progress"><div class="jm-progress-label"><span>Form fields</span><strong>${pct}%</strong></div><div class="jm-bar"><i style="width:${pct}%"></i></div></div>
-                 <ul class="jm-fields">${fields
+              ? `<div class="jm-progress">
+                   <div class="jm-progress-label"><span>Form fields</span><span class="jm-progress-pct">${pct}%</span></div>
+                   <div class="jm-bar"><div class="jm-bar-fill" style="width:${pct}%"></div></div>
+                 </div>
+                 <div class="jm-fields">${fields
                    .map(
-                     (f) => `<li>
-                       <div><strong>${escapeHtml(f.label)}</strong>
-                       <p>${escapeHtml(truncate(f.value || 'Empty', 120))}</p></div>
-                       ${f.value ? `<button type="button" data-copy="${escapeAttr(f.value)}">Copy</button>` : ''}
-                     </li>`,
+                     (f) => `<div class="jm-field">
+                       <div class="jm-field-main">
+                         <div class="jm-field-label">${escapeHtml(f.label)}</div>
+                         <div class="jm-field-value">${escapeHtml(truncate(f.value || 'Empty', 120))}</div>
+                       </div>
+                       ${f.value ? `<button class="jm-copy" type="button" data-copy="${escapeAttr(f.value)}">Copy</button>` : ''}
+                     </div>`,
                    )
-                   .join('')}</ul>`
-              : '<p class="jm-muted">No fields yet. Connect the extension and complete your JobMatch profile.</p>'
+                   .join('')}</div>`
+              : '<div class="jm-muted">No fields yet. Connect the extension and complete your JobMatch profile.</div>'
           }
-          ${state.note ? `<p class="jm-note">${escapeHtml(state.note)}</p>` : ''}
-          ${state.error ? `<p class="jm-error">${escapeHtml(state.error)}</p>` : ''}
+          ${state.note ? `<div class="jm-note">${escapeHtml(state.note)}</div>` : ''}
+          ${state.error ? `<div class="jm-error">${escapeHtml(state.error)}</div>` : ''}
           ${
             !data
               ? ''
               : data.matched
-                ? '<p class="jm-muted">Matched a JobMatch job for this apply URL.</p>'
-                : `<p class="jm-muted">${escapeHtml(data.message || '')}</p>`
+                ? '<div class="jm-muted">Matched a JobMatch job for this apply URL.</div>'
+                : `<div class="jm-muted">${escapeHtml(data.message || '')}</div>`
           }
         </div>
-      </aside>
+      </div>
       ${
         state.profileOpen
           ? `<div class="jm-modal">
               <div class="jm-modal-card">
                 <div class="jm-modal-head">
-                  <h2>Your Autofill Information</h2>
-                  <button type="button" data-action="close-profile">×</button>
+                  <div class="jm-modal-title">Your Autofill Information</div>
+                  <button class="jm-icon-btn" type="button" data-action="close-profile">×</button>
                 </div>
                 <div class="jm-modal-body">${renderProfile(data)}</div>
               </div>
@@ -255,7 +604,7 @@
   function renderProfile(data) {
     const p = data?.profile;
     const u = data?.user;
-    if (!p && !u) return '<p class="jm-muted">Profile unavailable.</p>';
+    if (!p && !u) return '<div class="jm-muted">Profile unavailable.</div>';
     const rows = [
       ['Name', u?.name],
       ['Email', u?.email],
@@ -268,12 +617,15 @@
       ['GitHub', p?.githubUrl],
       ['Skills', (p?.skills || []).map((s) => s.name).filter(Boolean).join(', ')],
     ];
-    return `<dl>${rows
+    return `<div class="jm-modal-grid">${rows
       .map(
         ([label, value]) =>
-          `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || '—')}</dd></div>`,
+          `<div class="jm-profile-item">
+             <div class="jm-profile-label">${escapeHtml(label)}</div>
+             <div class="jm-profile-value">${escapeHtml(value || '—')}</div>
+           </div>`,
       )
-      .join('')}</dl>`;
+      .join('')}</div>`;
   }
 
   function escapeHtml(value) {
